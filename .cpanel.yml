@@ -1,0 +1,6 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home3/sipcons1/public_html/
+    - /bin/rsync -av app/ $DEPLOYPATH
+   

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Incidencia</title>
+    <link rel="stylesheet" href="../css/styles.css?v=4">
+    <link rel="stylesheet" href="../css/detalle.css?v=2">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+</head>
+<body>
+
+    <div class="retorna">
+        <a href="incidencias.html"><<- Volver a Incidencias</a>
+    </div>
+
+    <!-- Panel lateral -->
+    <aside class="sidebar">
+        <ul>
+            <li><a href="../index.html">Inicio</a></li>
+            <li><a href="incidencias.html">Incidencias</a></li>
+            <li><a href="reportes.html">Buscar incidencias</a></li>
+            <li><a href="clientes.html">Clientes</a></li>
+            <li><a href="usuarios.html">Usuarios</a></li>
+            <li><a href="#">Configuración</a></li>
+        </ul>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main>
+        <!-- Formulario para ACTUALIZAR una incidencia -->
+        <section class="encabezado">
+            <h2>Detalles de la Incidencia</h2>
+            <div id="detalle-incidencia">
+                <p>Cargando detalles...</p>
+            </div>
+        </section>
+        
+        <section class="archivos-incidencia">
+            <h2>Archivos de la Incidencia</h2>
+            <div id="contenedor-archivos" style="display: flex; flex-wrap: wrap;"></div>
+        </section>
+    </main>
+
+    <script src="../scripts/detalle.js?v=2"></script>
+</body>
+</html>

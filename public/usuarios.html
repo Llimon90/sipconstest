@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alta de Usuarios Técnicos</title>
+    <link rel="stylesheet" href="../css/styles.css?v=1.9">
+  
+    <script src="script-user.js" defer></script>
+</head>
+<body>
+
+    <div class="retorna" >
+        <a href="../index.html">  <<- Inicio</a>        </div>
+
+  <!-- Panel lateral -->
+  <aside class="sidebar">
+    
+    <ul>
+      <li><a href="../index.html">Inicio</a></li>
+      <li><a href="incidencias.html">Incidencias</a></li>
+      <li><a href="reportes.html">Buscar incidencias</a></li>
+      <li><a href="clientes.html">Clientes</a></li>
+      <li><a href="usuarios.html">Usuarios</a></li>
+      <li><a href="#">Configuración</a></li>
+    </ul>
+
+  </aside>
+    <main>
+        <!-- Sección de registro de usuarios -->
+        <section class="encabezado">
+            <h2>Dar de alta a un nuevo usuario</h2>
+            <form id="alta-usuarios-form">
+                <div class="form-row">
+                    <div>
+                        <label for="nombre">Nombre completo</label>
+                        <input type="text" id="nombre" name="nombre" required placeholder="Nombre del técnico">
+                    </div>
+                    <div>
+                        <label for="correo">Correo electrónico</label>
+                        <input type="text" id="correo" name="correo" required placeholder="Correo del técnico">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label for="telefono">Teléfono</label>
+                        <input type="text" id="telefono" name="telefono" required placeholder="Número de teléfono">
+                    </div>
+                    <div>
+                        <label for="usuario">Usuario</label>
+                        <input type="text" id="usuario" name="usuario" required placeholder="Nombre de usuario">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label for="password">Contraseña</label>
+                        <input type="text" id="password" name="password" required placeholder="Contraseña">
+                    </div>
+                    <div>
+                        <label for="confirm-password">Confirmar Contraseña</label>
+                        <input type="text" id="confirm-password" name="confirm_password" required placeholder="Confirmar contraseña">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label for="rol">Rol</label>
+                        <select id="rol" name="rol" required>
+                            <option value="administrador">Administrativo</option>
+                            <option value="tecnico">Técnico</option>
+                            <option value="administrador">Administrador</option>
+                            
+                        </select>
+                    </div>
+                </div>
+                <button type="submit">Registrar Usuario</button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

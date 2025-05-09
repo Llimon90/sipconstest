@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buscar Incidencias</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+  <link rel="stylesheet" href="../css/styles.css?v=1.15">
+  
+  
+</head>
+<body>
+
+  <div class="retorna">
+    <a href="../index.html">  <<- Inicio</a>  </div>
+
+  <!-- Panel lateral -->
+  <aside class="sidebar">
+    
+    <ul>
+      <li><a href="../index.html">Inicio</a></li>
+      <li><a href="incidencias.html">Incidencias</a></li>
+      <li><a href="reportes.html">Buscar incidencias</a></li>
+      <li><a href="clientes.html">Clientes</a></li>
+      <li><a href="usuarios.html">Usuarios</a></li>
+      <li><a href="#">Configuración</a></li>
+    </ul>
+
+  </aside>
+
+  <!-- Contenido principal -->
+  <main class="container">
+    <section class="encabezado">
+      <h2>Filtrar incidencias</h2>
+      <form id="report-form">
+        
+        <div class="form-row">
+          <label for="cliente">Cliente:</label>
+          <select id="cliente" name="cliente">
+            <option value="">Seleccionar Cliente</option>
+           
+            <option value="todos">Todos</option>
+          </select>
+        </div>
+      
+        <div class="form-row">
+            <div>
+              <label for="fecha-inicio">Fecha de Inicio:</label>
+              <input type="date" id="fecha-inicio" name="fecha-inicio">
+            </div>
+      
+            <div>
+              <label for="fecha-fin">Fecha de Fin:</label>
+              <input type="date" id="fecha-fin" name="fecha-fin">
+            </div>
+      </div>
+      
+        <div class="form-row">
+          <label for="estatus">Estatus:</label>
+          <select id="estatus" name="estatus">
+            <option value="">Seleccionar Estatus</option>
+            <option value="Abierto">Abierto</option>
+            <option value="Asignado">Asignado</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="Completado">Completado</option>
+            <option value="Cerrado sin factura">Cerrado sin factura</option>
+            <option value="Cerrado con factura">Cerrado con factura</option>
+          </select>
+        </div>
+      
+        <div class="form-row">
+          <label for="sucursal">Sucursal:</label>
+          <input type="text" id="sucursal" name="sucursal">
+          
+       
+          </select>
+        </div>
+      
+        <button type="submit" aria-label="Buscar incidencias">Buscar</button>
+        <button type="button" onclick="document.getElementById('report-form').reset(); window.location.reload();">Limpiar Filtros</button>
+
+
+      </form>
+      
+    </section>
+
+    <!-- Resultados del Reporte -->
+    <section class="lista-incidencias">
+      <h2>Historial de incidencias</h2>
+      <div id="report-data" style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th># Reporte Interno</th>
+              <th># Incidencia Cliente</th>
+              <th>Cliente</th>
+              <th>Sucursal</th>
+              <th>Falla</th>
+              <th>Fecha</th>
+              <th>Estatus</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-body">
+            <!-- Los reportes generados dinámicamente aparecerán aquí -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <script src="../scripts/script-busquedas.js?v=9.2" defer></script>
+  <!-- <script src="../scripts/script_cargas.js?v=4.4" defer></script> -->
+</body>
+</html>
