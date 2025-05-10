@@ -41,6 +41,14 @@ $rutaCompleta = $rutaBase . ltrim($urlArchivo, '/');
 
 // 4. Verificar si el archivo existe y eliminarlo
 if (file_exists($rutaCompleta)) {
+    if (!is_writable($rutaCompleta)) {
+        echo json_encode([
+            'success' => false,
+            'error' => 'Permisos insuficientes para eliminar el archivo.'
+        ]);
+        exit;
+    }
+
     if (!unlink($rutaCompleta)) {
         echo json_encode([
             'success' => false,
