@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
 
-// 1. Configuración de conexión a la base de datos
+// Configuración de conexión a la base de datos
 $host = "localhost";
 $user = "sipcons1_test";
 $password = "sip*SYS2025";
@@ -19,7 +19,7 @@ try {
     exit;
 }
 
-// 2. Obtener y validar datos del POST
+// Obtener y validar datos del POST
 $idIncidencia = isset($_POST['id_incidencia']) ? (int)$_POST['id_incidencia'] : null;
 $urlArchivo = isset($_POST['url_archivo']) ? $_POST['url_archivo'] : null;
 
@@ -35,11 +35,11 @@ if (!$idIncidencia || !$urlArchivo) {
     exit;
 }
 
-// 3. Construir la ruta completa del archivo
+// Construir la ruta completa del archivo
 $rutaBase = $_SERVER['DOCUMENT_ROOT'] . '/uploads/';
 $rutaCompleta = $rutaBase . ltrim($urlArchivo, '/');
 
-// 4. Verificar si el archivo existe y eliminarlo
+// Verificar si el archivo existe y eliminarlo
 if (file_exists($rutaCompleta)) {
     if (!is_writable($rutaCompleta)) {
         echo json_encode([
@@ -64,7 +64,7 @@ if (file_exists($rutaCompleta)) {
     exit;
 }
 
-// 5. Eliminar el registro de la base de datos
+// Eliminar el registro de la base de datos
 try {
     $sql = "DELETE FROM archivos WHERE id_incidencia = :id_incidencia AND url_archivo = :url_archivo";
     $stmt = $pdo->prepare($sql);
