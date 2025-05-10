@@ -35,14 +35,41 @@ if (!$idIncidencia || !$urlArchivo) {
     exit;
 }
 
+// 3. Construir la ruta completa del archivo
+$rutaBase = $_SERVER['DOCUMENT_ROOT'] . '/uploads/';
+$rutaCompleta = $rutaBase . ltrim($urlArchivo, '/');
+
+// 4. Verificar si el archivo existe y eliminarlo
+if (file_exists($rutaCompleta)) {
+    if (!unlink($rutaCompleta)) {
+        echo json_encode([
+            'success' => false,
+            'error' => 'No se pudo eliminar el archivo del sistema de archivos.'
+        ]);
+        exit;
+    }
+} else {
+    echo json_encode([
+        'success' => false,
+        'error' => 'El archivo no existe en el sistema de archivos.'
+    ]);
+    exit;
+}
+
+// 5. Eliminar el registro de la base de datos
 try {
-    // --- LOGGING PARA DEPURACIÓN ---
-    error_log("ID de Incidencia recibido: " . $idIncidencia);
-    error_log("URL de Archivo recibida: " . $urlArchivo);
-    error_log("DOCUMENT_ROOT: " . $_SERVER['DOCUMENT_ROOT']);
-    $rutaBase = $_SERVER['DOCUMENT_ROOT'] . '/uploads/';
-    error_log("Ruta Base construida: " . $rutaBase);
-    $rutaCompleta = realpath($rutaBase . ltrim($urlArchivo, '/'));
-    error_log("Ruta Completa construida (realpath): " . $rutaCompleta);
-    error_log("¿Existe el archivo?: " . (file_exists($rutaCompleta) ? 'Sí' : 'No'));
-    // ---
+    $sql = "DELETE FROM archivos WHERE id_incidencia = :id_incidencia AND url_archivo = :url_archivo";
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindParam(':id_incidencia', $idIncidencia, PDO::PARAM_INT);
+    $stmt->bindParam(':url_archivo', $urlArchivo, PDO::PARAM_STR);
+    $stmt->execute();
+
+    echo json_encode(['success' => true]);
+} catch (PDOException $e) {
+    echo json_encode([
+        'success' => false,
+        'error' => 'Error al eliminar el registro de la base de datos.',
+        'details' => $e->getMessage()
+    ]);
+}
+?>
