@@ -5,7 +5,7 @@ header('Content-Type: application/json');
 $host = "localhost";
 $user = "sipcons1_appweb";
 $password = "sip*SYS2025";
-$database = "sipcons1_appweb";
+$database = "sipcons1_sipcons_test";
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$database;charset=utf8", $user, $password);

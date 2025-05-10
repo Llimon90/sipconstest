@@ -7,7 +7,7 @@ ini_set('display_errors', 0);
 $host = "localhost";
 $user = "sipcons1_appweb";
 $password = "sip*SYS2025";
-$database = "sipcons1_appweb";
+$database = "sipcons1_sipcons_test";
 
 // Conexión a la base de datos
 $conn = new mysqli($host, $user, $password, $database);

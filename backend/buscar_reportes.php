@@ -3,7 +3,7 @@
 $host = "localhost";
 $user = "sipcons1_appweb";
 $password = "sip*SYS2025";
-$database = "sipcons1_appweb";
+$database = "sipcons1_sipcons_test";
 // Crear conexión
 $conn = new mysqli($host, $user, $password, $database);
 
