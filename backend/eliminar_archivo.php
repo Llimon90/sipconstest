@@ -21,23 +21,23 @@ try {
 
 // Obtener y validar datos del POST
 $idIncidencia = isset($_POST['id_incidencia']) ? (int)$_POST['id_incidencia'] : null;
-$urlArchivo = isset($_POST['url_archivo']) ? $_POST['url_archivo'] : null;
+$nombreArchivo = isset($_POST['url_archivo']) ? $_POST['url_archivo'] : null;
 
-if (!$idIncidencia || !$urlArchivo) {
+if (!$idIncidencia || !$nombreArchivo) {
     echo json_encode([
         'success' => false,
         'error' => 'Datos incompletos',
         'received' => [
             'id_incidencia' => $idIncidencia,
-            'url_archivo' => $urlArchivo
+            'url_archivo' => $nombreArchivo
         ]
     ]);
     exit;
 }
 
-// Construir la ruta completa del archivo
+// Construir la ruta completa del archivo (asumiendo que está en /uploads/)
 $rutaBase = $_SERVER['DOCUMENT_ROOT'] . '/uploads/';
-$rutaCompleta = $rutaBase . ltrim($urlArchivo, '/');
+$rutaCompleta = $rutaBase . $nombreArchivo;
 
 // Verificar si el archivo existe y eliminarlo
 if (file_exists($rutaCompleta)) {
@@ -66,10 +66,10 @@ if (file_exists($rutaCompleta)) {
 
 // Eliminar el registro de la base de datos
 try {
-    $sql = "DELETE FROM archivos WHERE id_incidencia = :id_incidencia AND url_archivo = :url_archivo";
+    $sql = "DELETE FROM archivos WHERE id_incidencia = :id_incidencia AND url_archivo LIKE :nombre_archivo";
     $stmt = $pdo->prepare($sql);
     $stmt->bindParam(':id_incidencia', $idIncidencia, PDO::PARAM_INT);
-    $stmt->bindParam(':url_archivo', $urlArchivo, PDO::PARAM_STR);
+    $stmt->bindValue(':nombre_archivo', '%' . $nombreArchivo, PDO::PARAM_STR); // Usamos LIKE para evitar problemas con rutas completas
     $stmt->execute();
 
     echo json_encode(['success' => true]);

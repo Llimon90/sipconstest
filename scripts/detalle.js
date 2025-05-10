@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     async function eliminarArchivo(urlArchivo, containerElement) {
         if (!confirm('¿Estás seguro de que deseas eliminar este archivo permanentemente?')) {
-            return;
+            return; // <-- Se corrigió el error de la "a" suelta
         }
 
         containerElement.classList.add('eliminando');
@@ -34,7 +34,9 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             const formData = new FormData();
             formData.append('id_incidencia', id);
-            formData.append('url_archivo', new URL(urlArchivo).pathname); // Enviamos el pathname
+            
+            // Solo enviamos el nombre del archivo (sin la ruta completa)
+            formData.append('url_archivo', urlArchivo.split('/').pop());
 
             const response = await fetch("../backend/eliminar_archivo.php", {
                 method: "POST",
@@ -58,6 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    
     function cargarArchivosAdjuntos(archivos) {
         const contenedorArchivos = document.getElementById("contenedor-archivos");
         contenedorArchivos.innerHTML = "";
