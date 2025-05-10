@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 
 $host = "localhost";
-$user = "sipcons1_sipcons_test";
+$user = "sipcons1_appweb";
 $password = "sip*SYS2025";
 $database = "sipcons1_sipcons_test";
 
