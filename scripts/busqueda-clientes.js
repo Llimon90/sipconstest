@@ -7,17 +7,12 @@ $(document).ready(function() {
                 method: 'POST',
                 data: { consulta: consulta },
                 success: function(data) {
-                    $('#resultados').fadeIn();
-                    $('#resultados').html(data);
+                    $('#lista-clientes').html(data);
                 }
             });
         } else {
-            $('#resultados').fadeOut();
+            // Si el campo de búsqueda está vacío, podrías cargar todos los clientes o dejar la tabla vacía
+            $('#lista-clientes').html('');
         }
-    });
-
-    $(document).on('click', 'li', function() {
-        $('#busqueda').val($(this).text());
-        $('#resultados').fadeOut();
     });
 });
