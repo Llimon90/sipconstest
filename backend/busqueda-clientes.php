@@ -1,6 +1,8 @@
 <?php
 require_once 'conexion.php';
 
+header('Content-Type: application/json');
+
 if (isset($_POST['consulta'])) {
     $consulta = $conexion->real_escape_string($_POST['consulta']);
     $sql = "SELECT nombre, rfc, direccion, telefono, contactos, email 
@@ -19,7 +21,8 @@ if (isset($_POST['consulta'])) {
         $clientes[] = $fila;
     }
 
-    header('Content-Type: application/json');
     echo json_encode($clientes);
+} else {
+    echo json_encode([]);
 }
 ?>
