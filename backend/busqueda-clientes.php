@@ -1,5 +1,18 @@
 <?php
-$conexion = new mysqli('localhost', 'user', 'password', 'database');
+// Configurar conexión con la base de datos
+$host = "localhost";
+$user = "sipcons1_test";
+$password = "sip*SYS2025";
+$database = "sipcons1_sipcons_test";
+
+// Crear conexión
+$conn = new mysqli($host, $user, $password, $database);
+
+// Verificar conexión
+if ($conn->connect_error) {
+    die(json_encode(["error" => "Error de conexión: " . $conn->connect_error]));
+}
+
 
 if (isset($_POST['consulta'])) {
     $consulta = $conexion->real_escape_string($_POST['consulta']);
