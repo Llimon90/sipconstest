@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const busquedaInput = document.getElementById('busqueda');
-    const resultados = document.getElementById('lista-clientes');
+    const resultados = document.getElementById('resultados');
 
     busquedaInput.addEventListener('keyup', () => {
         const consulta = busquedaInput.value.trim();
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .then(response => response.json())
             .then(data => {
-                lista-clientes.innerHTML = '';
+                resultados.innerHTML = '';
                 if (data.length > 0) {
                     const ul = document.createElement('ul');
                     data.forEach(cliente => {
@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         li.textContent = `${cliente.nombre} - ${cliente.rfc}`;
                         ul.appendChild(li);
                     });
-                    lista-clientes.appendChild(ul);
+                    resultados.appendChild(ul);
                 } else {
                     resultados.textContent = 'No se encontraron resultados';
                 }
