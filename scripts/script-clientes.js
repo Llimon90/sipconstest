@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function cargarClientes() {
-    fetch('../php/obtener-clientes.php')
+    fetch('../backend/obtener-clientes.php')
         .then(response => response.json())
         .then(data => {
             mostrarClientes(data);
@@ -26,7 +26,7 @@ function buscarClientes(consulta) {
         return;
     }
     
-    fetch('busqueda-clientes.php', {
+    fetch('../backend/busqueda-clientes.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
