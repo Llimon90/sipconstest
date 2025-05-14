@@ -3,7 +3,7 @@ $(document).ready(function() {
         var consulta = $(this).val();
         if (consulta.length > 0) {
             $.ajax({
-                url: 'busqueda-clientes.php',
+                url: '../backend/busqueda-clientes.php',
                 method: 'POST',
                 data: { consulta: consulta },
                 success: function(data) {
