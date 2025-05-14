@@ -1,18 +1,38 @@
-$(document).ready(function() {
-    $('#busqueda').keyup(function() {
-        var consulta = $(this).val();
+document.addEventListener('DOMContentLoaded', () => {
+    const busquedaInput = document.getElementById('busqueda');
+    const resultados = document.getElementById('lista-clientes');
+
+    busquedaInput.addEventListener('keyup', () => {
+        const consulta = busquedaInput.value.trim();
+
         if (consulta.length > 0) {
-            $.ajax({
-                url: '../backend/busqueda-clientes.php',
+            fetch('../backend/busqueda-clientes.php', {
                 method: 'POST',
-                data: { consulta: consulta },
-                success: function(data) {
-                    $('#lista-clientes').html(data);
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({ consulta }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                lista-clientes.innerHTML = '';
+                if (data.length > 0) {
+                    const ul = document.createElement('ul');
+                    data.forEach(cliente => {
+                        const li = document.createElement('li');
+                        li.textContent = `${cliente.nombre} - ${cliente.rfc}`;
+                        ul.appendChild(li);
+                    });
+                    lista-clientes.appendChild(ul);
+                } else {
+                    resultados.textContent = 'No se encontraron resultados';
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
             });
         } else {
-            // Si el campo de búsqueda está vacío, podrías cargar todos los clientes o dejar la tabla vacía
-            $('#lista-clientes').html('');
+            resultados.innerHTML = '';
         }
     });
 });
