@@ -4,22 +4,12 @@ header('Content-Type: application/json');
 // ==============================================
 // 1. Configuración de conexión a la base de datos
 // ==============================================
-$host = "localhost";
-$user = "sipcons1_test";
-$password = "sip*SYS2025";
-$database = "sipcons1_sipcons_test";
+require_once 'conexion.php';
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$database;charset=utf8", $user, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    echo json_encode([
-        'success' => false,
-        'error' => 'Error de conexión a la base de datos',
-        'details' => $e->getMessage()
-    ]);
-    exit;
+if ($conn->connect_error) {
+    die(json_encode(["error" => "Error de conexión: " . $conn->connect_error]));
 }
+
 
 // ==============================================
 // 2. Validación de datos POST

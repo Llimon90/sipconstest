@@ -4,14 +4,10 @@ header('Content-Type: application/json');
 error_reporting(0);
 ini_set('display_errors', 0);
 
-$host = "localhost";
-$user = "sipcons1_test";
-$password = "sip*SYS2025";
-$database = "sipcons1_sipcons_test";
 
 
 // Conexión a la base de datos
-$conn = new mysqli($host, $user, $password, $database);
+require_once 'conexion.php';
 
 if ($conn->connect_error) {
     echo json_encode(['success' => false, 'message' => 'Error de conexión: ' . $conn->connect_error]);
