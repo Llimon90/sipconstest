@@ -51,7 +51,7 @@ try {
         throw new Exception("Error al preparar la consulta: " . $conn->error);
     }
 
-    $stmt->bind_param("ssssssi", $nombre, $rfc, $direccion, $telefono, $contactos, $email, $id);
+    $stmt->bind_param("ssssss", $nombre, $rfc, $direccion, $telefono, $contactos, $email, $id);
 
     if (!$stmt->execute()) {
         throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
