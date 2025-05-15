@@ -76,5 +76,6 @@ function mostrarResultadosClientes(clientes, limpiarTabla = true) {
         tbody.appendChild(tr);
     });
 }
+});
 
-// Resto de funciones auxiliares (mostrarMensajeError, escapeHtml) permanecen igual
+
