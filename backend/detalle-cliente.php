@@ -1,45 +1,33 @@
 <?php
-// Cone xión a la base de datos
+header('Content-Type: application/json');
+
 require_once 'conexion.php';
 
-$conn = new mysqli($host, $user, $password, $database);
-
 if ($conn->connect_error) {
-    die(json_encode(["error" => "Error de conexión: " . $conn->connect_error]));
+    echo json_encode(['error' => 'Error de conexión: ' . $conn->connect_error]);
+    exit;
 }
 
-$id = isset($_GET["id"]) ? intval($_GET["id"]) : 0;
+$id = $_GET['id'] ?? null;
 
-if ($id === 0) {
-    echo json_encode(["error" => "ID de incidencia inválido"]);
-    exit();
+if (!$id) {
+    echo json_encode(['error' => 'ID de cliente no proporcionado']);
+    exit;
 }
 
-// Obtener datos de la incidencia
-$sql = "SELECT * FROM incidencias WHERE id = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $id);
-$stmt->execute();
-$result = $stmt->get_result();
-$data = $result->fetch_assoc();
-$stmt->close();
-
-// Obtener archivos de la incidencia
-$sql = "SELECT ruta_archivo FROM archivos_incidencias WHERE incidencia_id = ?";
+$sql = "SELECT * FROM clientes WHERE id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $id);
 $stmt->execute();
 $result = $stmt->get_result();
 
-$archivos = [];
-while ($row = $result->fetch_assoc()) {
-    $archivos[] = $row["ruta_archivo"];
+if ($result->num_rows > 0) {
+    $cliente = $result->fetch_assoc();
+    echo json_encode($cliente);
+} else {
+    echo json_encode(['error' => 'Cliente no encontrado']);
 }
+
 $stmt->close();
-
-$data["archivos"] = $archivos;
-
 $conn->close();
-
-echo json_encode($data);
 ?>
