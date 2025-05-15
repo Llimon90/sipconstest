@@ -43,7 +43,6 @@ try {
             telefono = ?, 
             contactos = ?, 
             email = ?, 
-            fecha_actualizacion = NOW() 
             WHERE id = ?";
     
     $stmt = $conn->prepare($sql);
