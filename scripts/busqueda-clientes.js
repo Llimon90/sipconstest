@@ -1,10 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
     const inputBusqueda = document.getElementById('busqueda');
     
+    // Cargar todos los clientes al inicio
+    cargarClientes();
+    
     if (inputBusqueda) {
-        // Cargar todos los clientes al inicio
-        cargarClientes();
-        
         // Búsqueda en tiempo real con debounce
         inputBusqueda.addEventListener('input', debounce(function(e) {
             const termino = e.target.value.trim();
@@ -30,7 +30,7 @@ function debounce(func, wait) {
 // Función para cargar todos los clientes
 async function cargarClientes() {
     try {
-        const response = await fetch('../backend/obtener-busqueda-clientes.php');
+        const response = await fetch('../backend/obtener-clientes.php');
         
         if (!response.ok) {
             throw new Error(`Error HTTP: ${response.status}`);
@@ -38,11 +38,12 @@ async function cargarClientes() {
         
         const data = await response.json();
         
-        if (!data.success) {
-            throw new Error(data.error || "Error al cargar clientes");
+        if (data.error) {
+            throw new Error(data.error);
         }
         
-        mostrarClientes(data.data);
+        mostrarClientes(data);
+        configurarEventosClientes(); // Configurar eventos después de cargar
     } catch (error) {
         console.error('Error:', error);
         mostrarError('Error al cargar clientes: ' + error.message);
@@ -66,17 +67,16 @@ async function buscarClientes(termino) {
         
         const data = await response.json();
         
-        if (!data.success) {
-            throw new Error(data.error || "Error en la búsqueda");
+        if (data.error) {
+            throw new Error(data.error);
         }
         
-        mostrarClientes(data.data);
+        mostrarClientes(data);
+        configurarEventosClientes(); // Configurar eventos después de buscar
     } catch (error) {
         console.error('Error en búsqueda:', error);
         mostrarError('Error en búsqueda: ' + error.message);
-        
-        // Recargar clientes como fallback
-        await cargarClientes();
+        await cargarClientes(); // Recargar clientes como fallback
     }
 }
 
@@ -95,23 +95,166 @@ function mostrarClientes(clientes) {
     clientes.forEach(cliente => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${cliente.nombre || ''}</td>
-            <td>${cliente.rfc || ''}</td>
-            <td>${cliente.direccion || ''}</td>
-            <td>${cliente.telefono || ''}</td>
-            <td>${cliente.contactos || ''}</td>
-            <td>${cliente.email || ''}</td>
+            <td>${escapeHtml(cliente.nombre || '')}</td>
+            <td>${escapeHtml(cliente.rfc || '')}</td>
+            <td>${escapeHtml(cliente.direccion || '')}</td>
+            <td>${escapeHtml(cliente.telefono || '')}</td>
+            <td>${escapeHtml(cliente.contactos || '')}</td>
+            <td>${escapeHtml(cliente.email || '')}</td>
             <td>
-                <button onclick="editarCliente(${cliente.id})" class="btn-editar">
+                <button class="btn-editar" data-id="${cliente.id}" title="Editar">
                     <i class="fas fa-edit"></i>
                 </button>
-                <button onclick="eliminarCliente(${cliente.id})" class="btn-eliminar">
+                <button class="btn-eliminar" data-id="${cliente.id}" title="Eliminar">
                     <i class="fas fa-trash-alt"></i>
                 </button>
             </td>
         `;
         tbody.appendChild(tr);
     });
+}
+
+// Configurar eventos para los botones de editar/eliminar
+function configurarEventosClientes() {
+    // Eventos para botones de editar
+    document.querySelectorAll('.btn-editar').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            cargarFormularioEdicion(id);
+        });
+    });
+    
+    // Eventos para botones de eliminar
+    document.querySelectorAll('.btn-eliminar').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            confirmarEliminacion(id);
+        });
+    });
+}
+
+// Función para cargar formulario de edición
+async function cargarFormularioEdicion(id) {
+    try {
+        const response = await fetch(`../backend/detalle-cliente.php?id=${id}`);
+        if (!response.ok) throw new Error('Error al obtener datos del cliente');
+        
+        const cliente = await response.json();
+        const formulario = document.getElementById('formulario-edicion');
+
+        formulario.innerHTML = `
+            <form id="form-editar-cliente">
+                <input type="hidden" name="id" value="${escapeHtml(cliente.id)}">
+                
+                <div class="form-row">
+                    <div>  
+                        <label for="nombre-editar">Nombre:</label>
+                        <input type="text" id="nombre-editar" name="nombre" value="${escapeHtml(cliente.nombre)}" required>
+                    </div>
+                    <div>
+                        <label for="rfc-editar">RFC:</label>
+                        <input type="text" id="rfc-editar" name="rfc" value="${escapeHtml(cliente.rfc)}">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div>  
+                        <label for="direccion-editar">Dirección:</label>
+                        <input type="text" id="direccion-editar" name="direccion" value="${escapeHtml(cliente.direccion)}">
+                    </div>
+                    <div>
+                        <label for="telefono-editar">Teléfono:</label>
+                        <input type="text" id="telefono-editar" name="telefono" value="${escapeHtml(cliente.telefono)}">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div>
+                        <label for="contactos-editar">Contactos:</label>
+                        <input type="text" id="contactos-editar" name="contactos" value="${escapeHtml(cliente.contactos)}">
+                    </div>
+                    <div>
+                        <label for="email-editar">E-mail:</label>
+                        <input type="email" id="email-editar" name="email" value="${escapeHtml(cliente.email)}">
+                    </div>
+                </div>
+                
+                <button type="submit">Guardar Cambios</button>
+            </form>
+        `;
+
+        document.getElementById('modal-edicion').style.display = 'block';
+        document.getElementById('form-editar-cliente').addEventListener('submit', function(e) {
+            e.preventDefault();
+            actualizarCliente();
+        });
+
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('Error al cargar cliente: ' + error.message);
+    }
+}
+
+// Función para actualizar cliente
+async function actualizarCliente() {
+    const form = document.getElementById('form-editar-cliente');
+    const formData = new FormData(form);
+    const datos = Object.fromEntries(formData.entries());
+
+    try {
+        const response = await fetch('../backend/actualiza-cliente.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datos)
+        });
+
+        const resultado = await response.json();
+        
+        if (resultado.error) {
+            throw new Error(resultado.error);
+        }
+        
+        alert('Cliente actualizado correctamente');
+        document.getElementById('modal-edicion').style.display = 'none';
+        cargarClientes();
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('Error al actualizar: ' + error.message);
+    }
+}
+
+// Función para confirmar y eliminar cliente
+async function confirmarEliminacion(id) {
+    if (!confirm('¿Estás seguro de eliminar este cliente?')) return;
+
+    try {
+        const response = await fetch(`../backend/eliminar-cliente.php?id=${id}`, {
+            method: 'DELETE'
+        });
+
+        const resultado = await response.json();
+        
+        if (resultado.error) {
+            throw new Error(resultado.error);
+        }
+        
+        alert('Cliente eliminado correctamente');
+        cargarClientes();
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('Error al eliminar: ' + error.message);
+    }
+}
+
+// Función auxiliar para escapar HTML
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe.toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 // Mostrar mensaje de error
