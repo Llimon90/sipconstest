@@ -3,40 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Configurar el evento de búsqueda en tiempo real
     const inputBusqueda = document.getElementById('busqueda');
     
-    if (inputBusqueda) {
-        // Cargar todos los clientes al inicio (pero no limpiar la tabla primero)
-        cargarTodosClientes(false);
-        
-        // Evento para búsqueda en tiempo real
-        inputBusqueda.addEventListener('input', function() {
-            const consulta = this.value.trim();
-            
-            if (consulta === '') {
-                cargarTodosClientes(true);
-            } else {
-                buscarClientes(consulta);
-            }
-        });
-    }
-});
-
-// Función para cargar todos los clientes
-function cargarTodosClientes(limpiarTabla = true) {
-    fetch('../backend/obtener-clientes.php')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Error al cargar clientes');
-            }
-            return response.json();
-        })
-        .then(data => {
-            mostrarResultadosClientes(data, limpiarTabla);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            mostrarMensajeError('No se pudieron cargar los clientes');
-        });
-}
+    
 
 // Función principal de búsqueda
 function buscarClientes(consulta) {
