@@ -1,20 +1,18 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Clientes</title>
-    <link rel="stylesheet" href="../css/styles.css?v=9.0">
-    <!-- Agregamos Font Awesome  para los íconos -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="../scripts/carga-clientes.js"></script>
-  </head>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Clientes</title>
+  <link rel="stylesheet" href="../css/styles.css?v=9.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
 
 <body>
   <div class="retorna">
-    <a href="../index.html">  <<- Inicio</a>  </div>
+    <a href="../index.html"><<- Inicio</a>
+  </div>
   
-  <!-- Panel lateral -->
   <aside class="sidebar">
     <ul>
       <li><a href="../index.html">Inicio</a></li>
@@ -27,14 +25,13 @@
   </aside>
   
   <main>
-    <!-- Sección de registr o de clientes -->
     <section class="encabezado">
       <form id="new-incidencia-form">
         <h2>Registrar Cliente</h2>
         <div class="form-row">
           <div>  
             <label for="nombre">Nombre del Cliente o razón social:</label>
-            <input type="text" id="nombre" name="nombre">
+            <input type="text" id="nombre" name="nombre" required>
           </div>
           <div>
             <label for="rfc">RFC:</label>
@@ -60,7 +57,7 @@
           </div>
           <div>
             <label for="email">E-mail:</label>
-            <input type="text" id="email" name="email" placeholder="Ejemplo: cliente@dominio.com">
+            <input type="email" id="email" name="email" placeholder="Ejemplo: cliente@dominio.com">
           </div>
         </div>
         
@@ -71,7 +68,6 @@
         <h2>Lista de Clientes</h2>     
         
         <div class="form-row">
-
           <input type="text" id="busqueda" placeholder="Buscar cliente...">
           <div id="resultados"></div>
         </div>
@@ -96,21 +92,19 @@
     </section>
   </main>
   
-  <!-- Modal para edición de cliente (oculto inicialmente) -->
   <div id="modal-edicion" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
     <div style="background-color: white; margin: 5% auto; padding: 20px; width: 80%; max-width: 600px; border-radius: 5px;">
       <h2>Editar Cliente</h2>
       <div id="formulario-edicion">
         <!-- El formulario de edición se cargará aquí -->
       </div>
-      <button onclick="document.getElementById('modal-edicion').style.display = 'none'">Cancelar</button>
+      <button id="cancelar-edicion">Cancelar</button>
     </div>
   </div>
 
-
-  <script src="../scripts/script-clientes.js?v=2"></script>
+  <script src="../scripts/carga-clientes.js?v=2"></script>
   <script src="../scripts/busqueda-clientes.js?v=3"></script>
-  
- 
+    <script src="../scripts/script-clientes.js?v=2"></script>
+
 </body>
 </html>
