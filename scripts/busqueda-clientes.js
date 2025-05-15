@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Función para cargar todos los clientes
 function cargarTodosClientes(limpiarTabla = true) {
-    fetch('../php/obtener-clientes.php')
+    fetch('../backend/obtener-clientes.php')
         .then(response => {
             if (!response.ok) {
                 throw new Error('Error al cargar clientes');
@@ -40,7 +40,7 @@ function cargarTodosClientes(limpiarTabla = true) {
 
 // Función principal de búsqueda
 function buscarClientes(consulta) {
-    fetch('busqueda-clientes.php', {
+    fetch('../backend/busqueda-clientes.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
