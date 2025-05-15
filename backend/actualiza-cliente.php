@@ -1,11 +1,9 @@
+
+
 <?php
 header('Content-Type: application/json');
 
 require_once 'conexion.php';
-
-if ($conn->connect_error) {
-    die(json_encode(["error" => "Error de conexión: " . $conn->connect_error]));
-}
 
 $id = $_POST['id'];
 $nombre = $_POST['nombre'];
