@@ -1,12 +1,25 @@
-// busqueda-clientes.js - Versión 2.1
+// busqueda-clientes.js - Versión 2.2
 document.addEventListener('DOMContentLoaded', function() {
     // Configurar el evento de búsqueda en tiempo real
     const inputBusqueda = document.getElementById('busqueda');
     
-    
+    if (inputBusqueda) {
+        // Evento para búsqueda en tiempo real
+        inputBusqueda.addEventListener('input', function() {
+            const consulta = this.value.trim();
+            buscarClientes(consulta);
+        });
+    }
+});
 
 // Función principal de búsqueda
 function buscarClientes(consulta) {
+    // Si la consulta está vacía, cargar todos los clientes
+    if (consulta === '') {
+        cargarTodosClientes();
+        return;
+    }
+
     fetch('../backend/busqueda-clientes.php', {
         method: 'POST',
         headers: {
@@ -24,7 +37,7 @@ function buscarClientes(consulta) {
         if (data.error) {
             throw new Error(data.error);
         }
-        mostrarResultadosClientes(data, true);
+        mostrarResultadosClientes(data);
     })
     .catch(error => {
         console.error('Error en la búsqueda:', error);
@@ -32,8 +45,26 @@ function buscarClientes(consulta) {
     });
 }
 
+// Función para cargar todos los clientes
+function cargarTodosClientes() {
+    fetch('../backend/obtener-clientes.php')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al cargar clientes');
+            }
+            return response.json();
+        })
+        .then(data => {
+            mostrarResultadosClientes(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            mostrarMensajeError('No se pudieron cargar los clientes');
+        });
+}
+
 // Mostrar resultados en la tabla
-function mostrarResultadosClientes(clientes, limpiarTabla = true) {
+function mostrarResultadosClientes(clientes) {
     const tbody = document.getElementById('lista-clientes');
     
     if (!tbody) {
@@ -41,12 +72,10 @@ function mostrarResultadosClientes(clientes, limpiarTabla = true) {
         return;
     }
     
-    // Solo limpiamos la tabla si se especifica
-    if (limpiarTabla) {
-        tbody.innerHTML = '';
-    }
+    // Limpiar la tabla
+    tbody.innerHTML = '';
     
-    if (clientes.length === 0 && limpiarTabla) {
+    if (clientes.length === 0) {
         const tr = document.createElement('tr');
         tr.innerHTML = '<td colspan="7" class="no-results">No se encontraron resultados</td>';
         tbody.appendChild(tr);
@@ -76,6 +105,22 @@ function mostrarResultadosClientes(clientes, limpiarTabla = true) {
         tbody.appendChild(tr);
     });
 }
-});
 
+// Función para mostrar mensajes de error
+function mostrarMensajeError(mensaje) {
+    const tbody = document.getElementById('lista-clientes');
+    if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="7" class="error">${mensaje}</td></tr>`;
+    }
+}
 
+// Función para escapar HTML (seguridad XSS)
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe.toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
