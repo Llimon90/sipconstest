@@ -1,97 +1,106 @@
-// busqueda-clientes.js - Versión 2.2
 document.addEventListener('DOMContentLoaded', function() {
-    // Configurar el evento de búsqueda en tiempo real
     const inputBusqueda = document.getElementById('busqueda');
     
     if (inputBusqueda) {
-        // Evento para búsqueda en tiempo real
-        inputBusqueda.addEventListener('input', function() {
-            const consulta = this.value.trim();
-            buscarClientes(consulta);
-        });
+        // Cargar todos los clientes al inicio
+        cargarClientes();
+        
+        // Búsqueda en tiempo real con debounce
+        inputBusqueda.addEventListener('input', debounce(function(e) {
+            const termino = e.target.value.trim();
+            
+            if (termino.length >= 2) {
+                buscarClientes(termino);
+            } else if (termino.length === 0) {
+                cargarClientes();
+            }
+        }, 300));
     }
 });
 
-// Función principal de búsqueda
-function buscarClientes(consulta) {
-    // Si la consulta está vacía, cargar todos los clientes
-    if (consulta === '') {
-        cargarTodosClientes();
-        return;
-    }
-
-    fetch('../backend/busqueda-clientes.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({ consulta }),
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Error en la búsqueda: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.error) {
-            throw new Error(data.error);
-        }
-        mostrarResultadosClientes(data);
-    })
-    .catch(error => {
-        console.error('Error en la búsqueda:', error);
-        mostrarMensajeError('Error al realizar la búsqueda');
-    });
+// Función debounce para mejorar rendimiento
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
 }
 
 // Función para cargar todos los clientes
-function cargarTodosClientes() {
-    fetch('../backend/obtener-busqueda-clientes.php')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Error al cargar clientes');
-            }
-            return response.json();
-        })
-        .then(data => {
-            mostrarResultadosClientes(data);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            mostrarMensajeError('No se pudieron cargar los clientes');
-        });
+async function cargarClientes() {
+    try {
+        const response = await fetch('../backend/obtener-clientes.php');
+        
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.error || "Error al cargar clientes");
+        }
+        
+        mostrarClientes(data.data);
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('Error al cargar clientes: ' + error.message);
+    }
 }
 
-// Mostrar resultados en la tabla
-function mostrarResultadosClientes(clientes) {
-    const tbody = document.getElementById('lista-clientes');
-    
-    if (!tbody) {
-        console.error('No se encontró el elemento lista-clientes');
-        return;
+// Función para buscar clientes
+async function buscarClientes(termino) {
+    try {
+        const response = await fetch('../backend/busqueda-clientes.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({ consulta: termino }),
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.error || "Error en la búsqueda");
+        }
+        
+        mostrarClientes(data.data);
+    } catch (error) {
+        console.error('Error en búsqueda:', error);
+        mostrarError('Error en búsqueda: ' + error.message);
+        
+        // Recargar clientes como fallback
+        await cargarClientes();
     }
+}
+
+// Mostrar clientes en la tabla
+function mostrarClientes(clientes) {
+    const tbody = document.getElementById('lista-clientes');
+    if (!tbody) return;
     
-    // Limpiar la tabla
     tbody.innerHTML = '';
     
     if (clientes.length === 0) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = '<td colspan="7" class="no-results">No se encontraron resultados</td>';
-        tbody.appendChild(tr);
+        tbody.innerHTML = '<tr><td colspan="7">No se encontraron resultados</td></tr>';
         return;
     }
     
     clientes.forEach(cliente => {
         const tr = document.createElement('tr');
-        
         tr.innerHTML = `
-            <td>${escapeHtml(cliente.nombre || '')}</td>
-            <td>${escapeHtml(cliente.rfc || '')}</td>
-            <td>${escapeHtml(cliente.direccion || '')}</td>
-            <td>${escapeHtml(cliente.telefono || '')}</td>
-            <td>${escapeHtml(cliente.contactos || '')}</td>
-            <td>${escapeHtml(cliente.email || '')}</td>
+            <td>${cliente.nombre || ''}</td>
+            <td>${cliente.rfc || ''}</td>
+            <td>${cliente.direccion || ''}</td>
+            <td>${cliente.telefono || ''}</td>
+            <td>${cliente.contactos || ''}</td>
+            <td>${cliente.email || ''}</td>
             <td>
                 <button onclick="editarCliente(${cliente.id})" class="btn-editar">
                     <i class="fas fa-edit"></i>
@@ -101,26 +110,14 @@ function mostrarResultadosClientes(clientes) {
                 </button>
             </td>
         `;
-        
         tbody.appendChild(tr);
     });
 }
 
-// Función para mostrar mensajes de error
-function mostrarMensajeError(mensaje) {
+// Mostrar mensaje de error
+function mostrarError(mensaje) {
     const tbody = document.getElementById('lista-clientes');
     if (tbody) {
         tbody.innerHTML = `<tr><td colspan="7" class="error">${mensaje}</td></tr>`;
     }
-}
-
-// Función para escapar HTML (seguridad XSS)
-function escapeHtml(unsafe) {
-    if (!unsafe) return '';
-    return unsafe.toString()
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
 }

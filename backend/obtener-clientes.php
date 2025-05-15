@@ -1,32 +1,51 @@
 <?php
-// Asegurar que el contenido devuelto sea JSON
+// Activar reporte de errores para desarrollo (quitar en producción)
 header('Content-Type: application/json');
-error_reporting(0);
-ini_set('display_errors', 0);
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-
-
-// Conexión a la base de datos
 require_once 'conexion.php';
 
-if ($conn->connect_error) {
-    echo json_encode(['success' => false, 'message' => 'Error de conexión: ' . $conn->connect_error]);
-    exit;
-}
+try {
+    // Verificar conexión
+    if ($conn->connect_error) {
+        throw new Exception("Error de conexión: " . $conn->connect_error);
+    }
 
-$sql = "SELECT * FROM clientes ORDER BY fecha_registro DESC";
-$result = $conn->query($sql);
+    // Consulta SQL con manejo de errores
+    $sql = "SELECT id, nombre, rfc, direccion, telefono, contactos, email, fecha_registro FROM clientes ORDER BY fecha_registro DESC";
+    $result = $conn->query($sql);
 
-$clientes = [];
+    if (!$result) {
+        throw new Exception("Error en la consulta: " . $conn->error);
+    }
 
-if ($result->num_rows > 0) {
+    $clientes = [];
     while ($row = $result->fetch_assoc()) {
         $clientes[] = $row;
     }
+
+    // Formato de respuesta consistente
+    echo json_encode([
+        'success' => true,
+        'data' => $clientes,
+        'count' => count($clientes)
+    ]);
+
+} catch (Exception $e) {
+    // Registrar error en el log del servidor
+    error_log("Error en obtener-clientes.php: " . $e->getMessage());
+    
+    // Respuesta de error estructurada
+    echo json_encode([
+        'success' => false,
+        'error' => $e->getMessage(),
+        'code' => $e->getCode()
+    ]);
+} finally {
+    // Cerrar conexión si existe
+    if (isset($conn) && $conn instanceof mysqli) {
+        $conn->close();
+    }
 }
-
-echo json_encode($clientes);
-
-$conn->close();
-exit;
-
+?>
