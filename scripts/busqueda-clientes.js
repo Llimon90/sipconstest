@@ -30,7 +30,7 @@ function debounce(func, wait) {
 // Función para cargar todos los clientes
 async function cargarClientes() {
     try {
-        const response = await fetch('../backend/obtener-clientes.php');
+        const response = await fetch('../backend/obtener-busqueda-clientes.php');
         
         if (!response.ok) {
             throw new Error(`Error HTTP: ${response.status}`);
