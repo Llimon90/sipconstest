@@ -47,7 +47,7 @@ function buscarClientes(consulta) {
 
 // Función para cargar todos los clientes
 function cargarTodosClientes() {
-    fetch('../backend/obtener-clientes.php')
+    fetch('../backend/obtener-busqueda-clientes.php')
         .then(response => {
             if (!response.ok) {
                 throw new Error('Error al cargar clientes');
