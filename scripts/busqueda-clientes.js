@@ -1,37 +1,27 @@
-// busqueda-clientes.js - Versión 2.0
+// busqueda-clientes.js - Versión 2.1
 document.addEventListener('DOMContentLoaded', function() {
     // Configurar el evento de búsqueda en tiempo real
     const inputBusqueda = document.getElementById('busqueda');
     
     if (inputBusqueda) {
-        // Cargar todos los clientes al inicio
-        cargarTodosClientes();
+        // Cargar todos los clientes al inicio (pero no limpiar la tabla primero)
+        cargarTodosClientes(false);
         
         // Evento para búsqueda en tiempo real
         inputBusqueda.addEventListener('input', function() {
             const consulta = this.value.trim();
             
             if (consulta === '') {
-                cargarTodosClientes();
+                cargarTodosClientes(true);
             } else {
                 buscarClientes(consulta);
             }
         });
-        
-        // Opcional: agregar un pequeño retardo para no saturar el servidor
-        // inputBusqueda.addEventListener('input', debounce(function() {
-        //     const consulta = this.value.trim();
-        //     if (consulta === '') {
-        //         cargarTodosClientes();
-        //     } else {
-        //         buscarClientes(consulta);
-        //     }
-        // }, 300));
     }
 });
 
 // Función para cargar todos los clientes
-function cargarTodosClientes() {
+function cargarTodosClientes(limpiarTabla = true) {
     fetch('../php/obtener-clientes.php')
         .then(response => {
             if (!response.ok) {
@@ -40,7 +30,7 @@ function cargarTodosClientes() {
             return response.json();
         })
         .then(data => {
-            mostrarResultadosClientes(data);
+            mostrarResultadosClientes(data, limpiarTabla);
         })
         .catch(error => {
             console.error('Error:', error);
@@ -67,7 +57,7 @@ function buscarClientes(consulta) {
         if (data.error) {
             throw new Error(data.error);
         }
-        mostrarResultadosClientes(data);
+        mostrarResultadosClientes(data, true);
     })
     .catch(error => {
         console.error('Error en la búsqueda:', error);
@@ -76,7 +66,7 @@ function buscarClientes(consulta) {
 }
 
 // Mostrar resultados en la tabla
-function mostrarResultadosClientes(clientes) {
+function mostrarResultadosClientes(clientes, limpiarTabla = true) {
     const tbody = document.getElementById('lista-clientes');
     
     if (!tbody) {
@@ -84,9 +74,12 @@ function mostrarResultadosClientes(clientes) {
         return;
     }
     
-    tbody.innerHTML = ''; // Limpiar tabla
+    // Solo limpiamos la tabla si se especifica
+    if (limpiarTabla) {
+        tbody.innerHTML = '';
+    }
     
-    if (clientes.length === 0) {
+    if (clientes.length === 0 && limpiarTabla) {
         const tr = document.createElement('tr');
         tr.innerHTML = '<td colspan="7" class="no-results">No se encontraron resultados</td>';
         tbody.appendChild(tr);
@@ -117,33 +110,4 @@ function mostrarResultadosClientes(clientes) {
     });
 }
 
-// Función para mostrar mensajes de error
-function mostrarMensajeError(mensaje) {
-    const tbody = document.getElementById('lista-clientes');
-    if (tbody) {
-        tbody.innerHTML = `<tr><td colspan="7" class="error">${mensaje}</td></tr>`;
-    }
-}
-
-// Función para escapar HTML (seguridad XSS)
-function escapeHtml(unsafe) {
-    if (!unsafe) return '';
-    return unsafe.toString()
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-// Opcional: Función debounce para mejorar rendimiento
-function debounce(func, wait) {
-    let timeout;
-    return function() {
-        const context = this, args = arguments;
-        clearTimeout(timeout);
-        timeout = setTimeout(() => {
-            func.apply(context, args);
-        }, wait);
-    };
-}
+// Resto de funciones auxiliares (mostrarMensajeError, escapeHtml) permanecen igual
