@@ -1,6 +1,7 @@
 <?php
 header('Content-Type: application/json');
 
+// Configurar conexión con la base de datos
 require_once 'conexion.php';
 
 if ($conn->connect_error) {
