@@ -10,7 +10,7 @@ document.getElementById('form-venta').addEventListener('submit', function(e) {
   const garantia = document.getElementById('garantia').value.trim();
   const notas = document.getElementById('notas').value.trim();
 
-  if (!cliente || !sucursal || !equipo || !marca || !modelo || !numero_serie || !garantia) {
+  if (!cliente || !equipo  || !garantia) {
     document.getElementById('mensaje').textContent = 'Por favor, complete todos los campos obligatorios.';
     return;
   }
@@ -25,7 +25,7 @@ document.getElementById('form-venta').addEventListener('submit', function(e) {
   datos.append('garantia', garantia);
   datos.append('notas', notas);
 
-  fetch('../backend/registro_venta.php', {
+  fetch('../backend/registro_venta', {
     method: 'POST',
     body: datos
   })

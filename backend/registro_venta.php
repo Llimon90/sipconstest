@@ -31,8 +31,8 @@ $numero_serie = $_POST['numero_serie'] ?? '';
 $garantia = $_POST['garantia'] ?? '';
 $notas = $_POST['notas'] ?? '';
 
-if (!$cliente || !$sucursal || !$equipo || !$marca || !$modelo || !$numero_serie || !$garantia) {
-  echo json_encode(['exito' => false, 'mensaje' => 'Todos los campos obligatorios deben ser completados.']);
+if (!$cliente || !$equipo || !$garantia) {
+  echo json_encode(['exito' => false, 'mensaje' => 'Completa los campos obligatorios ']);
   exit;
 }
 
