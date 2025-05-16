@@ -1,48 +1,54 @@
-document.getElementById('form-venta').addEventListener('submit', function(e) {
+document.getElementById('form-venta').addEventListener('submit', async function(e) {
   e.preventDefault();
+  
+  const mensajeElement = document.getElementById('mensaje');
+  mensajeElement.textContent = '';
+  mensajeElement.className = '';
 
-  const cliente = document.getElementById('cliente').value.trim();
-  const sucursal = document.getElementById('sucursal').value.trim();
-  const equipo = document.getElementById('equipo').value.trim();
-  const marca = document.getElementById('marca').value.trim();
-  const modelo = document.getElementById('modelo').value.trim();
-  const numero_serie = document.getElementById('numero_serie').value.trim();
-  const garantia = document.getElementById('garantia').value.trim();
-  const notas = document.getElementById('notas').value.trim();
+  // Obtener valores del formulario
+  const formData = {
+    cliente: document.getElementById('cliente').value.trim(),
+    sucursal: document.getElementById('sucursal').value.trim(),
+    equipo: document.getElementById('equipo').value.trim(),
+    marca: document.getElementById('marca').value.trim(),
+    modelo: document.getElementById('modelo').value.trim(),
+    numero_serie: document.getElementById('numero_serie').value.trim(),
+    garantia: document.getElementById('garantia').value.trim(),
+    notas: document.getElementById('notas').value.trim()
+  };
 
-  if (!cliente || !equipo || !garantia) {
-    document.getElementById('mensaje').textContent = 'Por favor, complete todos los campos obligatorios.';
+  // Validar campos requeridos
+  if (!formData.cliente || !formData.equipo || !formData.garantia) {
+    mensajeElement.textContent = 'Por favor, complete todos los campos obligatorios.';
+    mensajeElement.className = 'error';
     return;
   }
 
-  const datos = new FormData();
-  datos.append('cliente', cliente);
-  datos.append('sucursal', sucursal);
-  datos.append('equipo', equipo);
-  datos.append('marca', marca);
-  datos.append('modelo', modelo);
-  datos.append('numero_serie', numero_serie);
-  datos.append('garantia', garantia);
-  datos.append('notas', notas);
+  try {
+    const response = await fetch('../backend/registro_ventas.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData)
+    });
 
-  fetch('../backend/registro_venta.php', {
-    method: 'POST',
-    body: datos
-  })
-  .then(response => {
+    const data = await response.json();
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(data.mensaje || 'Error en el servidor');
     }
-    return response.json();
-  })
-  .then(data => {
-    document.getElementById('mensaje').textContent = data.mensaje;
+
+    mensajeElement.textContent = data.mensaje;
+    mensajeElement.className = 'success';
+
     if (data.exito) {
       document.getElementById('form-venta').reset();
     }
-  })
-  .catch(error => {
+
+  } catch (error) {
     console.error('Error:', error);
-    document.getElementById('mensaje').textContent = 'Error al conectar con el servidor.';
-  });
+    mensajeElement.textContent = error.message || 'Error al conectar con el servidor';
+    mensajeElement.className = 'error';
+  }
 });
