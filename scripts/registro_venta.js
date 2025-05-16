@@ -19,8 +19,7 @@ document.getElementById('form-venta').addEventListener('submit', async function(
 
   // Validar campos requeridos
   if (!formData.cliente || !formData.equipo || !formData.garantia) {
-    mensajeElement.textContent = 'Por favor, complete todos los campos obligatorios.';
-    mensajeElement.className = 'error';
+    showMessage('Por favor, complete todos los campos obligatorios.', 'error');
     return;
   }
 
@@ -33,22 +32,41 @@ document.getElementById('form-venta').addEventListener('submit', async function(
       body: JSON.stringify(formData)
     });
 
+    // Verificar si la respuesta es JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await response.text();
+      throw new Error(`Respuesta inesperada del servidor: ${text.substring(0, 100)}...`);
+    }
+
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.mensaje || 'Error en el servidor');
+      throw new Error(data.mensaje || `Error ${response.status}`);
     }
 
-    mensajeElement.textContent = data.mensaje;
-    mensajeElement.className = 'success';
-
+    showMessage(data.mensaje, 'success');
+    
     if (data.exito) {
       document.getElementById('form-venta').reset();
     }
 
   } catch (error) {
     console.error('Error:', error);
-    mensajeElement.textContent = error.message || 'Error al conectar con el servidor';
-    mensajeElement.className = 'error';
+    showMessage(error.message || 'Error al conectar con el servidor', 'error');
   }
 });
+
+function showMessage(message, type) {
+  const element = document.getElementById('mensaje');
+  element.textContent = message;
+  element.className = type;
+  
+  // Opcional: desvanecer el mensaje después de 5 segundos
+  if (type === 'success') {
+    setTimeout(() => {
+      element.textContent = '';
+      element.className = '';
+    }, 5000);
+  }
+}
