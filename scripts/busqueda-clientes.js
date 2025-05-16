@@ -202,7 +202,7 @@ async function actualizarCliente() {
     const datos = Object.fromEntries(formData.entries());
 
     try {
-        const response = await fetch('../backend/actualiza-cliente.php', {
+        const response = await fetch('backend/registro_venta.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(datos)
