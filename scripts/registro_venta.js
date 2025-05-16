@@ -25,7 +25,7 @@ document.getElementById('form-venta').addEventListener('submit', function(e) {
   datos.append('garantia', garantia);
   datos.append('notas', notas);
 
-  fetch('registro_venta.php', {
+  fetch('../backend/registro_venta.php', {
     method: 'POST',
     body: datos
   })
