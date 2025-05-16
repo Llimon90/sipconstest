@@ -10,7 +10,7 @@ document.getElementById('form-venta').addEventListener('submit', function(e) {
   const garantia = document.getElementById('garantia').value.trim();
   const notas = document.getElementById('notas').value.trim();
 
-  if (!cliente || !equipo  || !garantia) {
+  if (!cliente || !equipo || !garantia) {
     document.getElementById('mensaje').textContent = 'Por favor, complete todos los campos obligatorios.';
     return;
   }
@@ -29,7 +29,12 @@ document.getElementById('form-venta').addEventListener('submit', function(e) {
     method: 'POST',
     body: datos
   })
-  .then(response => response.json())
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
   .then(data => {
     document.getElementById('mensaje').textContent = data.mensaje;
     if (data.exito) {
@@ -37,7 +42,7 @@ document.getElementById('form-venta').addEventListener('submit', function(e) {
     }
   })
   .catch(error => {
-    document.getElementById('mensaje').textContent = 'Error al registrar la venta.';
     console.error('Error:', error);
+    document.getElementById('mensaje').textContent = 'Error al conectar con el servidor.';
   });
 });
