@@ -84,14 +84,24 @@ if (file_exists($rutaCompleta)) {
 // ==============================================
 try {
     // Usamos LIKE para mayor flexibilidad en rutas almacenadas
-    $sql = "DELETE FROM archivos 
-            WHERE id_incidencia = :id_incidencia 
-            AND url_archivo LIKE :nombre_archivo";
+    // $sql = "DELETE FROM archivos 
+    //         WHERE id_incidencia = :id_incidencia 
+    //         AND url_archivo LIKE :nombre_archivo";
     
-    $stmt = $pdo->prepare($sql);
-    $stmt->bindParam(':id_incidencia', $idIncidencia, PDO::PARAM_INT);
-    $stmt->bindValue(':nombre_archivo', '%' . $nombreArchivo, PDO::PARAM_STR);
-    $stmt->execute();
+    // $stmt = $pdo->prepare($sql);
+    // $stmt->bindParam(':id_incidencia', $idIncidencia, PDO::PARAM_INT);
+    // $stmt->bindValue(':nombre_archivo', '%' . $nombreArchivo, PDO::PARAM_STR);
+    // $stmt->execute();
+
+
+    $rutaRelativa = 'uploads/' . $nombreArchivo;
+$sql = "DELETE FROM archivos 
+        WHERE id_incidencia = :id_incidencia 
+        AND url_archivo = :ruta_relativa";
+$stmt = $pdo->prepare($sql);
+$stmt->bindParam(':id_incidencia', $idIncidencia, PDO::PARAM_INT);
+$stmt->bindParam(':ruta_relativa', $rutaRelativa, PDO::PARAM_STR);
+
 
     // Verifica si realmente se eliminó el registro
     if ($stmt->rowCount() === 0) {

@@ -25,40 +25,42 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     async function eliminarArchivo(urlArchivo, containerElement) {
-        if (!confirm('¿Estás seguro de que deseas eliminar este archivo permanentemente?')) {
-            return; // <-- Se corrigió el error de la "a" suelta
-        }
-
-        containerElement.classList.add('eliminando');
-
-        try {
-            const formData = new FormData();
-            formData.append('id_incidencia', id);
-            
-            // Solo enviamos el nombre del archivo (sin la ruta completa)
-            formData.append('url_archivo', urlArchivo.split('/').pop());
-
-            const response = await fetch("../backend/eliminar_archivo.php", {
-                method: "POST",
-                body: formData
-            });
-
-            const data = await response.json();
-
-            if (!response.ok || !data.success) {
-                console.error('Error del servidor:', data);
-                throw new Error(data.error || `Error al eliminar el archivo. Código: ${response.status}`);
-            }
-
-            containerElement.remove();
-            showNotification('Archivo eliminado correctamente', 'success');
-
-        } catch (error) {
-            console.error("Error al eliminar archivo:", error);
-            showNotification(error.message || 'Error desconocido al eliminar el archivo', 'error');
-            containerElement.classList.remove('eliminando');
-        }
+    if (!confirm('¿Estás seguro de que deseas eliminar este archivo permanentemente?')) {
+        return;
     }
+
+    containerElement.classList.add('eliminando');
+
+    try {
+        const formData = new FormData();
+        formData.append('id_incidencia', id);
+
+        // Extraer la ruta relativa completa del archivo desde la URL
+        const url = new URL(urlArchivo, window.location.origin);
+        const rutaRelativa = url.pathname.replace(/^\/+/, ''); // Elimina las barras iniciales
+        formData.append('url_archivo', rutaRelativa);
+
+        const response = await fetch("../backend/eliminar_archivo.php", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            console.error('Error del servidor:', data);
+            throw new Error(data.error || `Error al eliminar el archivo. Código: ${response.status}`);
+        }
+
+        containerElement.remove();
+        showNotification('Archivo eliminado correctamente', 'success');
+
+    } catch (error) {
+        console.error("Error al eliminar archivo:", error);
+        showNotification(error.message || 'Error desconocido al eliminar el archivo', 'error');
+        containerElement.classList.remove('eliminando');
+    }
+}
 
     
     function cargarArchivosAdjuntos(archivos) {
