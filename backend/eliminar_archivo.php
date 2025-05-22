@@ -10,6 +10,7 @@ if ($conn->connect_error) {
     die(json_encode(["error" => "Error de conexión: " . $conn->connect_error]));
 }
 
+
 // ==============================================
 // 2. Validación de datos POST
 // ==============================================
@@ -32,7 +33,54 @@ if (!$idIncidencia || !$nombreArchivo) {
 }
 
 // ==============================================
-// 3. Eliminación del registro en la base de datos
+// 3. Configuración de rutas (¡Ajusta esto!)
+// ==============================================
+$rutaBase = $_SERVER['DOCUMENT_ROOT'] . '/apptest/uploads/';
+$rutaCompleta = $rutaBase . $nombreArchivo;
+
+// Verificación adicional de seguridad
+if (strpos(realpath($rutaCompleta), realpath($rutaBase)) !== 0) {
+    echo json_encode([
+        'success' => false,
+        'error' => 'Intento de acceso a ruta no permitida'
+    ]);
+    exit;
+}
+
+// ==============================================
+// 4. Eliminación del archivo físico
+// ==============================================
+if (file_exists($rutaCompleta)) {
+    // Verifica permisos antes de eliminar
+    if (!is_writable($rutaCompleta)) {
+        echo json_encode([
+            'success' => false,
+            'error' => 'El archivo existe pero no tiene permisos de escritura',
+            'ruta' => $rutaCompleta,
+            'permisos' => substr(sprintf('%o', fileperms($rutaCompleta)), -4)
+        ]);
+        exit;
+    }
+
+    if (!unlink($rutaCompleta)) {
+        echo json_encode([
+            'success' => false,
+            'error' => 'Error al eliminar el archivo físico',
+            'ruta' => $rutaCompleta
+        ]);
+        exit;
+    }
+} else {
+    echo json_encode([
+        'success' => false,
+        'error' => 'El archivo no existe en la ruta especificada',
+        'ruta' => $rutaCompleta
+    ]);
+    exit;
+}
+
+// ==============================================
+// 5. Eliminación del registro en la base de datos
 // ==============================================
 try {
     // Usamos LIKE para mayor flexibilidad en rutas almacenadas
@@ -49,7 +97,7 @@ try {
     if ($stmt->rowCount() === 0) {
         echo json_encode([
             'success' => false,
-            'error' => 'No se encontró el archivo en la base de datos'
+            'error' => 'El archivo se eliminó físicamente pero no se encontró en la base de datos'
         ]);
         exit;
     }
