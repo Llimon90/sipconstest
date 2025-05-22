@@ -28,6 +28,21 @@ if ($result->num_rows > 0) {
     }
 }
 
+$busqueda = isset($_GET['busqueda']) ? $_GET['busqueda'] : '';
+
+if ($busqueda) {
+  // Preparar la consulta con búsqueda
+  $stmt = $pdo->prepare("SELECT * FROM clientes WHERE nombre LIKE :busqueda OR rfc LIKE :busqueda OR direccion LIKE :busqueda OR telefono LIKE :busqueda OR contactos LIKE :busqueda OR email LIKE :busqueda");
+  $stmt->execute(['busqueda' => '%' . $busqueda . '%']);
+} else {
+  // Obtener todos los clientes
+  $stmt = $pdo->query("SELECT * FROM clientes");
+}
+
+$clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Devolver los resultados en formato JSON
+echo json_encode($clientes);
 echo json_encode($clientes);
 
 $conn->close();

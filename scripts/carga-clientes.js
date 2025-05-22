@@ -189,3 +189,59 @@ async function actualizarCliente() {
 // Cargar clientes automáticamente al cargar la página
 document.addEventListener('DOMContentLoaded', cargarClientes);
 
+async function buscarClientes(query) {
+  try {
+    const response = await fetch(`../backend/obtener-clientes.php?busqueda=${encodeURIComponent(query)}`);
+    const clientes = await response.json();
+
+    const listaClientes = document.getElementById('lista-clientes');
+    listaClientes.innerHTML = ''; // Limpia la lista antes de mostrar nuevos datos
+
+    clientes.forEach(cliente => {
+      const row = document.createElement('tr');
+
+      row.innerHTML = `
+        <td>${cliente.nombre}</td>
+        <td>${cliente.rfc}</td>
+        <td>${cliente.direccion}</td>
+        <td>${cliente.telefono}</td>
+        <td>${cliente.contactos}</td>
+        <td>${cliente.email}</td>
+        <td>
+          <div class="acciones-cliente">
+            <button class="btn-editar" data-id="${cliente.id}" title="Editar">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn-eliminar" data-id="${cliente.id}" title="Eliminar">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </div>
+        </td>
+      `;
+
+      listaClientes.appendChild(row);
+    });
+
+    // Agregar eventos a los botones de edición
+    document.querySelectorAll('.btn-editar').forEach(boton => {
+      boton.addEventListener('click', function(e) {
+        e.preventDefault();
+        const id = this.getAttribute('data-id');
+        cargarFormularioEdicion(id);
+      });
+    });
+
+    // Agregar eventos a los botones de eliminación
+    document.querySelectorAll('.btn-eliminar').forEach(boton => {
+      boton.addEventListener('click', function(e) {
+        e.preventDefault();
+        const id = this.getAttribute('data-id');
+        confirmarEliminacion(id);
+      });
+    });
+  } catch (error) {
+    console.error('Error al buscar clientes:', error);
+    alert('Error al buscar clientes');
+  }
+}
+
