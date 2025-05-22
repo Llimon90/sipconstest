@@ -64,16 +64,24 @@
                     <label for="modelo">Modelo:</label>
                     <input type="text" id="modelo" name="modelo"  />
                 </div>    
-
+                
                 <div>
-                    <label for="numero_serie">Número de Serie:</label>
+                    <label for="numero_serie">Número(s) de Serie:</label>
                     <input type="text" id="numero_serie" name="numero_serie"  />
                 </div>
             </div>    
     
             <div class="form-row">
+
+                <label for="qty">Cantidad:</label>
+                <input type="number" id="qty" name="qty" min="0">
+                
                 <label for="garantia">Tiempo de Garantía (meses):</label>
                 <input type="number" id="garantia" name="garantia" min="0"  />
+
+                <label for="servicio">Clausula de servicio:</label>
+                <input type="checkbox" id="servicio" name="servicio"  />
+
             </div>
 
             <div class="form-row">
@@ -94,6 +102,6 @@
 
         </main>
         </section>
-        <script src="../scripts/registro_venta.js?v=7" defer></script>
+        <!-- <script src="../scripts/registro_venta.js?v=7" defer></script> -->
     </body>
 </html>
