@@ -13,6 +13,7 @@ $fecha_inicio = isset($_GET['fecha_inicio']) ? trim($_GET['fecha_inicio']) : '';
 $fecha_fin = isset($_GET['fecha_fin']) ? trim($_GET['fecha_fin']) : '';
 $estatus = isset($_GET['estatus']) ? trim($_GET['estatus']) : '';
 $sucursal = isset($_GET['sucursal']) ? trim($_GET['sucursal']) : '';
+$tecnico = isset($_GET['tecnico']) ? trim($_GET['tecnico']) : '';
 
 // Construir la consulta SQL con `prepared statements`
 $sql = "SELECT * FROM incidencias WHERE 1";
@@ -47,6 +48,12 @@ if (!empty($estatus)) {
 if (!empty($sucursal)) {
     $sql .= " AND sucursal LIKE ?";
     $params[] = "%$sucursal%";
+    $types .= "s";
+}
+
+if (!empty($tecnico)) {
+    $sql .= " AND sucursal LIKE ?";
+    $params[] = "%$tecnico%";
     $types .= "s";
 }
 
