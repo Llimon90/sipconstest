@@ -4,19 +4,12 @@ header('Content-Type: application/json');
 error_reporting(0);
 ini_set('display_errors', 0);
 
-// Configuración de la base de datos
-$host = "localhost";
-$user = "sipcons1_appweb";
-$password = "sip*SYS2025";
-$database = "sipcons1_appweb";
+// Configurar conexión con la base de datos
+require_once 'conexion.php';
 
-// Conexión a la base de datos
-$conn = new mysqli($host, $user, $password, $database);
-
-// Verificar la conexión
+// Verificar conexión
 if ($conn->connect_error) {
-    echo json_encode(['success' => false, 'message' => 'Error de conexión: ' . $conn->connect_error]);
-    exit;
+    die(json_encode(["error" => "Error de conexión: " . $conn->connect_error]));
 }
 
 // Obtener el parámetro de búsqueda si existe
