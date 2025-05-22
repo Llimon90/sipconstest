@@ -52,7 +52,7 @@ if (!empty($sucursal)) {
 }
 
 if (!empty($tecnico)) {
-    $sql .= " AND sucursal LIKE ?";
+    $sql .= " AND tecnico LIKE ?";
     $params[] = "%$tecnico%";
     $types .= "s";
 }
