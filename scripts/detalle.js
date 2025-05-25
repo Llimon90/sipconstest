@@ -242,7 +242,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <option value="Luis Limón" ${data.tecnico === "Luis Limón" ? 'selected' : ''}>Luis Limón</option>
                                     <option value="Ernesto Chávez" ${data.tecnico === "Ernesto Chávez" ? 'selected' : ''}>Ernesto Chávez</option>
                                 </select>
-                            <button type="button" id="btn-agregar-tecnico" style="display: yes;">Actualizar</button>
+                            <button type="button" id="btn-agregar-tecnico" style="display: yes;">AGREGAR OTRO TÉCNICO</button>
                         </div>
                     </div>
 
