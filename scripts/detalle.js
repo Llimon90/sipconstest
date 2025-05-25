@@ -1,5 +1,82 @@
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
+document.addEventListener('DOMContentLoaded', function () {
+    const btnAgregar = document.getElementById('btn-agregar-tecnico');
+    const contenedor = document.getElementById('tecnicos-container');
+
+    btnAgregar.addEventListener('click', function () {
+      // Crear un nuevo elemento select
+      const nuevoSelect = document.createElement('select');
+      nuevoSelect.name = 'tecnico';
+      nuevoSelect.required = true;
+      nuevoSelect.style.width = '100%';
+      nuevoSelect.style.marginTop = '10px';
+
+      // Opciones del select
+      const opciones = [
+        '',
+        'Victor Cordoba',
+        'Tomás Vázquez',
+        'Francisco Aguiar',
+        'Mauricio Díaz',
+        'Humberto Vázquez',
+        'Jose López',
+        'Hoscar Martínez',
+        'Jacob Ventura',
+        'Luis Limón',
+        'Ernesto Chávez'
+      ];
+
+      opciones.forEach(function (opcion) {
+        const opt = document.createElement('option');
+        opt.value = opcion;
+        opt.textContent = opcion === '' ? 'Seleccione una opción' : opcion;
+        if (opcion === '') {
+          opt.disabled = true;
+          opt.selected = true;
+        }
+        nuevoSelect.appendChild(opt);
+      });
+
+      // Agregar el nuevo select al contenedor
+      contenedor.appendChild(nuevoSelect);
+    });
+
+    // Manejar el envío del formulario
+    const formulario = document.querySelector('form'); // Asegúrate de que este selector apunte a tu formulario
+    formulario.addEventListener('submit', function (e) {
+      // Obtener todos los valores seleccionados
+      const selects = contenedor.querySelectorAll('select[name="tecnico"]');
+      const tecnicosSeleccionados = [];
+
+      selects.forEach(function (select) {
+        if (select.value) {
+          tecnicosSeleccionados.push(select.value);
+        }
+      });
+
+      // Concatenar los valores con punto y coma
+      const tecnicosConcatenados = tecnicosSeleccionados.join(';');
+
+      // Crear un campo oculto para enviar el valor concatenado
+      let inputOculto = document.getElementById('tecnicos-concatenados');
+      if (!inputOculto) {
+        inputOculto = document.createElement('input');
+        inputOculto.type = 'hidden';
+        inputOculto.name = 'tecnicos_concatenados';
+        inputOculto.id = 'tecnicos-concatenados';
+        formulario.appendChild(inputOculto);
+      }
+      inputOculto.value = tecnicosConcatenados;
+
+      // Opcional: eliminar los campos select antes de enviar si solo deseas enviar el valor concatenado
+      selects.forEach(function (select) {
+      select.remove();
+      });
+    });
+  });
+
+
 document.addEventListener("DOMContentLoaded", function () {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
@@ -350,78 +427,4 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-  document.addEventListener('DOMContentLoaded', function () {
-    const btnAgregar = document.getElementById('btn-agregar-tecnico');
-    const contenedor = document.getElementById('tecnicos-container');
-
-    btnAgregar.addEventListener('click', function () {
-      // Crear un nuevo elemento select
-      const nuevoSelect = document.createElement('select');
-      nuevoSelect.name = 'tecnico';
-      nuevoSelect.required = true;
-      nuevoSelect.style.width = '100%';
-      nuevoSelect.style.marginTop = '10px';
-
-      // Opciones del select
-      const opciones = [
-        '',
-        'Victor Cordoba',
-        'Tomás Vázquez',
-        'Francisco Aguiar',
-        'Mauricio Díaz',
-        'Humberto Vázquez',
-        'Jose López',
-        'Hoscar Martínez',
-        'Jacob Ventura',
-        'Luis Limón',
-        'Ernesto Chávez'
-      ];
-
-      opciones.forEach(function (opcion) {
-        const opt = document.createElement('option');
-        opt.value = opcion;
-        opt.textContent = opcion === '' ? 'Seleccione una opción' : opcion;
-        if (opcion === '') {
-          opt.disabled = true;
-          opt.selected = true;
-        }
-        nuevoSelect.appendChild(opt);
-      });
-
-      // Agregar el nuevo select al contenedor
-      contenedor.appendChild(nuevoSelect);
-    });
-
-    // Manejar el envío del formulario
-    const formulario = document.querySelector('form'); // Asegúrate de que este selector apunte a tu formulario
-    formulario.addEventListener('submit', function (e) {
-      // Obtener todos los valores seleccionados
-      const selects = contenedor.querySelectorAll('select[name="tecnico"]');
-      const tecnicosSeleccionados = [];
-
-      selects.forEach(function (select) {
-        if (select.value) {
-          tecnicosSeleccionados.push(select.value);
-        }
-      });
-
-      // Concatenar los valores con punto y coma
-      const tecnicosConcatenados = tecnicosSeleccionados.join(';');
-
-      // Crear un campo oculto para enviar el valor concatenado
-      let inputOculto = document.getElementById('tecnicos-concatenados');
-      if (!inputOculto) {
-        inputOculto = document.createElement('input');
-        inputOculto.type = 'hidden';
-        inputOculto.name = 'tecnicos_concatenados';
-        inputOculto.id = 'tecnicos-concatenados';
-        formulario.appendChild(inputOculto);
-      }
-      inputOculto.value = tecnicosConcatenados;
-
-      // Opcional: eliminar los campos select antes de enviar si solo deseas enviar el valor concatenado
-      // selects.forEach(function (select) {
-      //   select.remove();
-      // });
-    });
-  });
+  
