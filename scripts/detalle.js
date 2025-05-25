@@ -225,11 +225,24 @@ document.addEventListener("DOMContentLoaded", function () {
                             <label>FECHA:</label>
                             <input type="date" id="fecha" value="${data.fecha || ''}" required style="width: 100%;">
                         </div>
+                        
                         <div style="flex: 1;">
                             <label>TÉCNICO:</label>
-                            <input type="text" id="tecnico" value="${data.tecnico || ''}" required style="width: 100%;">
+                            <select id="tecnico" name="tecnico" >
+                            <option value="" selected disabled>Seleccione una opción</option>
+                            <option value="Victor Cordoba">Victor Cordoba</option>
+                            <option value="Tomás Vázquez">Tomás Valdéz</option>
+                            <option value="Francisco Aguiar">Francisco Aguiar</option>
+                            <option value="Mauricio Díaz">Mauricio Diaz</option>
+                            <option value="Humberto Vázquez">Humberto Vázquez</option>
+                            <option value="Jose López">José López</option>
+                            <option value="Hoscar Martínez">Hoscar Martínez</option>
+                            <option value="Jacob Ventura">Jacob Ventura</option>
+                            <option value="Luis Limón">Luis Limón</option>
+                            <option value="Ernesto Chávez">Ernesto Chávez</option>
+                            </select> value="${data.tecnico || ''}" required style="width: 100%;">
                         </div>
-                    </div>
+                    
 
                     <div style="margin-bottom: 15px;">
                         <label>ESTATUS:</label>
