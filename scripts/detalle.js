@@ -228,6 +228,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         
                         <div style="flex: 1;">
                             <label>TÉCNICO:</label>
+                            <button type="button" id="btn-actualizar">Agregar otro tecnico</button>
+
                             <select id="tecnico" name="tecnico" >
                             <option value="" selected disabled>Seleccione una opción</option>
                             <option value="Victor Cordoba">Victor Cordoba</option>
