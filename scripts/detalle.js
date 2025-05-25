@@ -228,7 +228,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         
                         <div style="flex: 1;">
                             <label>TÉCNICO:</label>
-                            <button type="button" id="btn-actualizar">Agregar otro tecnico</button>
+                            <button type="button" id="btn-agregar-tecnico">Agregar otro tecnico</button>
 
                             <select id="tecnico" name="tecnico" >
                             <option value="" selected disabled>Seleccione una opción</option>
