@@ -325,86 +325,95 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
             }
 
-            const formulario = document.getElementById('form-editar');
-            if (formulario) {
-                formulario.addEventListener('submit', function(e) {
-                    e.preventDefault();
+           const formulario = document.getElementById('form-editar');
+if (formulario) {
+    formulario.addEventListener('submit', function(e) {
+        e.preventDefault();
 
-                    const selects = document.querySelectorAll('#tecnicos-container select[name="tecnico"]');
-                    const tecnicosSeleccionados = [];
+        // Verificar que todos los elementos existan antes de acceder a sus valores
+        const numero = document.getElementById("numero");
+        const cliente = document.getElementById("cliente");
+        const contacto = document.getElementById("contacto");
+        const sucursal = document.getElementById("sucursal");
+        const fecha = document.getElementById("fecha");
+        const tecnico = document.getElementById("tecnico");
+        const estatus = document.getElementById("estatus");
+        const falla = document.getElementById("falla");
+        const accion = document.getElementById("accion");
+        const notas = document.getElementById("notas");
 
-                    selects.forEach(function(select) {
-                        if (select.value) {
-                            tecnicosSeleccionados.push(select.value);
-                        }
-                    });
+        if (!numero || !cliente || !contacto || !sucursal || !fecha || 
+            !tecnico || !estatus || !falla || !accion || !notas) {
+            console.error("Uno o más elementos del formulario no existen");
+            showNotification('Error: No se pudo acceder a todos los campos del formulario', 'error');
+            return;
+        }
 
-                    const tecnicosConcatenados = tecnicosSeleccionados.join(';');
+        const selects = document.querySelectorAll('#tecnicos-container select[name="tecnico"]');
+        const tecnicosSeleccionados = [];
 
-                    let inputOculto = document.getElementById('tecnicos-concatenados');
-                    if (!inputOculto) {
-                        inputOculto = document.createElement('input');
-                        inputOculto.type = 'hidden';
-                        inputOculto.name = 'tecnicos_concatenados';
-                        inputOculto.id = 'tecnicos-concatenados';
-                        formulario.appendChild(inputOculto);
-                    }
-                    inputOculto.value = tecnicosConcatenados;
-
-                    selects.forEach(function(select) {
-                        select.remove();
-                    });
-
-                    const formData = new FormData();
-                    formData.append("id", id);
-                    formData.append("numero", document.getElementById("numero").value);
-                    formData.append("cliente", document.getElementById("cliente").value);
-                    formData.append("contacto", document.getElementById("contacto").value);
-                    formData.append("sucursal", document.getElementById("sucursal").value);
-                    formData.append("fecha", document.getElementById("fecha").value);
-                    formData.append("tecnico", document.getElementById("tecnico").value);
-                    formData.append("estatus", document.getElementById("estatus").value);
-                    formData.append("falla", document.getElementById("falla").value);
-                    formData.append("accion", document.getElementById("accion").value);
-                    formData.append("notas", document.getElementById("notas").value);
-
-                    const archivosInput = document.getElementById("archivos").files;
-                    for (let i = 0; i < archivosInput.length; i++) {
-                        formData.append("archivos[]", archivosInput[i]);
-                    }
-
-                    fetch("../backend/actualiza.php", {
-                        method: "POST",
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (!data.success) {
-                            throw new Error(data.error || 'Error al actualizar la incidencia');
-                        }
-                        showNotification('Incidencia actualizada correctamente');
-                        if (data.archivos) {
-                            cargarArchivosAdjuntos(data.archivos);
-                            document.getElementById("archivos").value = '';
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Error al actualizar incidencia:", error);
-                        showNotification(error.message, 'error');
-                    });
-                });
+        selects.forEach(function(select) {
+            if (select.value) {
+                tecnicosSeleccionados.push(select.value);
             }
+        });
 
+        const tecnicosConcatenados = tecnicosSeleccionados.join(';');
+
+        let inputOculto = document.getElementById('tecnicos-concatenados');
+        if (!inputOculto) {
+            inputOculto = document.createElement('input');
+            inputOculto.type = 'hidden';
+            inputOculto.name = 'tecnicos_concatenados';
+            inputOculto.id = 'tecnicos-concatenados';
+            formulario.appendChild(inputOculto);
+        }
+        inputOculto.value = tecnicosConcatenados;
+
+        selects.forEach(function(select) {
+            select.remove();
+        });
+
+        const formData = new FormData();
+        formData.append("id", id);
+        formData.append("numero", numero.value);
+        formData.append("cliente", cliente.value);
+        formData.append("contacto", contacto.value);
+        formData.append("sucursal", sucursal.value);
+        formData.append("fecha", fecha.value);
+        formData.append("tecnico", tecnico.value);
+        formData.append("estatus", estatus.value);
+        formData.append("falla", falla.value);
+        formData.append("accion", accion.value);
+        formData.append("notas", notas.value);
+
+        const archivosInput = document.getElementById("archivos");
+        if (archivosInput) {
+            for (let i = 0; i < archivosInput.files.length; i++) {
+                formData.append("archivos[]", archivosInput.files[i]);
+            }
+        }
+
+        fetch("../backend/actualiza.php", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.error || 'Error al actualizar la incidencia');
+            }
+            showNotification('Incidencia actualizada correctamente');
             if (data.archivos) {
                 cargarArchivosAdjuntos(data.archivos);
+                if (archivosInput) archivosInput.value = '';
             }
-
-        } catch (error) {
-            console.error("Error al cargar detalles:", error);
-            document.getElementById("detalle-incidencia").innerHTML =
-                `<p>Error al cargar los detalles: ${error.message}</p>`;
-        }
-    }
-
+        })
+        .catch(error => {
+            console.error("Error al actualizar incidencia:", error);
+            showNotification(error.message, 'error');
+        });
+    });
+}
     cargarDetalleIncidencia();
 });
