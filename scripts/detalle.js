@@ -1,82 +1,5 @@
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-document.addEventListener('DOMContentLoaded', function () {
-    const btnAgregar = document.getElementById('btn-agregar-tecnico');
-    const contenedor = document.getElementById('tecnicos-container');
-
-    btnAgregar.addEventListener('click', function () {
-      // Crear un nuevo elemento select
-      const nuevoSelect = document.createElement('select');
-      nuevoSelect.name = 'tecnico';
-      nuevoSelect.required = true;
-      nuevoSelect.style.width = '100%';
-      nuevoSelect.style.marginTop = '10px';
-
-      // Opciones del select
-      const opciones = [
-        '',
-        'Victor Cordoba',
-        'Tomás Vázquez',
-        'Francisco Aguiar',
-        'Mauricio Díaz',
-        'Humberto Vázquez',
-        'Jose López',
-        'Hoscar Martínez',
-        'Jacob Ventura',
-        'Luis Limón',
-        'Ernesto Chávez'
-      ];
-
-      opciones.forEach(function (opcion) {
-        const opt = document.createElement('option');
-        opt.value = opcion;
-        opt.textContent = opcion === '' ? 'Seleccione una opción' : opcion;
-        if (opcion === '') {
-          opt.disabled = true;
-          opt.selected = true;
-        }
-        nuevoSelect.appendChild(opt);
-      });
-
-      // Agregar el nuevo select al contenedor
-      contenedor.appendChild(nuevoSelect);
-    });
-
-    // Manejar el envío del formulario
-    const formulario = document.querySelector('form'); // Asegúrate de que este selector apunte a tu formulario
-    formulario.addEventListener('submit', function (e) {
-      // Obtener todos los valores seleccionados
-      const selects = contenedor.querySelectorAll('select[name="tecnico"]');
-      const tecnicosSeleccionados = [];
-
-      selects.forEach(function (select) {
-        if (select.value) {
-          tecnicosSeleccionados.push(select.value);
-        }
-      });
-
-      // Concatenar los valores con punto y coma
-      const tecnicosConcatenados = tecnicosSeleccionados.join(';');
-
-      // Crear un campo oculto para enviar el valor concatenado
-      let inputOculto = document.getElementById('tecnicos-concatenados');
-      if (!inputOculto) {
-        inputOculto = document.createElement('input');
-        inputOculto.type = 'hidden';
-        inputOculto.name = 'tecnicos_concatenados';
-        inputOculto.id = 'tecnicos-concatenados';
-        formulario.appendChild(inputOculto);
-      }
-      inputOculto.value = tecnicosConcatenados;
-
-      // Opcional: eliminar los campos select antes de enviar si solo deseas enviar el valor concatenado
-      selects.forEach(function (select) {
-      select.remove();
-      });
-    });
-  });
-
-
 document.addEventListener("DOMContentLoaded", function () {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
@@ -102,43 +25,41 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     async function eliminarArchivo(urlArchivo, containerElement) {
-    if (!confirm('¿Estás seguro de que deseas eliminar este archivo permanentemente?')) {
-        return;
-    }
-
-    containerElement.classList.add('eliminando');
-
-    try {
-        const formData = new FormData();
-        formData.append('id_incidencia', id);
-
-        // Extraer la ruta relativa completa del archivo desde la URL
-        const url = new URL(urlArchivo, window.location.origin);
-        const rutaRelativa = url.pathname.replace(/^\/+/, ''); // Elimina las barras iniciales
-        formData.append('url_archivo', rutaRelativa);
-
-        const response = await fetch("../backend/eliminar_archivo.php", {
-            method: "POST",
-            body: formData
-        });
-
-        const data = await response.json();
-
-        if (!response.ok || !data.success) {
-            console.error('Error del servidor:', data);
-            throw new Error(data.error || `Error al eliminar el archivo. Código: ${response.status}`);
+        if (!confirm('¿Estás seguro de que deseas eliminar este archivo permanentemente?')) {
+            return;
         }
 
-        containerElement.remove();
-        showNotification('Archivo eliminado correctamente', 'success');
+        containerElement.classList.add('eliminando');
 
-    } catch (error) {
-        console.error("Error al eliminar archivo:", error);
-        showNotification(error.message || 'Error desconocido al eliminar el archivo', 'error');
-        containerElement.classList.remove('eliminando');
+        try {
+            const formData = new FormData();
+            formData.append('id_incidencia', id);
+
+            const url = new URL(urlArchivo, window.location.origin);
+            const rutaRelativa = url.pathname.replace(/^\/+/, '');
+            formData.append('url_archivo', rutaRelativa);
+
+            const response = await fetch("../backend/eliminar_archivo.php", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                console.error('Error del servidor:', data);
+                throw new Error(data.error || `Error al eliminar el archivo. Código: ${response.status}`);
+            }
+
+            containerElement.remove();
+            showNotification('Archivo eliminado correctamente', 'success');
+
+        } catch (error) {
+            console.error("Error al eliminar archivo:", error);
+            showNotification(error.message || 'Error desconocido al eliminar el archivo', 'error');
+            containerElement.classList.remove('eliminando');
+        }
     }
-}
-
     
     function cargarArchivosAdjuntos(archivos) {
         const contenedorArchivos = document.getElementById("contenedor-archivos");
@@ -251,8 +172,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 deleteBtn.onclick = (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    eliminarArchivo(archivo, archivoContainer); // 'archivo' es la URL completa
-                };;
+                    eliminarArchivo(archivo, archivoContainer);
+                };
 
                 archivoContainer.appendChild(link);
                 archivoContainer.appendChild(deleteBtn);
@@ -350,8 +271,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         <textarea id="notas" style="width: 100%;">${data.notas || ''}</textarea>
                     </div>
 
-                    
-
                     <div style="margin-bottom: 15px;">
                         <label>AGREGAR NUEVOS ARCHIVOS:</label>
                         <input type="file" id="archivos" name="archivos[]" multiple
@@ -365,56 +284,120 @@ document.addEventListener("DOMContentLoaded", function () {
                 </form>
             `;
 
+            // Agregar event listeners después de crear el formulario
+            const btnAgregar = document.getElementById('btn-agregar-tecnico');
+            const contenedor = document.getElementById('tecnicos-container');
+
+            if (btnAgregar && contenedor) {
+                btnAgregar.addEventListener('click', function() {
+                    const nuevoSelect = document.createElement('select');
+                    nuevoSelect.name = 'tecnico';
+                    nuevoSelect.required = true;
+                    nuevoSelect.style.width = '100%';
+                    nuevoSelect.style.marginTop = '10px';
+
+                    const opciones = [
+                        '',
+                        'Victor Cordoba',
+                        'Tomás Vázquez',
+                        'Francisco Aguiar',
+                        'Mauricio Díaz',
+                        'Humberto Vázquez',
+                        'Jose López',
+                        'Hoscar Martínez',
+                        'Jacob Ventura',
+                        'Luis Limón',
+                        'Ernesto Chávez'
+                    ];
+
+                    opciones.forEach(function(opcion) {
+                        const opt = document.createElement('option');
+                        opt.value = opcion;
+                        opt.textContent = opcion === '' ? 'Seleccione una opción' : opcion;
+                        if (opcion === '') {
+                            opt.disabled = true;
+                            opt.selected = true;
+                        }
+                        nuevoSelect.appendChild(opt);
+                    });
+
+                    contenedor.appendChild(nuevoSelect);
+                });
+            }
+
+            const formulario = document.getElementById('form-editar');
+            if (formulario) {
+                formulario.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const selects = document.querySelectorAll('#tecnicos-container select[name="tecnico"]');
+                    const tecnicosSeleccionados = [];
+
+                    selects.forEach(function(select) {
+                        if (select.value) {
+                            tecnicosSeleccionados.push(select.value);
+                        }
+                    });
+
+                    const tecnicosConcatenados = tecnicosSeleccionados.join(';');
+
+                    let inputOculto = document.getElementById('tecnicos-concatenados');
+                    if (!inputOculto) {
+                        inputOculto = document.createElement('input');
+                        inputOculto.type = 'hidden';
+                        inputOculto.name = 'tecnicos_concatenados';
+                        inputOculto.id = 'tecnicos-concatenados';
+                        formulario.appendChild(inputOculto);
+                    }
+                    inputOculto.value = tecnicosConcatenados;
+
+                    selects.forEach(function(select) {
+                        select.remove();
+                    });
+
+                    const formData = new FormData();
+                    formData.append("id", id);
+                    formData.append("numero", document.getElementById("numero").value);
+                    formData.append("cliente", document.getElementById("cliente").value);
+                    formData.append("contacto", document.getElementById("contacto").value);
+                    formData.append("sucursal", document.getElementById("sucursal").value);
+                    formData.append("fecha", document.getElementById("fecha").value);
+                    formData.append("tecnico", document.getElementById("tecnico").value);
+                    formData.append("estatus", document.getElementById("estatus").value);
+                    formData.append("falla", document.getElementById("falla").value);
+                    formData.append("accion", document.getElementById("accion").value);
+                    formData.append("notas", document.getElementById("notas").value);
+
+                    const archivosInput = document.getElementById("archivos").files;
+                    for (let i = 0; i < archivosInput.length; i++) {
+                        formData.append("archivos[]", archivosInput[i]);
+                    }
+
+                    fetch("../backend/actualiza.php", {
+                        method: "POST",
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            throw new Error(data.error || 'Error al actualizar la incidencia');
+                        }
+                        showNotification('Incidencia actualizada correctamente');
+                        if (data.archivos) {
+                            cargarArchivosAdjuntos(data.archivos);
+                            document.getElementById("archivos").value = '';
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error al actualizar incidencia:", error);
+                        showNotification(error.message, 'error');
+                    });
+                });
+            }
+
             if (data.archivos) {
                 cargarArchivosAdjuntos(data.archivos);
             }
-
-            document.getElementById("form-editar").addEventListener("submit", async function (e) {
-                e.preventDefault();
-
-                const formData = new FormData();
-                formData.append("id", id);
-                formData.append("numero", document.getElementById("numero").value);
-                formData.append("cliente", document.getElementById("cliente").value);
-                formData.append("contacto", document.getElementById("contacto").value);
-                formData.append("sucursal", document.getElementById("sucursal").value);
-                formData.append("fecha", document.getElementById("fecha").value);
-                formData.append("tecnico", document.getElementById("tecnico").value);
-                formData.append("estatus", document.getElementById("estatus").value);
-                formData.append("falla", document.getElementById("falla").value);
-                formData.append("accion", document.getElementById("accion").value);
-                formData.append("notas", document.getElementById("notas").value);
-
-
-                const archivosInput = document.getElementById("archivos").files;
-                for (let i = 0; i < archivosInput.length; i++) {
-                    formData.append("archivos[]", archivosInput[i]);
-                }
-
-                try {
-                    const response = await fetch("../backend/actualiza.php", {
-                        method: "POST",
-                        body: formData
-                    });
-
-                    const data = await response.json();
-
-                    if (!response.ok || !data.success) {
-                        throw new Error(data.error || 'Error al actualizar la incidencia');
-                    }
-
-                    showNotification('Incidencia actualizada correctamente');
-
-                    if (data.archivos) {
-                        cargarArchivosAdjuntos(data.archivos);
-                        document.getElementById("archivos").value = '';
-                    }
-
-                } catch (error) {
-                    console.error("Error al actualizar incidencia:", error);
-                    showNotification(error.message, 'error');
-                }
-            });
 
         } catch (error) {
             console.error("Error al cargar detalles:", error);
@@ -425,6 +408,3 @@ document.addEventListener("DOMContentLoaded", function () {
 
     cargarDetalleIncidencia();
 });
-
-
-  
