@@ -240,10 +240,9 @@ document.addEventListener("DOMContentLoaded", function () {
                             <option value="Jacob Ventura">Jacob Ventura</option>
                             <option value="Luis Limón">Luis Limón</option>
                             <option value="Ernesto Chávez">Ernesto Chávez</option>
-                             value="${data.tecnico || ''}" required style="width: 100%;">
-                             </select>
+                            </select> value="${data.tecnico || ''}" required style="width: 100%;">
                         </div>
-                    
+                    </div>
 
                     <div style="margin-bottom: 15px;">
                         <label>ESTATUS:</label>
