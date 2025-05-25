@@ -1,5 +1,6 @@
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
+
 document.addEventListener("DOMContentLoaded", function () {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
@@ -25,41 +26,43 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     async function eliminarArchivo(urlArchivo, containerElement) {
-        if (!confirm('¿Estás seguro de que deseas eliminar este archivo permanentemente?')) {
-            return;
-        }
-
-        containerElement.classList.add('eliminando');
-
-        try {
-            const formData = new FormData();
-            formData.append('id_incidencia', id);
-
-            const url = new URL(urlArchivo, window.location.origin);
-            const rutaRelativa = url.pathname.replace(/^\/+/, '');
-            formData.append('url_archivo', rutaRelativa);
-
-            const response = await fetch("../backend/eliminar_archivo.php", {
-                method: "POST",
-                body: formData
-            });
-
-            const data = await response.json();
-
-            if (!response.ok || !data.success) {
-                console.error('Error del servidor:', data);
-                throw new Error(data.error || `Error al eliminar el archivo. Código: ${response.status}`);
-            }
-
-            containerElement.remove();
-            showNotification('Archivo eliminado correctamente', 'success');
-
-        } catch (error) {
-            console.error("Error al eliminar archivo:", error);
-            showNotification(error.message || 'Error desconocido al eliminar el archivo', 'error');
-            containerElement.classList.remove('eliminando');
-        }
+    if (!confirm('¿Estás seguro de que deseas eliminar este archivo permanentemente?')) {
+        return;
     }
+
+    containerElement.classList.add('eliminando');
+
+    try {
+        const formData = new FormData();
+        formData.append('id_incidencia', id);
+
+        // Extraer la ruta relativa completa del archivo desde la URL
+        const url = new URL(urlArchivo, window.location.origin);
+        const rutaRelativa = url.pathname.replace(/^\/+/, ''); // Elimina las barras iniciales
+        formData.append('url_archivo', rutaRelativa);
+
+        const response = await fetch("../backend/eliminar_archivo.php", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            console.error('Error del servidor:', data);
+            throw new Error(data.error || `Error al eliminar el archivo. Código: ${response.status}`);
+        }
+
+        containerElement.remove();
+        showNotification('Archivo eliminado correctamente', 'success');
+
+    } catch (error) {
+        console.error("Error al eliminar archivo:", error);
+        showNotification(error.message || 'Error desconocido al eliminar el archivo', 'error');
+        containerElement.classList.remove('eliminando');
+    }
+}
+
     
     function cargarArchivosAdjuntos(archivos) {
         const contenedorArchivos = document.getElementById("contenedor-archivos");
@@ -172,8 +175,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 deleteBtn.onclick = (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    eliminarArchivo(archivo, archivoContainer);
-                };
+                    eliminarArchivo(archivo, archivoContainer); // 'archivo' es la URL completa
+                };;
 
                 archivoContainer.appendChild(link);
                 archivoContainer.appendChild(deleteBtn);
@@ -240,7 +243,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <option value="Luis Limón" ${data.tecnico === "Luis Limón" ? 'selected' : ''}>Luis Limón</option>
                                     <option value="Ernesto Chávez" ${data.tecnico === "Ernesto Chávez" ? 'selected' : ''}>Ernesto Chávez</option>
                                 </select>
-                            <button type="button" id="btn-agregar-tecnico" style="display: yes;">Agregar otro técnico</button>
+
                         </div>
                     </div>
 
@@ -271,6 +274,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         <textarea id="notas" style="width: 100%;">${data.notas || ''}</textarea>
                     </div>
 
+                    
+
                     <div style="margin-bottom: 15px;">
                         <label>AGREGAR NUEVOS ARCHIVOS:</label>
                         <input type="file" id="archivos" name="archivos[]" multiple
@@ -284,136 +289,66 @@ document.addEventListener("DOMContentLoaded", function () {
                 </form>
             `;
 
-            // Agregar event listeners después de crear el formulario
-            const btnAgregar = document.getElementById('btn-agregar-tecnico');
-            const contenedor = document.getElementById('tecnicos-container');
-
-            if (btnAgregar && contenedor) {
-                btnAgregar.addEventListener('click', function() {
-                    const nuevoSelect = document.createElement('select');
-                    nuevoSelect.name = 'tecnico';
-                    nuevoSelect.required = true;
-                    nuevoSelect.style.width = '100%';
-                    nuevoSelect.style.marginTop = '10px';
-
-                    const opciones = [
-                        '',
-                        'Victor Cordoba',
-                        'Tomás Vázquez',
-                        'Francisco Aguiar',
-                        'Mauricio Díaz',
-                        'Humberto Vázquez',
-                        'Jose López',
-                        'Hoscar Martínez',
-                        'Jacob Ventura',
-                        'Luis Limón',
-                        'Ernesto Chávez'
-                    ];
-
-                    opciones.forEach(function(opcion) {
-                        const opt = document.createElement('option');
-                        opt.value = opcion;
-                        opt.textContent = opcion === '' ? 'Seleccione una opción' : opcion;
-                        if (opcion === '') {
-                            opt.disabled = true;
-                            opt.selected = true;
-                        }
-                        nuevoSelect.appendChild(opt);
-                    });
-
-                    contenedor.appendChild(nuevoSelect);
-                });
-            }
-
-           const formulario = document.getElementById('form-editar');
-if (formulario) {
-    formulario.addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        // Verificar que todos los elementos existan antes de acceder a sus valores
-        const numero = document.getElementById("numero");
-        const cliente = document.getElementById("cliente");
-        const contacto = document.getElementById("contacto");
-        const sucursal = document.getElementById("sucursal");
-        const fecha = document.getElementById("fecha");
-        const tecnico = document.getElementById("tecnico");
-        const estatus = document.getElementById("estatus");
-        const falla = document.getElementById("falla");
-        const accion = document.getElementById("accion");
-        const notas = document.getElementById("notas");
-
-        if (!numero || !cliente || !contacto || !sucursal || !fecha || 
-            !tecnico || !estatus || !falla || !accion || !notas) {
-            console.error("Uno o más elementos del formulario no existen");
-            showNotification('Error: No se pudo acceder a todos los campos del formulario', 'error');
-            return;
-        }
-
-        const selects = document.querySelectorAll('#tecnicos-container select[name="tecnico"]');
-        const tecnicosSeleccionados = [];
-
-        selects.forEach(function(select) {
-            if (select.value) {
-                tecnicosSeleccionados.push(select.value);
-            }
-        });
-
-        const tecnicosConcatenados = tecnicosSeleccionados.join(';');
-
-        let inputOculto = document.getElementById('tecnicos-concatenados');
-        if (!inputOculto) {
-            inputOculto = document.createElement('input');
-            inputOculto.type = 'hidden';
-            inputOculto.name = 'tecnicos_concatenados';
-            inputOculto.id = 'tecnicos-concatenados';
-            formulario.appendChild(inputOculto);
-        }
-        inputOculto.value = tecnicosConcatenados;
-
-        selects.forEach(function(select) {
-            select.remove();
-        });
-
-        const formData = new FormData();
-        formData.append("id", id);
-        formData.append("numero", numero.value);
-        formData.append("cliente", cliente.value);
-        formData.append("contacto", contacto.value);
-        formData.append("sucursal", sucursal.value);
-        formData.append("fecha", fecha.value);
-        formData.append("tecnico", tecnico.value);
-        formData.append("estatus", estatus.value);
-        formData.append("falla", falla.value);
-        formData.append("accion", accion.value);
-        formData.append("notas", notas.value);
-
-        const archivosInput = document.getElementById("archivos");
-        if (archivosInput) {
-            for (let i = 0; i < archivosInput.files.length; i++) {
-                formData.append("archivos[]", archivosInput.files[i]);
-            }
-        }
-
-        fetch("../backend/actualiza.php", {
-            method: "POST",
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (!data.success) {
-                throw new Error(data.error || 'Error al actualizar la incidencia');
-            }
-            showNotification('Incidencia actualizada correctamente');
             if (data.archivos) {
                 cargarArchivosAdjuntos(data.archivos);
-                if (archivosInput) archivosInput.value = '';
             }
-        })
-        .catch(error => {
-            console.error("Error al actualizar incidencia:", error);
-            showNotification(error.message, 'error');
-        });
-    });
-}
+
+            document.getElementById("form-editar").addEventListener("submit", async function (e) {
+                e.preventDefault();
+
+                const formData = new FormData();
+                formData.append("id", id);
+                formData.append("numero", document.getElementById("numero").value);
+                formData.append("cliente", document.getElementById("cliente").value);
+                formData.append("contacto", document.getElementById("contacto").value);
+                formData.append("sucursal", document.getElementById("sucursal").value);
+                formData.append("fecha", document.getElementById("fecha").value);
+                formData.append("tecnico", document.getElementById("tecnico").value);
+                formData.append("estatus", document.getElementById("estatus").value);
+                formData.append("falla", document.getElementById("falla").value);
+                formData.append("accion", document.getElementById("accion").value);
+                formData.append("notas", document.getElementById("notas").value);
+
+
+                const archivosInput = document.getElementById("archivos").files;
+                for (let i = 0; i < archivosInput.length; i++) {
+                    formData.append("archivos[]", archivosInput[i]);
+                }
+
+                try {
+                    const response = await fetch("../backend/actualiza.php", {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok || !data.success) {
+                        throw new Error(data.error || 'Error al actualizar la incidencia');
+                    }
+
+                    showNotification('Incidencia actualizada correctamente');
+
+                    if (data.archivos) {
+                        cargarArchivosAdjuntos(data.archivos);
+                        document.getElementById("archivos").value = '';
+                    }
+
+                } catch (error) {
+                    console.error("Error al actualizar incidencia:", error);
+                    showNotification(error.message, 'error');
+                }
+            });
+
+        } catch (error) {
+            console.error("Error al cargar detalles:", error);
+            document.getElementById("detalle-incidencia").innerHTML =
+                `<p>Error al cargar los detalles: ${error.message}</p>`;
+        }
+    }
+
     cargarDetalleIncidencia();
 });
+
+
+  
