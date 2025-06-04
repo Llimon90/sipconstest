@@ -86,3 +86,33 @@ async function cargarUsuarios() {
 document.addEventListener('DOMContentLoaded', () => {
     cargarUsuarios();
 });
+
+
+//editar usuario
+
+function editarUsuario(id) {
+    // Aquí puedes redirigir a una página de edición o mostrar un formulario modal
+    // Por ejemplo:
+    window.location.href = `editar_usuario.html?id=${id}`;
+}
+
+async function eliminarUsuario(id) {
+    if (confirm('¿Estás seguro de que deseas eliminar este usuario?')) {
+        try {
+            const respuesta = await fetch(`../backend/eliminar_usuario.php?id=${id}`, {
+                method: 'GET'
+            });
+            const resultado = await respuesta.json();
+
+            if (resultado.success) {
+                alert('Usuario eliminado exitosamente.');
+                cargarUsuarios(); // Recargar la lista de usuarios
+            } else {
+                alert('Error al eliminar el usuario: ' + resultado.message);
+            }
+        } catch (error) {
+            console.error('Error al eliminar el usuario:', error);
+            alert('Ocurrió un error al eliminar el usuario.');
+        }
+    }
+}
