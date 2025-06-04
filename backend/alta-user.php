@@ -1,13 +1,12 @@
 <?php
 header('Content-Type: application/json');
 
-// Configurar conexión con la base de datos
-require_once 'conexion.php';
+// Configuración de la base de datos
 
-// Verificar conexión
-if ($conn->connect_error) {
-    die(json_encode(["error" => "Error de conexión: " . $conn->connect_error]));
-}
+require_once 'conexion.php';
+try {
+
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // Obtener y sanitizar los datos del formulario
     $nombre = trim($_POST['nombre'] ?? '');
