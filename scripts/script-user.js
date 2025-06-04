@@ -45,3 +45,44 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+
+//cargar usuarios en el dom
+
+async function cargarUsuarios() {
+    try {
+        const respuesta = await fetch('../backend/obtener-user.php');
+        const resultado = await respuesta.json();
+
+        if (resultado.success) {
+            const tbody = document.querySelector('#tabla-usuarios tbody');
+            tbody.innerHTML = ''; // Limpiar contenido existente
+
+            resultado.data.forEach(usuario => {
+                const fila = document.createElement('tr');
+
+                fila.innerHTML = `
+                    <td>${usuario.nombre}</td>
+                    <td>${usuario.usuario}</td>
+                    <td>${usuario.rol}</td>
+                    <td>
+                        <button onclick="editarUsuario(${usuario.id})">Editar</button>
+                        <button onclick="eliminarUsuario(${usuario.id})">Eliminar</button>
+                    </td>
+                `;
+
+                tbody.appendChild(fila);
+            });
+        } else {
+            alert('Error al obtener los usuarios: ' + resultado.message);
+        }
+    } catch (error) {
+        console.error('Error al cargar los usuarios:', error);
+        alert('Ocurrió un error al cargar los usuarios.');
+    }
+}
+
+// Llamar a la función al cargar la página
+document.addEventListener('DOMContentLoaded', () => {
+    cargarUsuarios();
+});
