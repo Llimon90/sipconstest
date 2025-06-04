@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         body: datos
       });
 
-    //   const resultado = await respuesta.json();
+    const resultado = await respuesta.json();
 
       if (resultado.success) {
         alert('Usuario registrado exitosamente');
