@@ -140,7 +140,7 @@ async function actualizarUsuario() {
     };
 
     try {
-        const respuesta = await fetch('../backend/actualizar-usuario.php', {
+        const respuesta = await fetch('../backend/actualiza-usuario.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
