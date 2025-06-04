@@ -2,10 +2,13 @@
 header('Content-Type: application/json');
 
 // Configuración de la base de datos
+$host = "localhost";
+$user = "sipcons1_test";
+$password = "sip*SYS2025";
+$database = "sipcons1_sipcons_test";
 
-require_once 'conexion.php';
 try {
-
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // Obtener y sanitizar los datos del formulario
