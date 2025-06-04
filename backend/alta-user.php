@@ -2,19 +2,18 @@
 header('Content-Type: application/json');
 // Configurar cabeceras para permitir acceso desde el frontend
 header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
 // Configuración de la base de datos
-$host = "localhost";
-$user = "sipcons1_test";
-$password = "sip*SYS2025";
-$database = "sipcons1_sipcons_test";
+require_once 'conexion.php';
 
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // Verificar la conexión
+    if ($conn->connect_error) {
+        echo json_encode(['error' => 'Error de conexión: ' . $conn->connect_error]);
+        exit;
+    }
 
     // Obtener y sanitizar los datos del formulario
     $nombre = trim($_POST['nombre'] ?? '');
@@ -33,12 +32,21 @@ try {
     // Encriptar la contraseña
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-    // Insertar los datos en la base de datos
-    $stmt = $pdo->prepare("INSERT INTO usuarios (nombre, correo, telefono, usuario, password, rol) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$nombre, $correo, $telefono, $usuario, $hashedPassword, $rol]);
+    // Preparar la consulta
+    $stmt = $conn->prepare("INSERT INTO usuarios (nombre, correo, telefono, usuario, password, rol) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("ssssss", $nombre, $correo, $telefono, $usuario, $hashedPassword, $rol);
 
-    echo json_encode(['success' => true]);
-} catch (PDOException $e) {
-    echo json_encode(['success' => false, 'message' => 'Error al conectar con la base de datos: ' . $e->getMessage()]);
+    // Ejecutar la consulta
+    if ($stmt->execute()) {
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Error al insertar los datos: ' . $stmt->error]);
+    }
+
+    // Cerrar la conexión
+    $stmt->close();
+    $conn->close();
+} catch (Exception $e) {
+    echo json_encode(['success' => false, 'message' => 'Excepción capturada: ' . $e->getMessage()]);
 }
 ?>
