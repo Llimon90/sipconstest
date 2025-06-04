@@ -1,5 +1,10 @@
 <?php
 header('Content-Type: application/json');
+// Configurar cabeceras para permitir acceso desde el frontend
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
 
 // Configuración de la base de datos
 $host = "localhost";
