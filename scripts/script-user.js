@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     datos.append('rol', rol);
 
     try {
-      const respuesta = await fetch('/backend/alta-user.php', {
+      const respuesta = await fetch('../backend/alta-user.php', {
         method: 'POST',
         body: datos
       });
