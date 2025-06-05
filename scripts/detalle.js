@@ -1,21 +1,5 @@
-// Cargar PDF.js solo si es necesario
-function loadPDFJS() {
-    return new Promise((resolve, reject) => {
-        if (typeof pdfjsLib !== 'undefined') {
-            resolve();
-            return;
-        }
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js';
-        script.onload = () => {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-            resolve();
-        };
-        script.onerror = reject;
-        document.head.appendChild(script);
-    });
-}
 
 document.addEventListener("DOMContentLoaded", function () {
     const params = new URLSearchParams(window.location.search);
@@ -42,58 +26,49 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     async function eliminarArchivo(urlArchivo, containerElement) {
-        if (!confirm('¿Estás seguro de que deseas eliminar este archivo permanentemente?')) {
-            return;
-        }
-
-        containerElement.classList.add('eliminando');
-
-        try {
-            const formData = new FormData();
-            formData.append('id_incidencia', id);
-
-            // Extraer la ruta relativa completa del archivo desde la URL
-            const url = new URL(urlArchivo, window.location.origin);
-            const rutaRelativa = url.pathname.replace(/^\/+/, ''); // Elimina las barras iniciales
-            formData.append('url_archivo', rutaRelativa);
-
-            const response = await fetch("../backend/eliminar_archivo.php", {
-                method: "POST",
-                body: formData
-            });
-
-            const data = await response.json();
-
-            if (!response.ok || !data.success) {
-                console.error('Error del servidor:', data);
-                throw new Error(data.error || `Error al eliminar el archivo. Código: ${response.status}`);
-            }
-
-            containerElement.remove();
-            showNotification('Archivo eliminado correctamente', 'success');
-
-        } catch (error) {
-            console.error("Error al eliminar archivo:", error);
-            showNotification(error.message || 'Error desconocido al eliminar el archivo', 'error');
-            containerElement.classList.remove('eliminando');
-        }
+    if (!confirm('¿Estás seguro de que deseas eliminar este archivo permanentemente?')) {
+        return;
     }
 
-    async function cargarArchivosAdjuntos(archivos) {
+    containerElement.classList.add('eliminando');
+
+    try {
+        const formData = new FormData();
+        formData.append('id_incidencia', id);
+
+        // Extraer la ruta relativa completa del archivo desde la URL
+        const url = new URL(urlArchivo, window.location.origin);
+        const rutaRelativa = url.pathname.replace(/^\/+/, ''); // Elimina las barras iniciales
+        formData.append('url_archivo', rutaRelativa);
+
+        const response = await fetch("../backend/eliminar_archivo.php", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            console.error('Error del servidor:', data);
+            throw new Error(data.error || `Error al eliminar el archivo. Código: ${response.status}`);
+        }
+
+        containerElement.remove();
+        showNotification('Archivo eliminado correctamente', 'success');
+
+    } catch (error) {
+        console.error("Error al eliminar archivo:", error);
+        showNotification(error.message || 'Error desconocido al eliminar el archivo', 'error');
+        containerElement.classList.remove('eliminando');
+    }
+}
+
+    
+    function cargarArchivosAdjuntos(archivos) {
         const contenedorArchivos = document.getElementById("contenedor-archivos");
         contenedorArchivos.innerHTML = "";
 
         if (archivos && archivos.length > 0) {
-            // Cargar PDF.js solo si hay archivos PDF
-            const hasPDF = archivos.some(archivo => archivo.split('.').pop().toLowerCase() === 'pdf');
-            if (hasPDF) {
-                try {
-                    await loadPDFJS();
-                } catch (error) {
-                    console.error('Error al cargar PDF.js:', error);
-                }
-            }
-
             archivos.forEach(async (archivo, index) => {
                 const ext = archivo.split('.').pop().toLowerCase();
                 const archivoContainer = document.createElement('div');
@@ -141,17 +116,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     link.appendChild(fileNameSpan);
 
                     try {
-                        if (typeof pdfjsLib !== 'undefined') {
-                            const pdf = await pdfjsLib.getDocument(archivo).promise;
-                            const page = await pdf.getPage(1);
-                            const viewport = page.getViewport({ scale: 1 });
-                            const context = canvas.getContext('2d');
-                            canvas.height = viewport.height;
-                            canvas.width = viewport.width;
-                            await page.render({ canvasContext: context, viewport: viewport }).promise;
-                        } else {
-                            throw new Error('PDF.js no está cargado');
-                        }
+                        const pdf = await pdfjsLib.getDocument(archivo).promise;
+                        const page = await pdf.getPage(1);
+                        const viewport = page.getViewport({ scale: 1 });
+                        const context = canvas.getContext('2d');
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+                        await page.render({ canvasContext: context, viewport: viewport }).promise;
                     } catch (error) {
                         console.error('Error al renderizar miniatura de PDF:', error);
                         canvas.remove();
@@ -204,8 +175,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 deleteBtn.onclick = (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    eliminarArchivo(archivo, archivoContainer);
-                };
+                    eliminarArchivo(archivo, archivoContainer); // 'archivo' es la URL completa
+                };;
 
                 archivoContainer.appendChild(link);
                 archivoContainer.appendChild(deleteBtn);
@@ -216,7 +187,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Resto del código de cargarDetalleIncidencia() permanece igual
     async function cargarDetalleIncidencia() {
         try {
             const response = await fetch(`../backend/detalle.php?id=${id}`);
@@ -226,124 +196,98 @@ document.addEventListener("DOMContentLoaded", function () {
                 throw new Error(data.error || 'Error al cargar los detalles');
             }
 
-            // Convertir técnico(s) a array (para compatibilidad con versiones anteriores)
-        const tecnicosData = data.tecnico ? data.tecnico.split('/').filter(t => t) : [];
-        // filter(t => t) elimina valores vacíos por si acaso
-
             document.getElementById("detalle-incidencia").innerHTML = `
-                <!-- El resto del HTML permanece igual -->
-            `;
+                <form id="form-editar">
+                    <p><strong># REPORTE INTERNO:</strong> ${data.numero_incidente}</p>
+                    <div style="display: flex; gap: 20px; margin-bottom: 15px;">
+                        <div style="flex: 1;">
+                            <label># INCIDENCIA CLIENTE:</label>&nbsp;
+                            <input type="text" id="numero" value="${data.numero || ''}" style="width: 100%;">
+                        </div>&nbsp; &nbsp;
+                        <div style="flex: 1;">
+                            <label>CLIENTE:</label>&nbsp;
+                            <input type="text" id="cliente" value="${data.cliente || ''}" required style="width: 100%;">
+                        </div>&nbsp;&nbsp;
+                    </div>
 
-            // Inicializar el sistema de técnicos
-            const tecnicosContainer = document.getElementById('tecnicos-container');
-            const agregarTecnicoBtn = document.getElementById('agregar-tecnico');
-            const tecnicosOptions = [
-                {value: "Victor Cordoba", text: "Victor Cordoba"},
-                {value: "Tomás Vázquez", text: "Tomás Vázquez"},
-                {value: "Francisco Aguiar", text: "Francisco Aguiar"},
-                {value: "Mauricio Díaz", text: "Mauricio Díaz"},
-                {value: "Humberto Vázquez", text: "Humberto Vázquez"},
-                {value: "Jose López", text: "José López"},
-                {value: "Hoscar Martínez", text: "Hoscar Martínez"},
-                {value: "Jacob Ventura", text: "Jacob Ventura"},
-                {value: "Luis Limón", text: "Luis Limón"},
-                {value: "Ernesto Chávez", text: "Ernesto Chávez"}
-            ];
+                    <div style="display: flex; gap: 20px; margin-bottom: 15px;">
+                        <div style="flex: 1;">
+                            <label>CONTACTO:</label>
+                            <input type="text" id="contacto" value="${data.contacto || ''}" required style="width: 100%;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label>SUCURSAL:</label>
+                            <input type="text" id="sucursal" value="${data.sucursal || ''}" required style="width: 100%;">
+                        </div>
+                    </div>
 
-            // Función para crear un select de técnico
-            function createTechnicianSelect(selectedValue = '') {
-                const selectContainer = document.createElement('div');
-                selectContainer.style.display = 'flex';
-                selectContainer.style.alignItems = 'center';
-                selectContainer.style.marginBottom = '5px';
+                    <div style="display: flex; gap: 20px; margin-bottom: 15px;">
+                        <div style="flex: 1;">
+                            <label>FECHA:</label>
+                            <input type="date" id="fecha" value="${data.fecha || ''}" required style="width: 100%;">
+                        </div>
 
-                const select = document.createElement('select');
-                select.className = 'select-tecnico';
-                select.style.flex = '1';
-                select.style.marginRight = '10px';
-                
-                // Opción vacía
-                const emptyOption = document.createElement('option');
-                emptyOption.value = '';
-                emptyOption.textContent = 'Seleccione técnico';
-                emptyOption.disabled = true;
-                emptyOption.selected = !selectedValue;
-                select.appendChild(emptyOption);
-
-                // Agregar opciones de técnicos
-                tecnicosOptions.forEach(opt => {
-                    const option = document.createElement('option');
-                    option.value = opt.value;
-                    option.textContent = opt.text;
-                    option.selected = opt.value === selectedValue;
-                    select.appendChild(option);
-                });
-
-                // Botón para eliminar
-                const removeBtn = document.createElement('button');
-                removeBtn.type = 'button';
-                removeBtn.textContent = '×';
-                removeBtn.style.background = '#ff6b6b';
-                removeBtn.style.color = 'white';
-                removeBtn.style.border = 'none';
-                removeBtn.style.borderRadius = '50%';
-                removeBtn.style.width = '25px';
-                removeBtn.style.height = '25px';
-                removeBtn.style.cursor = 'pointer';
-                removeBtn.addEventListener('click', () => {
-                    selectContainer.remove();
-                    updateSelectsAvailability();
-                });
-
-                selectContainer.appendChild(select);
-                selectContainer.appendChild(removeBtn);
-
-                return selectContainer;
-            }
-
-            // Función para actualizar disponibilidad de técnicos
-            function updateSelectsAvailability() {
-                const selects = tecnicosContainer.querySelectorAll('.select-tecnico');
-                const selectedValues = Array.from(selects).map(s => s.value).filter(v => v);
-
-                selects.forEach(select => {
-                    const currentValue = select.value;
-                    
-                    Array.from(select.options).forEach(option => {
-                        if (!option.value) return;
                         
-                        option.disabled = selectedValues.includes(option.value) && option.value !== currentValue;
-                    });
-                });
+                        <div id="tecnicos-container" style="flex: 1;">
+                          <label for="tecnico">Técnico Asignado <button type="button" id="agregar-tecnico">Agregar Técnico</button></label> 
+                                <select id="tecnico" name="tecnico" required style="width: 100%;">
+                                    <option value="" disabled ${!data.tecnico ? 'selected' : ''}>Seleccione una opción</option>
+                                    <option value="Victor Cordoba" ${data.tecnico === "Victor Cordoba" ? 'selected' : ''}>Victor Cordoba</option>
+                                    <option value="Tomás Vázquez" ${data.tecnico === "Tomás Vázquez" ? 'selected' : ''}>Tomás Vázquez</option>
+                                    <option value="Francisco Aguiar" ${data.tecnico === "Francisco Aguiar" ? 'selected' : ''}>Francisco Aguiar</option>
+                                    <option value="Mauricio Díaz" ${data.tecnico === "Mauricio Díaz" ? 'selected' : ''}>Mauricio Díaz</option>
+                                    <option value="Humberto Vázquez" ${data.tecnico === "Humberto Vázquez" ? 'selected' : ''}>Humberto Vázquez</option>
+                                    <option value="Jose López" ${data.tecnico === "Jose López" ? 'selected' : ''}>José López</option>
+                                    <option value="Hoscar Martínez" ${data.tecnico === "Hoscar Martínez" ? 'selected' : ''}>Hoscar Martínez</option>
+                                    <option value="Jacob Ventura" ${data.tecnico === "Jacob Ventura" ? 'selected' : ''}>Jacob Ventura</option>
+                                    <option value="Luis Limón" ${data.tecnico === "Luis Limón" ? 'selected' : ''}>Luis Limón</option>
+                                    <option value="Ernesto Chávez" ${data.tecnico === "Ernesto Chávez" ? 'selected' : ''}>Ernesto Chávez</option>
+                                </select>
 
-                // Habilitar/deshabilitar botón de agregar
-                agregarTecnicoBtn.disabled = tecnicosContainer.querySelectorAll('.select-tecnico').length >= tecnicosOptions.length;
-            }
+                        </div>
+                    </div>
 
-            // Cargar técnicos existentes
-            if (tecnicosData.length > 0) {
-                tecnicosData.forEach(tecnico => {
-                    tecnicosContainer.appendChild(createTechnicianSelect(tecnico));
-                });
-            } else {
-                // Agregar un select vacío por defecto
-                tecnicosContainer.appendChild(createTechnicianSelect());
-            }
+                    <div style="margin-bottom: 15px;">
+                        <label>ESTATUS:</label>
+                        <select id="estatus" style="width: 100%;">
+                            <option value="Abierto" ${data.estatus === "Abierto" ? 'selected' : ''}>Abierto</option>
+                            <option value="Asignado" ${data.estatus === "Asignado" ? 'selected' : ''}>Asignado</option>
+                            <option value="Pendiente" ${data.estatus === "Pendiente" ? 'selected' : ''}>Pendiente</option>
+                            <option value="Completado" ${data.estatus === "Completado" ? 'selected' : ''}>Completado</option>
+                            <option value="Cerrado sin factura" ${data.estatus === "Cerrado sin factura" ? 'selected' : ''}>Cerrado sin factura</option>
+                            <option value="Cerrado con factura" ${data.estatus === "Cerrado con factura" ? 'selected' : ''}>Cerrado con factura</option>
+                        </select>
+                    </div>
 
-            // Evento para agregar nuevo técnico
-            agregarTecnicoBtn.addEventListener('click', () => {
-                if (tecnicosContainer.querySelectorAll('.select-tecnico').length >= tecnicosOptions.length) {
-                    alert('No hay más técnicos disponibles para agregar');
-                    return;
-                }
-                
-                const newSelect = createTechnicianSelect();
-                tecnicosContainer.appendChild(newSelect);
-                updateSelectsAvailability();
-            });
+                    <div style="margin-bottom: 15px;">
+                        <label>FALLA:</label>
+                        <textarea id="falla" required style="width: 100%;">${data.falla || ''}</textarea>
+                    </div>
 
-            // Actualizar disponibilidad inicial
-            updateSelectsAvailability();
+                    <div style="margin-bottom: 15px;">
+                        <label>TRABAJO REALIZADO:</label>
+                        <textarea id="accion" style="width: 100%;">${data.accion || ''}</textarea>
+                    </div>
+            
+                    <div style="margin-bottom: 15px;">
+                        <label>NOTAS ADICIONALES</label>
+                        <textarea id="notas" style="width: 100%;">${data.notas || ''}</textarea>
+                    </div>
+
+                    
+
+                    <div style="margin-bottom: 15px;">
+                        <label>AGREGAR NUEVOS ARCHIVOS:</label>
+                        <input type="file" id="archivos" name="archivos[]" multiple
+                               accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.ogg,.mov,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar"
+                               style="width: 100%;">
+                    </div>
+
+                    <button type="submit" style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        Guardar cambios
+                    </button>
+                </form>
+            `;
 
             if (data.archivos) {
                 cargarArchivosAdjuntos(data.archivos);
@@ -352,12 +296,6 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("form-editar").addEventListener("submit", async function (e) {
                 e.preventDefault();
 
-                // Obtener todos los técnicos seleccionados
-                const tecnicosSelects = document.querySelectorAll('.select-tecnico');
-                const tecnicos = Array.from(tecnicosSelects)
-                    .map(select => select.value)
-                    .filter(value => value);
-
                 const formData = new FormData();
                 formData.append("id", id);
                 formData.append("numero", document.getElementById("numero").value);
@@ -365,11 +303,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 formData.append("contacto", document.getElementById("contacto").value);
                 formData.append("sucursal", document.getElementById("sucursal").value);
                 formData.append("fecha", document.getElementById("fecha").value);
-                formData.append("tecnicos", JSON.stringify(tecnicos));
+                formData.append("tecnico", document.getElementById("tecnico").value);
                 formData.append("estatus", document.getElementById("estatus").value);
                 formData.append("falla", document.getElementById("falla").value);
                 formData.append("accion", document.getElementById("accion").value);
                 formData.append("notas", document.getElementById("notas").value);
+
 
                 const archivosInput = document.getElementById("archivos").files;
                 for (let i = 0; i < archivosInput.length; i++) {
@@ -410,3 +349,31 @@ document.addEventListener("DOMContentLoaded", function () {
 
     cargarDetalleIncidencia();
 });
+
+
+  // Función para crear un nuevo select de técnico
+function createNewTechnicianSelect() {
+  // Clonar el primer select de técnico
+  const originalSelect = tecnicosContainer.querySelector('.select-tecnico');
+  const newSelect = originalSelect.cloneNode(true);
+  
+  // Resetear el valor del nuevo select
+  newSelect.value = '';
+  
+  // Agregar botón para eliminar este select
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.textContent = 'Eliminar';
+  removeBtn.className = 'eliminar-tecnico';
+  removeBtn.addEventListener('click', function() {
+    newSelect.remove();
+    removeBtn.nextElementSibling?.remove(); // Eliminar el <br> si existe
+    removeBtn.remove();
+    updateSelectsAvailability(); // Actualizar disponibilidad al eliminar
+  });
+  
+  // Evento para actualizar disponibilidad cuando se cambia la selección
+  newSelect.addEventListener('change', updateSelectsAvailability);
+  
+  return { newSelect, removeBtn };
+}
