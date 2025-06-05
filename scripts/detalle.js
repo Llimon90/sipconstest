@@ -228,39 +228,36 @@ document.addEventListener("DOMContentLoaded", function () {
                         </div>
 
                         
-                <div class="form-row">
-                    <div>
-                        <label for="tecnico">Técnico Asignado <button type="button" id="agregar-tecnico">Agregar Técnico</button></label> 
-                            <div id="tecnicos-container">
-                                <select name="tecnico[]" class="select-tecnico">
-                                    <option value="" selected disabled>Seleccione una opción</option>
-                                    <option value="Victor Cordoba">Victor Cordoba</option>
-                                    <option value="Tomás Vázquez">Tomás Valdéz</option>
-                                    <option value="Francisco Aguiar">Francisco Aguiar</option>
-                                    <option value="Mauricio Díaz">Mauricio Diaz</option>
-                                    <option value="Humberto Vázquez">Humberto Vázquez</option>
-                                    <option value="Jose López">José López</option>
-                                    <option value="Hoscar Martínez">Hoscar Martínez</option>
-                                    <option value="Jacob Ventura">Jacob Ventura</option>
-                                    <option value="Luis Limón">Luis Limón</option>
-                                    <option value="Ernesto Chávez">Ernesto Chávez</option>
+                <div id="tecnicos-container" style="flex: 1;">
+                            <label for="tecnico">TÉCNICO:</label>
+                                <select id="tecnico" name="tecnico" required style="width: 100%;">
+                                    <option value="" disabled ${!data.tecnico ? 'selected' : ''}>Seleccione una opción</option>
+                                    <option value="Victor Cordoba" ${data.tecnico === "Victor Cordoba" ? 'selected' : ''}>Victor Cordoba</option>
+                                    <option value="Tomás Vázquez" ${data.tecnico === "Tomás Vázquez" ? 'selected' : ''}>Tomás Vázquez</option>
+                                    <option value="Francisco Aguiar" ${data.tecnico === "Francisco Aguiar" ? 'selected' : ''}>Francisco Aguiar</option>
+                                    <option value="Mauricio Díaz" ${data.tecnico === "Mauricio Díaz" ? 'selected' : ''}>Mauricio Díaz</option>
+                                    <option value="Humberto Vázquez" ${data.tecnico === "Humberto Vázquez" ? 'selected' : ''}>Humberto Vázquez</option>
+                                    <option value="Jose López" ${data.tecnico === "Jose López" ? 'selected' : ''}>José López</option>
+                                    <option value="Hoscar Martínez" ${data.tecnico === "Hoscar Martínez" ? 'selected' : ''}>Hoscar Martínez</option>
+                                    <option value="Jacob Ventura" ${data.tecnico === "Jacob Ventura" ? 'selected' : ''}>Jacob Ventura</option>
+                                    <option value="Luis Limón" ${data.tecnico === "Luis Limón" ? 'selected' : ''}>Luis Limón</option>
+                                    <option value="Ernesto Chávez" ${data.tecnico === "Ernesto Chávez" ? 'selected' : ''}>Ernesto Chávez</option>
                                 </select>
-                            </div>
+
+                        </div>
                     </div>
 
-                    <div>
-                        <label for="estatus">Estatus</label>
-                            <select id="estatus" name="estatus" required>
-                                <option value="Abierto">Abierto</option>
-                                <option value="Asignado">Asignado</option>
-                                <option value="Pendiente">Pendiente</option>
-                                <option value="Completado">Completado</option>
-                                <option value="Cerrado sin factura">Cerrado sin factura</option>
-                                <option value="Cerrado con factura">Cerrado con factura</option>
-                            </select>
+                    <div style="margin-bottom: 15px;">
+                        <label>ESTATUS:</label>
+                        <select id="estatus" style="width: 100%;">
+                            <option value="Abierto" ${data.estatus === "Abierto" ? 'selected' : ''}>Abierto</option>
+                            <option value="Asignado" ${data.estatus === "Asignado" ? 'selected' : ''}>Asignado</option>
+                            <option value="Pendiente" ${data.estatus === "Pendiente" ? 'selected' : ''}>Pendiente</option>
+                            <option value="Completado" ${data.estatus === "Completado" ? 'selected' : ''}>Completado</option>
+                            <option value="Cerrado sin factura" ${data.estatus === "Cerrado sin factura" ? 'selected' : ''}>Cerrado sin factura</option>
+                            <option value="Cerrado con factura" ${data.estatus === "Cerrado con factura" ? 'selected' : ''}>Cerrado con factura</option>
+                        </select>
                     </div>
-                </div>
-
 
                     <div style="margin-bottom: 15px;">
                         <label>FALLA:</label>
