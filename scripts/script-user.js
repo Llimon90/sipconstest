@@ -229,6 +229,10 @@ async function eliminarUsuario(id) {
     }
 }
 
+ cargarTecnicosEnSelect('select-tecnico');
+    
+    cargarUsuarios();
+
 // Función para cargar técnicos en un select
 async function cargarTecnicosEnSelect(selectId) {
     try {
@@ -250,5 +254,10 @@ async function cargarTecnicosEnSelect(selectId) {
         }
     } catch (error) {
         console.error('Error al cargar técnicos:', error);
+
+
     }
+
+    
 }
+
