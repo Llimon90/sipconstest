@@ -228,7 +228,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         </div>
 
                         
-                        <div class="form-row">
+                         <div class="form-row">
   <div>
     <label for="tecnico">Técnico Asignado <button type="button" id="agregar-tecnico">Agregar Técnico</button></label> 
     <div id="tecnicos-container">
@@ -248,17 +248,19 @@ document.addEventListener("DOMContentLoaded", function () {
     </div>
   </div>
 
-                    <div style="margin-bottom: 15px;">
-                        <label>ESTATUS:</label>
-                        <select id="estatus" style="width: 100%;">
-                            <option value="Abierto" ${data.estatus === "Abierto" ? 'selected' : ''}>Abierto</option>
-                            <option value="Asignado" ${data.estatus === "Asignado" ? 'selected' : ''}>Asignado</option>
-                            <option value="Pendiente" ${data.estatus === "Pendiente" ? 'selected' : ''}>Pendiente</option>
-                            <option value="Completado" ${data.estatus === "Completado" ? 'selected' : ''}>Completado</option>
-                            <option value="Cerrado sin factura" ${data.estatus === "Cerrado sin factura" ? 'selected' : ''}>Cerrado sin factura</option>
-                            <option value="Cerrado con factura" ${data.estatus === "Cerrado con factura" ? 'selected' : ''}>Cerrado con factura</option>
-                        </select>
-                    </div>
+  <div>
+    <label for="estatus">Estatus</label>
+    <select id="estatus" name="estatus" required>
+      <option value="Abierto">Abierto</option>
+      <option value="Asignado">Asignado</option>
+      <option value="Pendiente">Pendiente</option>
+      <option value="Completado">Completado</option>
+      <option value="Cerrado sin factura">Cerrado sin factura</option>
+      <option value="Cerrado con factura">Cerrado con factura</option>
+    </select>
+  </div>
+</div>
+
 
                     <div style="margin-bottom: 15px;">
                         <label>FALLA:</label>
