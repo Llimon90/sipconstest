@@ -227,8 +227,8 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             // Convertir técnico(s) a array (para compatibilidad con versiones anteriores)
-            const tecnicosData = Array.isArray(data.tecnico) ? data.tecnico : 
-                               (data.tecnico ? [data.tecnico] : []);
+        const tecnicosData = data.tecnico ? data.tecnico.split('/').filter(t => t) : [];
+        // filter(t => t) elimina valores vacíos por si acaso
 
             document.getElementById("detalle-incidencia").innerHTML = `
                 <!-- El resto del HTML permanece igual -->
