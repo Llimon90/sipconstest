@@ -14,11 +14,29 @@ $cliente = $_POST['cliente'];
 $contacto = $_POST['contacto'];
 $sucursal = $_POST['sucursal'];
 $fecha = $_POST['fecha'];
-$tecnico = $_POST['tecnico'];
 $estatus = $_POST['estatus'];
 $falla = $_POST['falla'];
 $accion = $_POST['accion'];
 $notas = $_POST['notas'];
+
+// Procesar los técnicos (que vienen como JSON string)
+$tecnicosArray = [];
+if (isset($_POST['tecnicos']) {
+    // Decodificar el JSON si viene como string
+    if (is_string($_POST['tecnicos'])) {
+        $tecnicosArray = json_decode($_POST['tecnicos'], true);
+    } elseif (is_array($_POST['tecnicos'])) {
+        $tecnicosArray = $_POST['tecnicos'];
+    }
+    
+    // Filtrar valores vacíos
+    $tecnicosArray = array_filter($tecnicosArray, function($value) {
+        return !empty($value);
+    });
+}
+
+// Unir técnicos con diagonal "/"
+$tecnico = !empty($tecnicosArray) ? implode('/', $tecnicosArray) : '';
 
 // Actualizar la incidencia en la base de datos
 $sql = "UPDATE incidencias SET numero = ?, cliente = ?, contacto = ?, sucursal = ?, fecha = ?, tecnico = ?, estatus = ?, falla = ?, accion = ?, notas = ? WHERE id = ?";
@@ -50,7 +68,7 @@ if ($stmt->execute()) {
 
     echo json_encode(["success" => true]);
 } else {
-    echo json_encode(["error" => "Error al actualizar la incidencia"]);
+    echo json_encode(["error" => "Error al actualizar la incidencia: " . $stmt->error]);
 }
 
 $stmt->close();
