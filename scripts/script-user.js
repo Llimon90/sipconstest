@@ -47,6 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+    cargarTecnicosEnSelect('select-tecnico');
+    
+
+
   cargarUsuarios();
 });
 // Función para cargar usuarios
@@ -229,9 +233,7 @@ async function eliminarUsuario(id) {
     }
 }
 
- cargarTecnicosEnSelect('select-tecnico');
-    
-    cargarUsuarios();
+
 
 // Función para cargar técnicos en un select
 async function cargarTecnicosEnSelect(selectId) {
