@@ -228,3 +228,27 @@ async function eliminarUsuario(id) {
         }
     }
 }
+
+// Función para cargar técnicos en un select
+async function cargarTecnicosEnSelect(selectId) {
+    try {
+        const response = await fetch('../backend/obtener-tecnicos.php');
+        const resultado = await response.json();
+
+        if (resultado.success) {
+            const select = document.getElementById(selectId);
+            select.innerHTML = '<option value="">Seleccione un técnico</option>';
+            
+            resultado.tecnicos.forEach(tecnico => {
+                const option = document.createElement('option');
+                option.value = tecnico.id;
+                option.textContent = tecnico.nombre;
+                select.appendChild(option);
+            });
+        } else {
+            console.error('Error al cargar técnicos:', resultado.message);
+        }
+    } catch (error) {
+        console.error('Error al cargar técnicos:', error);
+    }
+}
