@@ -409,3 +409,32 @@ td {
 .btn-eliminar:hover {
   color: #c0392b;
 }
+
+/*SECCION DE AGREGAR TECNICO*/
+
+#tecnicos-container {
+  margin-top: 5px;
+}
+
+.select-tecnico {
+  margin-bottom: 5px;
+}
+
+.eliminar-tecnico {
+  margin-left: 10px;
+  background-color: #ff6b6b;
+  color: white;
+  border: none;
+  padding: 2px 5px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.eliminar-tecnico:hover {
+  background-color: #ff5252;
+}
+
+#agregar-tecnico:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
