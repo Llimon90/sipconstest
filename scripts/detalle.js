@@ -217,7 +217,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         </div>
                         <div style="flex: 1;">
                             <label>SUCURSAL:</label>
-                            <input type="text" id="sucursal" value="${data.sucursal || ''}" required style="width: 100%;">
+                            <input type="text" id="sucursal" value="${data.sucursal || ''}"  style="width: 100%;">
                         </div>
                     </div>
 
