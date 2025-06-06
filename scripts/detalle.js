@@ -230,7 +230,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         
                         <div id="tecnicos-container" style="flex: 1;">
                             <label for="tecnico">TÉCNICO:</label>
-<<<<<<< HEAD
                                 <select id="tecnico" name="tecnico" required style="width: 100%;">
                                     <option value="" disabled ${!data.tecnico ? 'selected' : ''}>Seleccione una opción</option>
                                     <option value="Victor Cordoba" ${data.tecnico === "Victor Cordoba" ? 'selected' : ''}>Victor Cordoba</option>
@@ -243,28 +242,10 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <option value="Jacob Ventura" ${data.tecnico === "Jacob Ventura" ? 'selected' : ''}>Jacob Ventura</option>
                                     <option value="Luis Limón" ${data.tecnico === "Luis Limón" ? 'selected' : ''}>Luis Limón</option>
                                     <option value="Ernesto Chávez" ${data.tecnico === "Ernesto Chávez" ? 'selected' : ''}>Ernesto Chávez</option>
-                                </select> 
-=======
-                            <select class="select-tecnico" name="tecnico" required style="width: 100%;">
-                                <option value="" disabled selected>Seleccione una opción</option>
-                                <option value="Victor Cordoba">Victor Cordoba</option>
-                                <option value="Tomás Vázquez">Tomás Vázquez</option>
-                                <option value="Francisco Aguiar">Francisco Aguiar</option>
-                                <option value="Mauricio Díaz">Mauricio Díaz</option>
-                                <option value="Humberto Vázquez">Humberto Vázquez</option>
-                                <option value="Jose López">José López</option>
-                                <option value="Hoscar Martínez">Hoscar Martínez</option>
-                                <option value="Jacob Ventura">Jacob Ventura</option>
-                                <option value="Luis Limón">Luis Limón</option>
-                                <option value="Ernesto Chávez">Ernesto Chávez</option>
-                            </select>
-                            </div>
-                            <button type="button" id="agregar-tecnico">Agregar técnico</button>
->>>>>>> 5d8844e5418002b38c3d7c90cbc6398236c12cf8
+                                </select>
 
                         </div>
-
-    
+                    </div>
 
                     <div style="margin-bottom: 15px;">
                         <label>ESTATUS:</label>
@@ -307,85 +288,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     </button>
                 </form>
             `;
-
-            document.addEventListener('DOMContentLoaded', function() {
-  const tecnicosContainer = document.getElementById('tecnicos-container');
-  const agregarTecnicoBtn = document.getElementById('agregar-tecnico');
-  const originalSelect = tecnicosContainer.querySelector('.select-tecnico');
-
-  // Obtener todas las opciones originales de técnicos
-  const originalOptions = Array.from(originalSelect.options)
-    .map(option => option.value)
-    .filter(value => value); // Eliminar la opción vacía
-
-  // Función para actualizar la disponibilidad de opciones en todos los selects
-  function updateSelectsAvailability() {
-    const allSelects = tecnicosContainer.querySelectorAll('.select-tecnico');
-    const selectedValues = Array.from(allSelects)
-      .map(select => select.value)
-      .filter(value => value);
-
-    allSelects.forEach(select => {
-      const currentValue = select.value;
-
-      Array.from(select.options).forEach(option => {
-        if (!option.value) return; // No afectar la opción vacía
-
-        // Habilitar/deshabilitar según si está seleccionado en otro select
-        option.disabled = selectedValues.includes(option.value) && option.value !== currentValue;
-      });
-    });
-
-    // Habilitar/deshabilitar botón de agregar técnico
-    agregarTecnicoBtn.disabled = tecnicosContainer.querySelectorAll('.select-tecnico').length >= originalOptions.length;
-  }
-
-  // Función para crear un nuevo select de técnico
-  function createNewTechnicianSelect() {
-    const newSelect = originalSelect.cloneNode(true);
-    newSelect.value = '';
-
-    // Evento para actualizar disponibilidad cuando se cambia la selección
-    newSelect.addEventListener('change', updateSelectsAvailability);
-
-    // Agregar botón para eliminar este select
-    const removeBtn = document.createElement('button');
-    removeBtn.type = 'button';
-    removeBtn.textContent = 'Eliminar';
-    removeBtn.className = 'eliminar-tecnico';
-    removeBtn.addEventListener('click', function() {
-      newSelect.remove();
-      removeBtn.remove();
-      updateSelectsAvailability();
-    });
-
-    // Contenedor para el nuevo select y su botón
-    const container = document.createElement('div');
-    container.appendChild(newSelect);
-    container.appendChild(removeBtn);
-
-    tecnicosContainer.appendChild(container);
-  }
-
-  // Evento para el botón de agregar técnico
-  agregarTecnicoBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-
-    const currentSelects = tecnicosContainer.querySelectorAll('.select-tecnico');
-
-    if (currentSelects.length >= originalOptions.length) {
-      alert('No hay más técnicos disponibles para agregar');
-      return;
-    }
-
-    createNewTechnicianSelect();
-    updateSelectsAvailability();
-  });
-
-  // Inicializar disponibilidad
-  updateSelectsAvailability();
-});
-
 
             if (data.archivos) {
                 cargarArchivosAdjuntos(data.archivos);
@@ -449,29 +351,4 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-  // Función para crear un nuevo select de técnico
-function createNewTechnicianSelect() {
-  // Clonar el primer select de técnico
-  const originalSelect = tecnicosContainer.querySelector('.select-tecnico');
-  const newSelect = originalSelect.cloneNode(true);
   
-  // Resetear el valor del nuevo select
-  newSelect.value = '';
-  
-  // Agregar botón para eliminar este select
-  const removeBtn = document.createElement('button');
-  removeBtn.type = 'button';
-  removeBtn.textContent = 'Eliminar';
-  removeBtn.className = 'eliminar-tecnico';
-  removeBtn.addEventListener('click', function() {
-    newSelect.remove();
-    removeBtn.nextElementSibling?.remove(); // Eliminar el <br> si existe
-    removeBtn.remove();
-    updateSelectsAvailability(); // Actualizar disponibilidad al eliminar
-  });
-  
-  // Evento para actualizar disponibilidad cuando se cambia la selección
-  newSelect.addEventListener('change', updateSelectsAvailability);
-  
-  return { newSelect, removeBtn };
-}
