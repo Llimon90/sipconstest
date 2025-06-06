@@ -188,6 +188,10 @@ async function cargarArchivosAdjuntos(archivos, id) {
 
 // Funciones relacionadas con el formulario
 function createFormHTML(data) {
+    // Convertir técnico existente en array si no lo es
+    const tecnicosIniciales = Array.isArray(data.tecnico) ? data.tecnico : 
+                            (data.tecnico ? [data.tecnico] : []);
+
     return `
         <form id="form-editar">
             <p><strong># REPORTE INTERNO:</strong> ${data.numero_incidente}</p>
@@ -218,23 +222,32 @@ function createFormHTML(data) {
                     <label>FECHA:</label>
                     <input type="date" id="fecha" value="${data.fecha || ''}" required style="width: 100%;">
                 </div>
-
                 
-                <div id="tecnicos-container" style="flex: 1;">
-                    <label for="tecnico">TÉCNICO:</label>
-                        <select id="tecnico" name="tecnico" required style="width: 100%;">
-                            <option value="" disabled ${!data.tecnico ? 'selected' : ''}>Seleccione una opción</option>
-                            <option value="Victor Cordoba" ${data.tecnico === "Victor Cordoba" ? 'selected' : ''}>Victor Cordoba</option>
-                            <option value="Tomás Vázquez" ${data.tecnico === "Tomás Vázquez" ? 'selected' : ''}>Tomás Vázquez</option>
-                            <option value="Francisco Aguiar" ${data.tecnico === "Francisco Aguiar" ? 'selected' : ''}>Francisco Aguiar</option>
-                            <option value="Mauricio Díaz" ${data.tecnico === "Mauricio Díaz" ? 'selected' : ''}>Mauricio Díaz</option>
-                            <option value="Humberto Vázquez" ${data.tecnico === "Humberto Vázquez" ? 'selected' : ''}>Humberto Vázquez</option>
-                            <option value="Jose López" ${data.tecnico === "Jose López" ? 'selected' : ''}>José López</option>
-                            <option value="Hoscar Martínez" ${data.tecnico === "Hoscar Martínez" ? 'selected' : ''}>Hoscar Martínez</option>
-                            <option value="Jacob Ventura" ${data.tecnico === "Jacob Ventura" ? 'selected' : ''}>Jacob Ventura</option>
-                            <option value="Luis Limón" ${data.tecnico === "Luis Limón" ? 'selected' : ''}>Luis Limón</option>
-                            <option value="Ernesto Chávez" ${data.tecnico === "Ernesto Chávez" ? 'selected' : ''}>Ernesto Chávez</option>
-                        </select>
+                <div style="flex: 1;">
+                    <label>TÉCNICOS:</label>
+                    <div id="tecnicos-container">
+                        ${tecnicosIniciales.map((tecnico, index) => `
+                            <div class="tecnico-group" style="margin-bottom: 10px; display: flex; align-items: center;">
+                                <select name="tecnicos[]" class="tecnico-select" required style="width: 90%;">
+                                    <option value="" disabled ${!tecnico ? 'selected' : ''}>Seleccione un técnico</option>
+                                    <option value="Victor Cordoba" ${tecnico === "Victor Cordoba" ? 'selected' : ''}>Victor Cordoba</option>
+                                    <option value="Tomás Vázquez" ${tecnico === "Tomás Vázquez" ? 'selected' : ''}>Tomás Vázquez</option>
+                                    <option value="Francisco Aguiar" ${tecnico === "Francisco Aguiar" ? 'selected' : ''}>Francisco Aguiar</option>
+                                    <option value="Mauricio Díaz" ${tecnico === "Mauricio Díaz" ? 'selected' : ''}>Mauricio Díaz</option>
+                                    <option value="Humberto Vázquez" ${tecnico === "Humberto Vázquez" ? 'selected' : ''}>Humberto Vázquez</option>
+                                    <option value="Jose López" ${tecnico === "Jose López" ? 'selected' : ''}>José López</option>
+                                    <option value="Hoscar Martínez" ${tecnico === "Hoscar Martínez" ? 'selected' : ''}>Hoscar Martínez</option>
+                                    <option value="Jacob Ventura" ${tecnico === "Jacob Ventura" ? 'selected' : ''}>Jacob Ventura</option>
+                                    <option value="Luis Limón" ${tecnico === "Luis Limón" ? 'selected' : ''}>Luis Limón</option>
+                                    <option value="Ernesto Chávez" ${tecnico === "Ernesto Chávez" ? 'selected' : ''}>Ernesto Chávez</option>
+                                </select>
+                                ${index > 0 ? '<button type="button" class="eliminar-tecnico" style="margin-left: 5px; background: red; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer;">×</button>' : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button type="button" id="agregar-tecnico" style="margin-top: 5px; padding: 5px 10px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        + Agregar otro técnico
+                    </button>
                 </div>
             </div>
 
@@ -276,6 +289,96 @@ function createFormHTML(data) {
                 Guardar cambios
             </button>
         </form>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const tecnicosContainer = document.getElementById('tecnicos-container');
+                const agregarTecnicoBtn = document.getElementById('agregar-tecnico');
+                
+                // Función para actualizar las opciones disponibles en los selects
+                function actualizarOpcionesTecnicos() {
+                    const selects = document.querySelectorAll('.tecnico-select');
+                    const selectedValues = Array.from(selects).map(select => select.value);
+                    
+                    selects.forEach(select => {
+                        const currentValue = select.value;
+                        Array.from(select.options).forEach(option => {
+                            if (option.value && option.value !== '') {
+                                option.disabled = selectedValues.includes(option.value) && option.value !== currentValue;
+                            }
+                        });
+                    });
+                }
+                
+                // Agregar nuevo técnico
+                agregarTecnicoBtn.addEventListener('click', function() {
+                    const tecnicoGroup = document.createElement('div');
+                    tecnicoGroup.className = 'tecnico-group';
+                    tecnicoGroup.style.marginBottom = '10px';
+                    tecnicoGroup.style.display = 'flex';
+                    tecnicoGroup.style.alignItems = 'center';
+                    
+                    const select = document.createElement('select');
+                    select.name = 'tecnicos[]';
+                    select.className = 'tecnico-select';
+                    select.required = true;
+                    select.style.width = '90%';
+                    
+                    select.innerHTML = \`
+                        <option value="" disabled selected>Seleccione un técnico</option>
+                        <option value="Victor Cordoba">Victor Cordoba</option>
+                        <option value="Tomás Vázquez">Tomás Vázquez</option>
+                        <option value="Francisco Aguiar">Francisco Aguiar</option>
+                        <option value="Mauricio Díaz">Mauricio Díaz</option>
+                        <option value="Humberto Vázquez">Humberto Vázquez</option>
+                        <option value="Jose López">José López</option>
+                        <option value="Hoscar Martínez">Hoscar Martínez</option>
+                        <option value="Jacob Ventura">Jacob Ventura</option>
+                        <option value="Luis Limón">Luis Limón</option>
+                        <option value="Ernesto Chávez">Ernesto Chávez</option>
+                    \`;
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.type = 'button';
+                    deleteBtn.className = 'eliminar-tecnico';
+                    deleteBtn.innerHTML = '×';
+                    deleteBtn.style.marginLeft = '5px';
+                    deleteBtn.style.background = 'red';
+                    deleteBtn.style.color = 'white';
+                    deleteBtn.style.border = 'none';
+                    deleteBtn.style.borderRadius = '50%';
+                    deleteBtn.style.width = '20px';
+                    deleteBtn.style.height = '20px';
+                    deleteBtn.style.cursor = 'pointer';
+                    
+                    deleteBtn.addEventListener('click', function() {
+                        tecnicoGroup.remove();
+                        actualizarOpcionesTecnicos();
+                    });
+                    
+                    select.addEventListener('change', actualizarOpcionesTecnicos);
+                    
+                    tecnicoGroup.appendChild(select);
+                    tecnicoGroup.appendChild(deleteBtn);
+                    tecnicosContainer.appendChild(tecnicoGroup);
+                    
+                    actualizarOpcionesTecnicos();
+                });
+                
+                // Configurar eventos para los selects existentes
+                document.querySelectorAll('.tecnico-select').forEach(select => {
+                    select.addEventListener('change', actualizarOpcionesTecnicos);
+                });
+                
+                // Configurar eventos para los botones de eliminar existentes
+                document.querySelectorAll('.eliminar-tecnico').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        this.closest('.tecnico-group').remove();
+                        actualizarOpcionesTecnicos();
+                    });
+                });
+            });
+        </script>
     `;
 }
 
@@ -289,7 +392,13 @@ async function handleFormSubmit(e, id) {
     formData.append("contacto", document.getElementById("contacto").value);
     formData.append("sucursal", document.getElementById("sucursal").value);
     formData.append("fecha", document.getElementById("fecha").value);
-    formData.append("tecnico", document.getElementById("tecnico").value);
+    
+    // Agregar todos los técnicos seleccionados
+    const tecnicosSelects = document.querySelectorAll('.tecnico-select');
+    tecnicosSelects.forEach((select, index) => {
+        formData.append(`tecnicos[]`, select.value);
+    });
+    
     formData.append("estatus", document.getElementById("estatus").value);
     formData.append("falla", document.getElementById("falla").value);
     formData.append("accion", document.getElementById("accion").value);
@@ -324,7 +433,6 @@ async function handleFormSubmit(e, id) {
         showNotification(error.message, 'error');
     }
 }
-
 // Función principal para cargar los detalles
 async function cargarDetalleIncidencia(id) {
     try {
