@@ -1,5 +1,4 @@
 <?php
-// Cone xión a la base de datos
 require_once 'conexion.php';
 
 if ($conn->connect_error) {
@@ -21,6 +20,13 @@ $stmt->execute();
 $result = $stmt->get_result();
 $data = $result->fetch_assoc();
 $stmt->close();
+
+// Convertir el string de técnicos a array para el frontend
+if (!empty($data['tecnico'])) {
+    $data['tecnico'] = explode('/', $data['tecnico']);
+} else {
+    $data['tecnico'] = [];
+}
 
 // Obtener archivos de la incidencia
 $sql = "SELECT ruta_archivo FROM archivos_incidencias WHERE incidencia_id = ?";

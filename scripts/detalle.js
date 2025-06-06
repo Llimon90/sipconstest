@@ -192,6 +192,8 @@ function createFormHTML(data) {
     const tecnicosIniciales = Array.isArray(data.tecnico) ? data.tecnico : 
                             (data.tecnico ? [data.tecnico] : []);
 
+                            
+
     return `
         <form id="form-editar">
             <p><strong># REPORTE INTERNO:</strong> ${data.numero_incidente}</p>
@@ -487,11 +489,13 @@ async function handleFormSubmit(e, id) {
     formData.append("sucursal", document.getElementById("sucursal").value);
     formData.append("fecha", document.getElementById("fecha").value);
     
-    // Agregar todos los técnicos seleccionados
+    // Obtener todos los técnicos seleccionados y unirlos con "/"
     const tecnicosSelects = document.querySelectorAll('.tecnico-select');
-    tecnicosSelects.forEach((select, index) => {
-        formData.append(`tecnicos[]`, select.value);
-    });
+    const tecnicos = Array.from(tecnicosSelects)
+        .map(select => select.value)
+        .filter(tecnico => tecnico); // Filtrar valores vacíos
+    
+    formData.append("tecnico", tecnicos.join('/')); // Unir con "/"
     
     formData.append("estatus", document.getElementById("estatus").value);
     formData.append("falla", document.getElementById("falla").value);
