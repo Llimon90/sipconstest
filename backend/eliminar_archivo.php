@@ -1,131 +1,82 @@
 <?php
 header('Content-Type: application/json');
-ini_set('display_errors', 0); // Desactivar visualización de errores en producción
-error_reporting(E_ALL); // Pero registrar todos los errores
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
 
 // ==============================================
 // 1. Configuración de conexión a la base de datos
 // ==============================================
 require_once 'conexion.php';
 
-// Verificar conexión (asumiendo que $conn es MySQLi y $pdo es PDO)
-if ($conn->connect_error) {
+// Verificar solo la conexión PDO que realmente usas
+if (!$pdo) {
     http_response_code(500);
-    die(json_encode([
-        'success' => false,
-        'error' => 'Error de conexión MySQLi: ' . $conn->connect_error
-    ]));
+    die(json_encode(['success' => false, 'error' => 'Error de conexión a la BD']));
 }
 
 // ==============================================
 // 2. Validación de datos POST
 // ==============================================
-$idIncidencia = isset($_POST['id_incidencia']) ? (int)$_POST['id_incidencia'] : null;
-$nombreArchivo = isset($_POST['url_archivo']) ? $_POST['url_archivo'] : null;
-
-// Validación extra: Elimina posibles rutas maliciosas
-$nombreArchivo = basename($nombreArchivo);
+$idIncidencia = filter_input(INPUT_POST, 'id_incidencia', FILTER_VALIDATE_INT);
+$nombreArchivo = basename(filter_input(INPUT_POST, 'url_archivo', FILTER_SANITIZE_STRING));
 
 if (!$idIncidencia || !$nombreArchivo) {
     http_response_code(400);
     die(json_encode([
         'success' => false,
-        'error' => 'Datos incompletos o inválidos',
-        'received' => [
-            'id_incidencia' => $idIncidencia,
-            'nombre_archivo' => $nombreArchivo
-        ]
+        'error' => 'Datos incompletos o inválidos'
     ]));
 }
 
 // ==============================================
-// 3. Configuración y validación de rutas
+// 3. Eliminación del archivo físico
 // ==============================================
 $rutaBase = $_SERVER['DOCUMENT_ROOT'] . '/apptest/uploads/';
 $rutaCompleta = $rutaBase . $nombreArchivo;
 
-// Verificación de seguridad mejorada
-if (!file_exists($rutaCompleta)) {
+// Verificación de seguridad
+if (!file_exists($rutaCompleta) || !is_writable($rutaCompleta)) {
     http_response_code(404);
-    die(json_encode([
-        'success' => false,
-        'error' => 'El archivo no existe',
-        'debug' => [
-            'ruta_base' => $rutaBase,
-            'ruta_completa' => $rutaCompleta,
-            'archivo_solicitado' => $nombreArchivo
-        ]
-    ]));
+    die(json_encode(['success' => false, 'error' => 'Archivo no encontrado o sin permisos']));
 }
 
-// Verificación de permisos
-if (!is_writable($rutaCompleta)) {
-    http_response_code(403);
-    die(json_encode([
-        'success' => false,
-        'error' => 'El archivo no tiene permisos de escritura',
-        'permisos' => substr(sprintf('%o', fileperms($rutaCompleta)), -4)
-    ]));
-}
-
-// ==============================================
-// 4. Eliminación del archivo físico
-// ==============================================
 if (!unlink($rutaCompleta)) {
     http_response_code(500);
-    die(json_encode([
-        'success' => false,
-        'error' => 'Error al eliminar el archivo físico',
-        'ruta' => $rutaCompleta,
-        'php_error' => error_get_last()
-    ]));
+    die(json_encode(['success' => false, 'error' => 'Error al eliminar archivo físico']));
 }
 
 // ==============================================
-// 5. Eliminación del registro en la base de datos
+// 4. Eliminación del registro en la BD - VERSIÓN CORREGIDA
 // ==============================================
 try {
-    // Usar la misma conexión PDO que en conexion.php
-    $rutaRelativa = 'uploads/' . $nombreArchivo;
-    $sql = "DELETE FROM archivos 
-            WHERE id_incidencia = :id_incidencia 
-            AND url_archivo = :ruta_relativa";
-    
+    // Opción 1: Si guardas solo el nombre del archivo
+    $sql = "DELETE FROM archivos WHERE id_incidencia = ? AND url_archivo LIKE ?";
     $stmt = $pdo->prepare($sql);
-    $stmt->bindParam(':id_incidencia', $idIncidencia, PDO::PARAM_INT);
-    $stmt->bindParam(':ruta_relativa', $rutaRelativa, PDO::PARAM_STR);
-    $stmt->execute();
-
+    $stmt->execute([$idIncidencia, '%'.$nombreArchivo]);
+    
+    // Opción 2: Si guardas la ruta completa (ajusta según tu caso)
+    // $sql = "DELETE FROM archivos WHERE id_incidencia = ? AND url_archivo = ?";
+    // $stmt->execute([$idIncidencia, 'uploads/'.$nombreArchivo]);
+    
     if ($stmt->rowCount() === 0) {
-        http_response_code(404);
-        die(json_encode([
-            'success' => false,
-            'error' => 'El archivo se eliminó físicamente pero no se encontró en la base de datos',
-            'debug' => [
-                'id_incidencia' => $idIncidencia,
-                'ruta_relativa' => $rutaRelativa
-            ]
-        ]));
+        // El archivo físico se borró pero no el registro
+        error_log("Registro no encontrado en BD para: id=$idIncidencia, archivo=$nombreArchivo");
     }
 
-    // Éxito - limpiar buffer antes de enviar JSON
-    if (ob_get_length()) ob_clean();
+    // Respuesta exitosa
     echo json_encode([
         'success' => true,
-        'message' => 'Archivo eliminado correctamente'
+        'message' => 'Archivo eliminado completamente',
+        'deleted_from_db' => ($stmt->rowCount() > 0)
     ]);
-
+    
 } catch (PDOException $e) {
     http_response_code(500);
+    error_log("Error BD: " . $e->getMessage());
     die(json_encode([
         'success' => false,
-        'error' => 'Error al eliminar el registro de la base de datos',
-        'details' => $e->getMessage(),
-        'sql' => $sql,
-        'params' => [
-            'id_incidencia' => $idIncidencia,
-            'ruta_relativa' => $rutaRelativa
-        ]
+        'error' => 'Error en base de datos',
+        'debug' => $e->getMessage()
     ]));
 }
 ?>
