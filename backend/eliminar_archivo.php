@@ -33,26 +33,37 @@ if (!$idIncidencia || !$nombreArchivo) {
 }
 
 // ==============================================
-// 3. Configuración de rutas (¡Ajusta esto!)
+// 3. Configuración de rutas (IMPORTANTE)
 // ==============================================
 $rutaBase = $_SERVER['DOCUMENT_ROOT'] . '/apptest/uploads/';
 $rutaCompleta = $rutaBase . $nombreArchivo;
 
-// Verificación de seguridad más flexible pero segura
-$rutaCanonicaArchivo = realpath($rutaCompleta);
-$rutaCanonicaBase = realpath($rutaBase);
-
-if (!$rutaCanonicaArchivo || strpos($rutaCanonicaArchivo, $rutaCanonicaBase) !== 0) {
-    error_log("Intento de acceso no permitido a: " . $rutaCompleta);
-    error_log("Ruta base permitida: " . $rutaCanonicaBase);
+// Verificación de seguridad mejorada
+if (!file_exists($rutaCompleta)) {
     echo json_encode([
         'success' => false,
-        'error' => 'Intento de acceso a ruta no permitida',
+        'error' => 'El archivo no existe',
         'debug' => [
-            'ruta_solicitada' => $rutaCompleta,
             'ruta_base' => $rutaBase,
-            'realpath_archivo' => $rutaCanonicaArchivo,
-            'realpath_base' => $rutaCanonicaBase
+            'ruta_completa' => $rutaCompleta,
+            'archivo_solicitado' => $nombreArchivo
+        ]
+    ]);
+    exit;
+}
+
+// Solo verifica que el archivo esté dentro del directorio permitido
+$rutaRealArchivo = realpath($rutaCompleta);
+$rutaRealBase = realpath($rutaBase);
+
+if ($rutaRealArchivo === false || strpos($rutaRealArchivo, $rutaRealBase) !== 0) {
+    echo json_encode([
+        'success' => false,
+        'error' => 'Ruta no permitida',
+        'debug' => [
+            'ruta_real_archivo' => $rutaRealArchivo,
+            'ruta_real_base' => $rutaRealBase,
+            'comparacion' => strpos($rutaRealArchivo, $rutaRealBase)
         ]
     ]);
     exit;
