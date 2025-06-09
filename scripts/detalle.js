@@ -28,15 +28,16 @@ async function eliminarArchivo(urlArchivo, containerElement, id) {
         const formData = new FormData();
         formData.append('id_incidencia', id);
 
+        // Extrae solo el nombre del archivo de la URL
         const url = new URL(urlArchivo, window.location.origin);
-        const rutaRelativa = url.pathname.replace(/^\/+/, '');
-        formData.append('url_archivo', rutaRelativa);
+        const nombreArchivo = url.pathname.split('/').pop(); // Obtiene solo el nombre del archivo
+        formData.append('url_archivo', nombreArchivo);
 
         const response = await fetch("../backend/eliminar_archivo.php", {
             method: "POST",
             body: formData
         });
-
+        
         const data = await response.json();
 
         if (!response.ok || !data.success) {

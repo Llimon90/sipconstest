@@ -38,11 +38,22 @@ if (!$idIncidencia || !$nombreArchivo) {
 $rutaBase = $_SERVER['DOCUMENT_ROOT'] . '/apptest/uploads/';
 $rutaCompleta = $rutaBase . $nombreArchivo;
 
-// Verificación adicional de seguridad
-if (strpos(realpath($rutaCompleta), realpath($rutaBase)) !== 0) {
+// Verificación de seguridad más flexible pero segura
+$rutaCanonicaArchivo = realpath($rutaCompleta);
+$rutaCanonicaBase = realpath($rutaBase);
+
+if (!$rutaCanonicaArchivo || strpos($rutaCanonicaArchivo, $rutaCanonicaBase) !== 0) {
+    error_log("Intento de acceso no permitido a: " . $rutaCompleta);
+    error_log("Ruta base permitida: " . $rutaCanonicaBase);
     echo json_encode([
         'success' => false,
-        'error' => 'Intento de acceso a ruta no permitida'
+        'error' => 'Intento de acceso a ruta no permitida',
+        'debug' => [
+            'ruta_solicitada' => $rutaCompleta,
+            'ruta_base' => $rutaBase,
+            'realpath_archivo' => $rutaCanonicaArchivo,
+            'realpath_base' => $rutaCanonicaBase
+        ]
     ]);
     exit;
 }
