@@ -4,15 +4,9 @@ ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
 // ==============================================
-// 1. Configuración de conexión a la base de datos
+// 1. Conexión a la base de datos
 // ==============================================
 require_once 'conexion.php';
-
-// Verificar solo la conexión PDO que realmente usas
-if (!$pdo) {
-    http_response_code(500);
-    die(json_encode(['success' => false, 'error' => 'Error de conexión a la BD']));
-}
 
 // ==============================================
 // 2. Validación de datos POST
@@ -24,7 +18,11 @@ if (!$idIncidencia || !$nombreArchivo) {
     http_response_code(400);
     die(json_encode([
         'success' => false,
-        'error' => 'Datos incompletos o inválidos'
+        'error' => 'Datos incompletos o inválidos',
+        'received' => [
+            'id_incidencia' => $_POST['id_incidencia'] ?? 'no recibido',
+            'url_archivo' => $_POST['url_archivo'] ?? 'no recibido'
+        ]
     ]));
 }
 
@@ -35,9 +33,14 @@ $rutaBase = $_SERVER['DOCUMENT_ROOT'] . '/apptest/uploads/';
 $rutaCompleta = $rutaBase . $nombreArchivo;
 
 // Verificación de seguridad
-if (!file_exists($rutaCompleta) || !is_writable($rutaCompleta)) {
+if (!file_exists($rutaCompleta)) {
     http_response_code(404);
-    die(json_encode(['success' => false, 'error' => 'Archivo no encontrado o sin permisos']));
+    die(json_encode(['success' => false, 'error' => 'Archivo no encontrado']));
+}
+
+if (!is_writable($rutaCompleta)) {
+    http_response_code(403);
+    die(json_encode(['success' => false, 'error' => 'Sin permisos para eliminar el archivo']));
 }
 
 if (!unlink($rutaCompleta)) {
@@ -46,24 +49,19 @@ if (!unlink($rutaCompleta)) {
 }
 
 // ==============================================
-// 4. Eliminación del registro en la BD - VERSIÓN CORREGIDA
+// 4. Eliminación del registro en la BD
 // ==============================================
 try {
-    // Opción 1: Si guardas solo el nombre del archivo
-    $sql = "DELETE FROM archivos WHERE id_incidencia = ? AND url_archivo LIKE ?";
+    // Consulta actualizada para tu tabla archivos_incidencias
+    $sql = "DELETE FROM archivos_incidencias WHERE id_incidencia = ? AND nombre_archivo = ?";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([$idIncidencia, '%'.$nombreArchivo]);
-    
-    // Opción 2: Si guardas la ruta completa (ajusta según tu caso)
-    // $sql = "DELETE FROM archivos WHERE id_incidencia = ? AND url_archivo = ?";
-    // $stmt->execute([$idIncidencia, 'uploads/'.$nombreArchivo]);
+    $stmt->execute([$idIncidencia, $nombreArchivo]);
     
     if ($stmt->rowCount() === 0) {
         // El archivo físico se borró pero no el registro
-        error_log("Registro no encontrado en BD para: id=$idIncidencia, archivo=$nombreArchivo");
+        error_log("Advertencia: Registro no encontrado en BD para id_incidencia=$idIncidencia, archivo=$nombreArchivo");
     }
 
-    // Respuesta exitosa
     echo json_encode([
         'success' => true,
         'message' => 'Archivo eliminado completamente',
@@ -71,8 +69,8 @@ try {
     ]);
     
 } catch (PDOException $e) {
+    error_log("Error BD al eliminar archivo: " . $e->getMessage());
     http_response_code(500);
-    error_log("Error BD: " . $e->getMessage());
     die(json_encode([
         'success' => false,
         'error' => 'Error en base de datos',
