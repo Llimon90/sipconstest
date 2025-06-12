@@ -4,18 +4,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const msg = document.getElementById('mensaje');
   const qty = document.getElementById('qty');
 
-  const container = document.createElement('div');
-  container.id = 'series-container';
-  form.insertBefore(container, form.querySelector('#notas').parentNode);
+  const container = document.getElementById('series-container');
 
   const showMessage = (text, type='info') => {
     msg.textContent = text;
     msg.className = type;
-    if (type === 'success') setTimeout(()=>{ msg.textContent=''; msg.className=''; }, 5000);
+    if (type === 'success') setTimeout(() => { msg.textContent=''; msg.className=''; }, 5000);
   };
 
   const generateSeries = () => {
-    const n = Math.max(1, parseInt(qty.value)||1);
+    const n = Math.max(1, parseInt(qty.value) || 1);
     container.innerHTML = '<label>Números de Serie:</label>';
     for (let i = 1; i <= n; i++) {
       const inp = document.createElement('input');
@@ -28,8 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const validate = () => {
-    const required = ['cliente','equipo','garantia'];
-    const missing = required.filter(id => !form[id].value.trim());
+    const missing = ['cliente','equipo','garantia'].filter(id => !form[id].value.trim());
     if (missing.length) {
       showMessage(`Faltan: ${missing.join(', ')}`, 'error');
       return false;
@@ -38,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const getData = () => {
-    const out = {
+    const data = {
       cliente: form.cliente.value.trim(),
       sucursal: form.sucursal.value.trim(),
       equipo: form.equipo.value.trim(),
@@ -49,22 +46,22 @@ document.addEventListener('DOMContentLoaded', () => {
       notas: form.notas.value.trim(),
       numero_series: []
     };
-    const count = parseInt(qty.value)||1;
-    for (let i=1; i<=count; i++) {
-      out.numero_series.push(form[`numero_serie_${i}`].value.trim());
+    const count = parseInt(qty.value) || 1;
+    for (let i = 1; i <= count; i++) {
+      data.numero_series.push(form[`numero_serie_${i}`].value.trim());
     }
-    return out;
+    return data;
   };
 
   const submitForm = async () => {
     if (!validate()) return;
     const data = getData();
-    showMessage('Enviando…', 'info');
+    showMessage('Enviando...', 'info');
 
     try {
       const res = await fetch('../backend/registro_ventas.php', {
         method: 'POST',
-        headers: {'Content-Type':'application/json'},
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(data)
       });
 
