@@ -1,40 +1,78 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Elementos del DOM
     const form = document.getElementById('form-venta');
+    const btnRegistrar = document.getElementById('btn-registrar-venta');
+    const mensajeElement = document.getElementById('mensaje');
     
-    if (!form) {
-        console.error('No se encontró el formulario con ID form-venta');
+    // Verificar que los elementos existen
+    if (!form || !btnRegistrar || !mensajeElement) {
+        console.error('Error: No se encontraron todos los elementos necesarios');
         return;
     }
     
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        console.log('Formulario interceptado correctamente');
+    // Función para mostrar mensajes
+    function showMessage(message, type = 'info') {
+        mensajeElement.textContent = message;
+        mensajeElement.className = type;
         
-        const mensajeElement = document.getElementById('mensaje');
-        mensajeElement.textContent = '';
-        mensajeElement.className = '';
+        if (type === 'success') {
+            setTimeout(() => {
+                mensajeElement.textContent = '';
+                mensajeElement.className = '';
+            }, 5000);
+        }
+    }
+    
+    // Función para validar el formulario
+    function validateForm() {
+        const requiredFields = [
+            { id: 'cliente', name: 'Cliente' },
+            { id: 'equipo', name: 'Equipo' },
+            { id: 'garantia', name: 'Garantía' }
+        ];
         
-        // Obtener valores del formulario
-        const formData = {
+        const missingFields = [];
+        
+        requiredFields.forEach(field => {
+            const element = document.getElementById(field.id);
+            if (!element || !element.value.trim()) {
+                missingFields.push(field.name);
+            }
+        });
+        
+        if (missingFields.length > 0) {
+            showMessage(`Faltan campos obligatorios: ${missingFields.join(', ')}`, 'error');
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Función para obtener los datos del formulario
+    function getFormData() {
+        return {
             cliente: document.getElementById('cliente').value.trim(),
             sucursal: document.getElementById('sucursal').value.trim(),
             equipo: document.getElementById('equipo').value.trim(),
             marca: document.getElementById('marca').value.trim(),
             modelo: document.getElementById('modelo').value.trim(),
             numero_serie: document.getElementById('numero_serie').value.trim(),
-            qty: document.getElementById('qty').value.trim(),
+            qty: document.getElementById('qty').value.trim() || '1',
             garantia: document.getElementById('garantia').value.trim(),
             servicio: document.getElementById('servicio').checked,
             notas: document.getElementById('notas').value.trim()
         };
+    }
+    
+    // Función para enviar los datos
+    async function submitForm() {
+        if (!validateForm()) return;
         
-        // Validar campos requeridos
-        if (!formData.cliente || !formData.equipo || !formData.garantia) {
-            showMessage('Por favor, complete todos los campos obligatorios.', 'error');
-            return;
-        }
+        const formData = getFormData();
         
         try {
+            showMessage('Enviando datos...', 'info');
+            
             const response = await fetch('../backend/registro_ventas.php', {
                 method: 'POST',
                 headers: {
@@ -46,18 +84,16 @@ document.addEventListener('DOMContentLoaded', function() {
             // Verificar si la respuesta es JSON
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
-                const text = await response.text();
-                throw new Error(`Respuesta inesperada del servidor: ${text.substring(0, 100)}...`);
+                throw new Error('La respuesta del servidor no es JSON');
             }
             
             const data = await response.json();
-            console.log('Respuesta del servidor:', data);
             
             if (!response.ok) {
                 throw new Error(data.mensaje || `Error ${response.status}`);
             }
             
-            showMessage(data.mensaje, 'success');
+            showMessage(data.mensaje || 'Venta registrada exitosamente', 'success');
             
             if (data.exito) {
                 form.reset();
@@ -67,18 +103,14 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error:', error);
             showMessage(error.message || 'Error al conectar con el servidor', 'error');
         }
-    });
-    
-    function showMessage(message, type) {
-        const element = document.getElementById('mensaje');
-        element.textContent = message;
-        element.className = type;
-        
-        if (type === 'success') {
-            setTimeout(() => {
-                element.textContent = '';
-                element.className = '';
-            }, 5000);
-        }
     }
+    
+    // Event listeners
+    btnRegistrar.addEventListener('click', submitForm);
+    
+    // También manejamos el evento submit por si acaso
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitForm();
+    });
 });
