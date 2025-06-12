@@ -83,3 +83,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   generateSeries();
 });
+
+// Cargar clientes al iniciar
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const response = await fetch('../backend/obtener-clientes.php');
+    const clientes = await response.json();
+
+    const selectClientes = document.getElementById('cliente');
+    selectClientes.innerHTML = '<option value="">Seleccionar Cliente</option>';
+
+    clientes.forEach(cliente => {
+      const option = document.createElement('option');
+      option.value = cliente.nombre;
+      option.textContent = cliente.nombre;
+      selectClientes.appendChild(option);
+    });
+  } catch (error) {
+    console.error('Error al cargar clientes:', error);
+    alert('Error al cargar clientes en el select');
+  }
+});
