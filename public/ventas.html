@@ -6,18 +6,31 @@
   <title>Registro de ventas</title>
   <link rel="stylesheet" href="../css/styles.css?v=9">
 </head>
-<body>
-  <div class="retorna"><a href="../index.html"><<- Inicio</a></div>
-  <aside class="sidebar">
-    <!-- navegación omitida para brevedad -->
-  </aside>
 
+
+<body>
+  <div class="retorna" >
+    <a href="../index.html">  <<- Inicio</a>  </div>
+
+  <!-- Panel lateral  -->
+  <aside class="sidebar">
+    
+    <ul>
+      <li><a href="../index.html">Inicio</a></li>
+      <li><a href="incidencias.html">Incidencias</a></li>
+      <li><a href="reportes.html">Buscar incidencias</a></li>
+      <li><a href="clientes.html">Clientes</a></li>
+      <li><a href="usuarios.html">Usuarios</a></li>
+      <li><a href="#">Configuración</a></li>
+    </ul>
+
+  </aside>
   <section class="encabezado">
     <main>
       <form id="form-venta">
         <!-- Cliente y Sucursal -->
         <div class="form-row">
-          <div><label for="cliente">Cliente:</label><input type="text" id="cliente" name="cliente" required></div>
+          <div><label for="cliente">Cliente</label> <select id="cliente" name="cliente" required><option value="" selected disabled>Seleccione una opción</option></select></div>
           <div><label for="sucursal">Sucursal:</label><input type="text" id="sucursal" name="sucursal"></div>
         </div>
 
