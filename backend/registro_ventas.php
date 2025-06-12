@@ -1,4 +1,14 @@
 <?php
+
+// Configurar conexión con la base de datos
+require_once 'conexion.php';
+
+// Verificar la conexión
+if ($conn->connect_error) {
+    die(json_encode(["error" => "Error de conexión: " . $conn->connect_error]));
+}
+
+
 // Configuración inicial
 header_remove();
 header("Content-Type: application/json; charset=UTF-8");
