@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consulta de Ventas</title>
+  <link rel="stylesheet" href="../css/styles.css?v=10">
+</head>
+<body>
+  <div class="retorna">
+    <a href="../index.html"><<- Inicio</a>
+  </div>
+
+  <aside class="sidebar">
+    <ul>
+      <li><a href="../index.html">Inicio</a></li>
+      <li><a href="incidencias.html">Incidencias</a></li>
+      <li><a href="reportes.html">Buscar incidencias</a></li>
+      <li><a href="clientes.html">Clientes</a></li>
+      <li><a href="ventas.html">Registro Ventas</a></li>
+      <li><a href="consulta_ventas.html" class="active">Consulta Ventas</a></li>
+      <li><a href="usuarios.html">Usuarios</a></li>
+    </ul>
+  </aside>
+
+  <section class="encabezado">
+    <main>
+      <h2>Consulta de Ventas por Cliente</h2>
+      
+      <div class="filtros">
+        <div>
+          <label for="filtro-cliente">Cliente:</label>
+          <select id="filtro-cliente">
+            <option value="">Todos los clientes</option>
+          </select>
+        </div>
+        <div>
+          <label for="filtro-fecha">Fecha:</label>
+          <input type="date" id="filtro-fecha">
+        </div>
+        <button id="btn-buscar">Buscar</button>
+        <button id="btn-exportar">Exportar a Excel</button>
+      </div>
+
+      <div class="resultados-ventas">
+        <table id="tabla-ventas">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Fecha</th>
+              <th>Cliente</th>
+              <th>Sucursal</th>
+              <th>Equipo</th>
+              <th>Modelo</th>
+              <th>Garantía</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- Modal para edición -->
+      <div id="modal-edicion" class="modal">
+        <div class="modal-contenido">
+          <span class="cerrar-modal">&times;</span>
+          <h3>Editar Venta</h3>
+          <div id="formulario-edicion"></div>
+          <button id="btn-guardar-cambios">Guardar Cambios</button>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <script src="../scripts/consulta_ventas.js?v=1" defer></script>
+</body>
+</html>
