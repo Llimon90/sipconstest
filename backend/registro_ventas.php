@@ -40,20 +40,20 @@ try {
     // Obtener el ID de la venta recién insertada
     $venta_id = $conn->lastInsertId();
     
-    // 2. Insertar los números de serie en ventas_series
-    $stmtSerie = $conn->prepare("INSERT INTO ventas_series 
-                                (venta_id, numero_serie) 
-                                VALUES 
-                                (:venta_id, :numero_serie)");
+    // // 2. Insertar los números de serie en ventas_series
+    // $stmtSerie = $conn->prepare("INSERT INTO ventas_series 
+    //                             (venta_id, numero_serie) 
+    //                             VALUES 
+    //                             (:venta_id, :numero_serie)");
     
-    foreach ($data['numero_series'] as $serie) {
-        if (!empty(trim($serie))) {
-            $stmtSerie->execute([
-                ':venta_id' => $venta_id,
-                ':numero_serie' => trim($serie)
-            ]);
-        }
-    }
+    // foreach ($data['numero_series'] as $serie) {
+    //     if (!empty(trim($serie))) {
+    //         $stmtSerie->execute([
+    //             ':venta_id' => $venta_id,
+    //             ':numero_serie' => trim($serie)
+    //         ]);
+    //     }
+    // }
     
     $conn->commit();
     
