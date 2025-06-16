@@ -117,37 +117,43 @@ const cargarVentas = async (filtroCliente = '', filtroEquipo = '') => {
     tbody.innerHTML = '';
     
     // Filtrar ventas si hay filtros aplicados
-    const ventasFiltradas = data.ventas.filter(venta => {
-      const clienteMatch = venta.cliente.toLowerCase().includes(filtroCliente.toLowerCase());
-      const equipoMatch = venta.equipo.toLowerCase().includes(filtroEquipo.toLowerCase());
-      return clienteMatch && equipoMatch;
-    });
-    
-    if (ventasFiltradas.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8">No se encontraron ventas</td></tr>';
-      return;
-    }
-    
-    ventasFiltradas.forEach(venta => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${new Date(venta.fecha_registro).toLocaleDateString()}</td>
-        <td>${venta.cliente}</td>
-        <td>${venta.sucursal || '-'}</td>
-        <td>${venta.equipo}</td>
-        <td>${venta.marca || ''} ${venta.modelo || ''}</td>
-        <td>${venta.numero_serie}</td>
-        <td>${venta.garantia} meses</td>
-        <td>${venta.notas || '-'}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-    
-  } catch (error) {
-    console.error('Error al cargar ventas:', error);
-    showMessage(error.message, 'error');
-  }
-};
+const ventasFiltradas = data.ventas.filter(venta => {
+  // Convertir todo a minúsculas para búsqueda case-insensitive
+  const clienteMatch = venta.cliente.toLowerCase().includes(filtroCliente.toLowerCase());
+  const equipoMatch = venta.equipo.toLowerCase().includes(filtroEquipo.toLowerCase());
+  
+  // Nuevos filtros
+  const fechaMatch = !filtroFecha || new Date(venta.fecha_registro).toLocaleDateString().includes(filtroFecha);
+  const modeloMatch = !filtroModelo || (venta.modelo && venta.modelo.toLowerCase().includes(filtroModelo.toLowerCase()));
+  const marcaMatch = !filtroMarca || (venta.marca && venta.marca.toLowerCase().includes(filtroMarca.toLowerCase()));
+  const serieMatch = !filtroSerie || (venta.numero_serie && venta.numero_serie.toLowerCase().includes(filtroSerie.toLowerCase()));
+  const sucursalMatch = !filtroSucursal || (venta.sucursal && venta.sucursal.toLowerCase().includes(filtroSucursal.toLowerCase()));
+  
+  return clienteMatch && equipoMatch && fechaMatch && modeloMatch && marcaMatch && serieMatch && sucursalMatch;
+});
+
+if (ventasFiltradas.length === 0) {
+  tbody.innerHTML = '<tr><td colspan="8">No se encontraron ventas con los filtros aplicados</td></tr>';
+  return;
+}
+
+// Ordenar por fecha más reciente primero
+ventasFiltradas.sort((a, b) => new Date(b.fecha_registro) - new Date(a.fecha_registro));
+
+ventasFiltradas.forEach(venta => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${new Date(venta.fecha_registro).toLocaleDateString()}</td>
+    <td>${venta.cliente}</td>
+    <td>${venta.sucursal || '-'}</td>
+    <td>${venta.equipo}</td>
+    <td>${venta.marca || ''} ${venta.modelo || ''}</td>
+    <td>${venta.numero_serie || '-'}</td>
+    <td>${venta.garantia} meses</td>
+    <td>${venta.notas || '-'}</td>
+  `;
+  tbody.appendChild(tr);
+});
 
 // Event listeners para filtros y botón refrescar
 document.addEventListener('DOMContentLoaded', () => {
