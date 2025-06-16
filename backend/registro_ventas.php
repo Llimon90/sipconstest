@@ -5,7 +5,9 @@ header('Content-Type: application/json');
 
 // Obtener los datos del cuerpo de la solicitud
 $data = json_decode(file_get_contents('php://input'), true);
+error_log("Datos recibidos: " . print_r($data, true)); // <-- Agrega esto
 
+// ... resto del código
 // Validar datos requeridos
 if (empty($data['cliente']) || empty($data['equipo']) || empty($data['garantia']) || empty($data['numero_series'])) {
     echo json_encode(['success' => false, 'error' => 'Datos incompletos: cliente, equipo, garantia y numero_series son requeridos']);

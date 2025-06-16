@@ -1,3 +1,11 @@
+const submitForm = async () => {
+  if (!validate()) return;
+  const data = getData();
+  console.log("Datos a enviar:", data); // <-- Agrega esto
+  showMessage('Enviando...', 'info');
+  // ... resto del código
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('form-venta');
   const btn = document.getElementById('btn-registrar-venta');
@@ -104,3 +112,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     alert('Error al cargar clientes en el select');
   }
 });
+
