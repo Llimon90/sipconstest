@@ -231,7 +231,7 @@ function createFormHTML(data) {
                         ${tecnicosIniciales.map((tecnico, index) => `
                             <div class="tecnico-group" style="margin-bottom: 10px; display: flex; align-items: center;">
                                 <select name="tecnicos[]" class="tecnico-select" required style="width: 90%;">
-                                    <option value="" ${!tecnico ? 'selected' : ''}>Seleccione un técnico</option>
+                                    <option value="" disabled ${!tecnico ? 'selected' : ''}>Seleccione un técnico</option>
                                     <option value="Victor Cordoba" ${tecnico === "Victor Cordoba" ? 'selected' : ''}>Victor Cordoba</option>
                                     <option value="Tomás Vázquez" ${tecnico === "Tomás Vázquez" ? 'selected' : ''}>Tomás Vázquez</option>
                                     <option value="Francisco Aguiar" ${tecnico === "Francisco Aguiar" ? 'selected' : ''}>Francisco Aguiar</option>
@@ -327,7 +327,7 @@ function createFormHTML(data) {
                     select.style.width = '90%';
                     
                     select.innerHTML = \`
-                        <option value="" selected>Seleccione un técnico</option>
+                        <option value="" disabled selected>Seleccione un técnico</option>
                         <option value="Victor Cordoba">Victor Cordoba</option>
                         <option value="Tomás Vázquez">Tomás Vázquez</option>
                         <option value="Francisco Aguiar">Francisco Aguiar</option>
@@ -422,7 +422,7 @@ function setupTecnicosMultiples() {
         select.style.width = '90%';
         
         select.innerHTML = `
-            <option value="" selected>Seleccione un técnico</option>
+            <option value="" disabled selected>Seleccione un técnico</option>
             <option value="Victor Cordoba">Victor Cordoba</option>
             <option value="Tomás Vázquez">Tomás Vázquez</option>
             <option value="Francisco Aguiar">Francisco Aguiar</option>
