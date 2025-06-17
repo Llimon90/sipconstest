@@ -229,29 +229,45 @@ function createFormHTML(data) {
                 <label>TÉCNICOS:</label>
                 <div id="tecnicos-container">
                     ${tecnicosIniciales.map((tecnico, index) => `
-                        <div class="tecnico-group" style="margin-bottom: 10px; display: flex; align-items: center;">
-                            <select name="tecnicos[]" class="tecnico-select" ${index === 0 ? '' : 'required'} style="width: 90%;">
-                                <option value="" ${!tecnico ? 'selected' : ''}>Sin técnico asignado</option>
-                                <option value="Victor Cordoba" ${tecnico === "Victor Cordoba" ? 'selected' : ''}>Victor Cordoba</option>
-                                <!-- ... otras opciones ... -->
-                            </select>
-                            <button type="button" class="eliminar-tecnico" style="background: none; border: none; cursor: pointer; padding: 0; margin-left: 5px;">
-                                <i class="fas fa-trash-alt" style="color: #ff0000;"></i>
-                            </button>
-                        </div>
-                    `).join('')}
-                    ${tecnicosIniciales.length === 0 ? `
-                        <div class="tecnico-group" style="margin-bottom: 10px; display: flex; align-items: center;">
-                            <select name="tecnicos[]" class="tecnico-select" style="width: 90%;">
-                                <option value="" selected>Sin técnico asignado</option>
-                                <option value="Victor Cordoba">Victor Cordoba</option>
-                                <!-- ... otras opciones ... -->
-                            </select>
-                            <button type="button" class="eliminar-tecnico" style="background: none; border: none; cursor: pointer; padding: 0; margin-left: 5px;">
-                                <i class="fas fa-trash-alt" style="color: #ff0000;"></i>
-                            </button>
-                        </div>
-                    ` : ''}
+<div class="tecnico-group" style="margin-bottom: 10px; display: flex; align-items: center;">
+    <select name="tecnicos[]" class="tecnico-select" ${index === 0 ? '' : 'required'} style="width: 90%;">
+        <option value="" ${!tecnico ? 'selected' : ''}>Sin técnico asignado</option>
+        <option value="Victor Cordoba" ${tecnico === "Victor Cordoba" ? 'selected' : ''}>Victor Cordoba</option>
+        <option value="Tomás Vázquez" ${tecnico === "Tomás Vázquez" ? 'selected' : ''}>Tomás Vázquez</option>
+        <option value="Francisco Aguiar" ${tecnico === "Francisco Aguiar" ? 'selected' : ''}>Francisco Aguiar</option>
+        <option value="Mauricio Díaz" ${tecnico === "Mauricio Díaz" ? 'selected' : ''}>Mauricio Díaz</option>
+        <option value="Humberto Vázquez" ${tecnico === "Humberto Vázquez" ? 'selected' : ''}>Humberto Vázquez</option>
+        <option value="Jose López" ${tecnico === "Jose López" ? 'selected' : ''}>José López</option>
+        <option value="Hoscar Martínez" ${tecnico === "Hoscar Martínez" ? 'selected' : ''}>Hoscar Martínez</option>
+        <option value="Jacob Ventura" ${tecnico === "Jacob Ventura" ? 'selected' : ''}>Jacob Ventura</option>
+        <option value="Luis Limón" ${tecnico === "Luis Limón" ? 'selected' : ''}>Luis Limón</option>
+        <option value="Ernesto Chávez" ${tecnico === "Ernesto Chávez" ? 'selected' : ''}>Ernesto Chávez</option>
+    </select>
+    <button type="button" class="eliminar-tecnico" style="background: none; border: none; cursor: pointer; padding: 0; margin-left: 5px;">
+        <i class="fas fa-trash-alt" style="color: #ff0000;"></i>
+    </button>
+</div>
+`).join('')}
+${tecnicosIniciales.length === 0 ? `
+    <div class="tecnico-group" style="margin-bottom: 10px; display: flex; align-items: center;">
+        <select name="tecnicos[]" class="tecnico-select" style="width: 90%;">
+            <option value="" selected>Sin técnico asignado</option>
+            <option value="Victor Cordoba">Victor Cordoba</option>
+            <option value="Tomás Vázquez">Tomás Vázquez</option>
+            <option value="Francisco Aguiar">Francisco Aguiar</option>
+            <option value="Mauricio Díaz">Mauricio Díaz</option>
+            <option value="Humberto Vázquez">Humberto Vázquez</option>
+            <option value="Jose López">José López</option>
+            <option value="Hoscar Martínez">Hoscar Martínez</option>
+            <option value="Jacob Ventura">Jacob Ventura</option>
+            <option value="Luis Limón">Luis Limón</option>
+            <option value="Ernesto Chávez">Ernesto Chávez</option>
+        </select>
+        <button type="button" class="eliminar-tecnico" style="background: none; border: none; cursor: pointer; padding: 0; margin-left: 5px;">
+            <i class="fas fa-trash-alt" style="color: #ff0000;"></i>
+        </button>
+    </div>
+` : ''}
                 </div>
                 <button type="button" id="agregar-tecnico" style="margin-top: 5px; padding: 5px 10px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">
                     + Agregar técnico
@@ -415,33 +431,33 @@ function setupTecnicosMultiples() {
         });
     }
     
-    // Función para crear un nuevo select de técnico
-    function crearSelectTecnico() {
-        const tecnicoGroup = document.createElement('div');
-        tecnicoGroup.className = 'tecnico-group';
-        tecnicoGroup.style.marginBottom = '10px';
-        tecnicoGroup.style.display = 'flex';
-        tecnicoGroup.style.alignItems = 'center';
-        
-        const select = document.createElement('select');
-        select.name = 'tecnicos[]';
-        select.className = 'tecnico-select';
-        select.required = true;
-        select.style.width = '90%';
-        
-        select.innerHTML = `
-            <option value="" disabled selected>Seleccione un técnico</option>
-            <option value="Victor Cordoba">Victor Cordoba</option>
-            <option value="Tomás Vázquez">Tomás Vázquez</option>
-            <option value="Francisco Aguiar">Francisco Aguiar</option>
-            <option value="Mauricio Díaz">Mauricio Díaz</option>
-            <option value="Humberto Vázquez">Humberto Vázquez</option>
-            <option value="Jose López">José López</option>
-            <option value="Hoscar Martínez">Hoscar Martínez</option>
-            <option value="Jacob Ventura">Jacob Ventura</option>
-            <option value="Luis Limón">Luis Limón</option>
-            <option value="Ernesto Chávez">Ernesto Chávez</option>
-        `;
+function crearSelectTecnico() {
+    const tecnicoGroup = document.createElement('div');
+    tecnicoGroup.className = 'tecnico-group';
+    tecnicoGroup.style.marginBottom = '10px';
+    tecnicoGroup.style.display = 'flex';
+    tecnicoGroup.style.alignItems = 'center';
+    
+    const select = document.createElement('select');
+    select.name = 'tecnicos[]';
+    select.className = 'tecnico-select';
+    select.required = true;
+    select.style.width = '90%';
+    
+    select.innerHTML = `
+        <option value="" disabled selected>Seleccione un técnico</option>
+        <option value="Victor Cordoba">Victor Cordoba</option>
+        <option value="Tomás Vázquez">Tomás Vázquez</option>
+        <option value="Francisco Aguiar">Francisco Aguiar</option>
+        <option value="Mauricio Díaz">Mauricio Díaz</option>
+        <option value="Humberto Vázquez">Humberto Vázquez</option>
+        <option value="Jose López">José López</option>
+        <option value="Hoscar Martínez">Hoscar Martínez</option>
+        <option value="Jacob Ventura">Jacob Ventura</option>
+        <option value="Luis Limón">Luis Limón</option>
+        <option value="Ernesto Chávez">Ernesto Chávez</option>
+    `;
+    
         
         const deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
