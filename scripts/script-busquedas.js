@@ -4,7 +4,19 @@ let registrosPorPagina = 10;
 let incidenciasTotales = [];
 
 document.addEventListener("DOMContentLoaded", function () {
+  // Configuración de Flatpickr para las fechas
+  flatpickr("#fecha-inicio", {
+    dateFormat: "Y-m-d",
+    allowInput: true
+  });
+  
+  flatpickr("#fecha-fin", {
+    dateFormat: "Y-m-d",
+    allowInput: true
+  });
+
   cargarIncidencias();
+  cargarClientes();
 
   document.getElementById("report-form").addEventListener("submit", function (e) {
     e.preventDefault();
@@ -13,7 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // Event listeners para paginación
-  document.getElementById("btn-prev").addEventListener("click", (e) => {
+  document.getElementById("btn-prev").addEventListener("click", function(e) {
     e.preventDefault();
     if (paginaActual > 1) {
       paginaActual--;
@@ -21,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  document.getElementById("btn-next").addEventListener("click", (e) => {
+  document.getElementById("btn-next").addEventListener("click", function(e) {
     e.preventDefault();
     const totalPaginas = Math.ceil(incidenciasTotales.length / registrosPorPagina);
     if (paginaActual < totalPaginas) {
@@ -30,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  document.getElementById("select-registros").addEventListener("change", (e) => {
+  document.getElementById("select-registros").addEventListener("change", function(e) {
     registrosPorPagina = parseInt(e.target.value);
     paginaActual = 1;
     mostrarIncidenciasPagina();
@@ -114,9 +126,13 @@ function mostrarIncidenciasPagina() {
 
 function actualizarControlesPaginacion() {
   const totalPaginas = Math.ceil(incidenciasTotales.length / registrosPorPagina) || 1;
+  const totalRegistros = incidenciasTotales.length;
+  const inicio = Math.min((paginaActual - 1) * registrosPorPagina + 1, totalRegistros);
+  const fin = Math.min(inicio + registrosPorPagina - 1, totalRegistros);
   
-  // Actualizar número de página
-  document.getElementById("pagina-actual").textContent = paginaActual;
+  // Actualizar contador de registros
+  document.getElementById("contador-registros").textContent = 
+    `Mostrando ${inicio}-${fin} de ${totalRegistros} registros`;
   
   // Actualizar estado de botones
   const btnPrev = document.getElementById("btn-prev");
@@ -124,25 +140,15 @@ function actualizarControlesPaginacion() {
   
   btnPrev.classList.toggle("disabled", paginaActual <= 1);
   btnNext.classList.toggle("disabled", paginaActual >= totalPaginas);
-  
-  // Actualizar texto de paginación
-  const paginacionText = document.createElement("span");
-  paginacionText.className = "mx-2";
-  paginacionText.textContent = `Página ${paginaActual} de ${totalPaginas}`;
-  
-  const paginaActualElement = document.getElementById("pagina-actual").parentNode;
-  paginaActualElement.innerHTML = '';
-  paginaActualElement.appendChild(paginacionText);
 }
 
-// Cargar clientes al iniciar (mantén tu función existente)
-document.addEventListener('DOMContentLoaded', async () => {
+async function cargarClientes() {
   try {
     const response = await fetch('../backend/obtener-clientes.php');
     const clientes = await response.json();
 
     const selectClientes = document.getElementById('cliente');
-    selectClientes.innerHTML = '<option value="">Seleccionar Cliente</option>';
+    selectClientes.innerHTML = '<option value="">Seleccionar Cliente</option><option value="todos">Todos</option>';
 
     clientes.forEach(cliente => {
       const option = document.createElement('option');
@@ -154,4 +160,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error('Error al cargar clientes:', error);
     alert('Error al cargar clientes en el select');
   }
-});
+}
+
+// Función para limpiar filtros (si la necesitas)
+function limpiarFiltros() {
+  document.getElementById("report-form").reset();
+  paginaActual = 1;
+  cargarIncidencias();
+}
