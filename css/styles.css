@@ -251,7 +251,7 @@ button:hover {
 
 /*ESTILOS RESPONSIVE*/
 
-/* Responsive para dispositivos móviles */
+
 /* Responsive para dispositivos móviles */
 @media (max-width: 768px) {
   .sidebar {
@@ -495,4 +495,119 @@ td {
 
 #btn-refrescar:hover {
   background-color: #45a049;
+}
+
+
+
+/* Estructura principal mejorada */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f4;
+  display: flex;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Panel lateral fijo mejorado */
+.sidebar {
+  width: 250px;
+  background-color: #2c3e50;
+  color: #ecf0f1;
+  padding: 15px;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+}
+
+/* Contenido principal optimizado */
+main {
+  margin-left: 250px;
+  padding: 20px;
+  flex: 1;
+  min-width: 0; /* Previene problemas de overflow */
+  width: calc(100% - 250px);
+  transition: margin-left 0.3s;
+}
+
+/* Encabezado y formularios */
+.encabezado {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+/* Tablas responsive */
+.lista-incidencias {
+  margin-top: 20px;
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+}
+
+/* Ajustes para zoom */
+.form-row > div,
+input[type="text"],
+input[type="date"],
+select,
+textarea {
+  min-width: 0; /* Permite que se reduzcan con el zoom */
+}
+
+/* Botón de retorno mejorado */
+.retorna {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 1100;
+  display: none;
+}
+
+.retorna a {
+  background-color: #2c3e50;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+/* Media Queries mejoradas */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    width: 80%;
+  }
+  
+  .sidebar.active {
+    transform: translateX(0);
+  }
+  
+  main {
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  .retorna {
+    display: block;
+  }
+  
+  .form-row {
+    flex-direction: column;
+  }
+}
+
+@media (min-width: 769px) {
+  .sidebar {
+    transform: translateX(0) !important;
+  }
 }
