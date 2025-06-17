@@ -235,7 +235,9 @@ function createFormHTML(data) {
                                 <option value="Victor Cordoba" ${tecnico === "Victor Cordoba" ? 'selected' : ''}>Victor Cordoba</option>
                                 <!-- ... otras opciones ... -->
                             </select>
-                            <button type="button" class="eliminar-tecnico" style="background: none; border: none; color: #ff0000; font-weight: bold;font-size: 16px;cursor: pointer; padding: 0;margin-left: 5px;line-height: 1;">×</button>
+                            <button type="button" class="eliminar-tecnico" style="background: none; border: none; cursor: pointer; padding: 0; margin-left: 5px;">
+                                <i class="fas fa-trash-alt" style="color: #ff0000;"></i>
+                            </button>
                         </div>
                     `).join('')}
                     ${tecnicosIniciales.length === 0 ? `
@@ -245,7 +247,9 @@ function createFormHTML(data) {
                                 <option value="Victor Cordoba">Victor Cordoba</option>
                                 <!-- ... otras opciones ... -->
                             </select>
-                            <button type="button" class="eliminar-tecnico" style="background: none; border: none; color: #ff0000; font-weight: bold;font-size: 16px;cursor: pointer; padding: 0;margin-left: 5px;line-height: 1;">×</button>
+                            <button type="button" class="eliminar-tecnico" style="background: none; border: none; cursor: pointer; padding: 0; margin-left: 5px;">
+                                <i class="fas fa-trash-alt" style="color: #ff0000;"></i>
+                            </button>
                         </div>
                     ` : ''}
                 </div>
@@ -253,6 +257,7 @@ function createFormHTML(data) {
                     + Agregar técnico
                 </button>
             </div>
+            
             </div>
 
             <div style="margin-bottom: 15px;">
@@ -386,11 +391,12 @@ function createFormHTML(data) {
     `;
 }
 
+// En la función setupTecnicosMultiples, modificar la creación del botón de eliminar
 function setupTecnicosMultiples() {
     const tecnicosContainer = document.getElementById('tecnicos-container');
     const agregarTecnicoBtn = document.getElementById('agregar-tecnico');
     
-    if (!agregarTecnicoBtn) return; // Si no existe el botón, salir
+    if (!agregarTecnicoBtn) return;
     
     // Función para actualizar las opciones disponibles
     function actualizarOpcionesTecnicos() {
@@ -440,17 +446,15 @@ function setupTecnicosMultiples() {
         const deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
         deleteBtn.className = 'eliminar-tecnico';
-        deleteBtn.innerHTML = '×';
-        deleteBtn.style.marginLeft = '5px';
-        deleteBtn.style.background = 'red';
-        deleteBtn.style.color = 'white';
+        deleteBtn.innerHTML = '<i class="fas fa-trash-alt" style="color: #ff0000;"></i>';
+        deleteBtn.style.background = 'none';
         deleteBtn.style.border = 'none';
-        deleteBtn.style.borderRadius = '50%';
-        deleteBtn.style.width = '20px';
-        deleteBtn.style.height = '20px';
         deleteBtn.style.cursor = 'pointer';
+        deleteBtn.style.padding = '0';
+        deleteBtn.style.marginLeft = '5px';
         
         deleteBtn.addEventListener('click', function() {
+            // Permitir eliminar incluso si es el único técnico
             tecnicoGroup.remove();
             actualizarOpcionesTecnicos();
         });
@@ -475,11 +479,14 @@ function setupTecnicosMultiples() {
     // Configurar eventos para los botones de eliminar existentes
     document.querySelectorAll('.eliminar-tecnico').forEach(btn => {
         btn.addEventListener('click', function() {
+            // Permitir eliminar incluso técnicos precargados
             this.closest('.tecnico-group').remove();
             actualizarOpcionesTecnicos();
         });
     });
 }
+
+
 async function handleFormSubmit(e, id) {
     e.preventDefault();
 
