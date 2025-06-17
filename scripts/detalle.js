@@ -422,7 +422,7 @@ function setupTecnicosMultiples() {
         select.style.width = '90%';
         
         select.innerHTML = `
-            <option value="" disabled selected>Seleccione un técnico</option>
+            <option value="" selected>Seleccione un técnico</option>
             <option value="Victor Cordoba">Victor Cordoba</option>
             <option value="Tomás Vázquez">Tomás Vázquez</option>
             <option value="Francisco Aguiar">Francisco Aguiar</option>
