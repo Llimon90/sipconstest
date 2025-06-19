@@ -102,37 +102,42 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-//OBTENER USURAIOS TECNICOS DESDE BD
-
-
-// Función específica para cargar solo técnicos en el select
+// Función para cargar técnicos en el select
 async function cargarTecnicosEnSelect() {
     try {
         const response = await fetch('../backend/obtener-tecnicos.php');
+        
         if (!response.ok) {
-            throw new Error('Error al obtener los técnicos');
+            throw new Error(`Error HTTP! estado: ${response.status}`);
         }
         
-        const tecnicos = await response.json();
-    
+        const resultado = await response.json();
+        
+        // Verificar la estructura de la respuesta
+        if (!resultado.success || !Array.isArray(resultado.data)) {
+            throw new Error('Formato de respuesta inválido');
+        }
+        
         const selectTecnico = document.getElementById('tecnico');
         selectTecnico.innerHTML = '<option value="">Seleccione un técnico</option>';
-    
-        tecnicos.forEach(tecnico => {
+        
+        // Usar resultado.data que es el array garantizado
+        resultado.data.forEach(tecnico => {
             const option = document.createElement('option');
-            option.value = tecnico.id; // Usar ID es mejor práctica
+            option.value = tecnico.id;
             option.textContent = tecnico.nombre;
             selectTecnico.appendChild(option);
         });
+        
     } catch (error) {
         console.error('Error al cargar técnicos:', error);
-        alert('Error al cargar la lista de técnicos');
+        // Mostrar mensaje más informativo
+        alert('Error al cargar técnicos: ' + error.message);
     }
 }
 
 // Llamar la función cuando se cargue la página
 document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("fecha").value = new Date().toISOString().split('T')[0];
-    cargarTecnicosEnSelect(); // Esta es la nueva función específica para técnicos
-    // Tu función para cargar todos los usuarios puede seguir aquí si es necesaria
+    cargarTecnicosEnSelect();
 });
