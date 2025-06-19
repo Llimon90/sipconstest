@@ -1,56 +1,65 @@
 <?php
+// Asegurar que el contenido devuelto sea JSON
 header('Content-Type: application/json');
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+error_reporting(0);
+ini_set('display_errors', 0);
 
+// Configurar conexión con la base de datos
 require_once 'conexion.php';
 
-try {
-    // Verificar conexión
-    if (!$conn instanceof PDO) {
-        throw new Exception("Conexión a BD no es válida");
-    }
+// Verificar conexión
+if ($conn->connect_error) {
+    die(json_encode(["error" => "Error de conexión: " . $conn->connect_error]));
+}
 
-    // Consulta SQL con marcadores más claros
+try {
+    // Consulta SQL para obtener técnicos
     $sql = "SELECT id, nombre FROM usuarios 
-            WHERE rol IN (:rol1, :rol2) 
+            WHERE (rol = 'Técnico' OR rol = 'Técnico/Administrativo') 
             AND activo = 1
             ORDER BY nombre";
     
-    $stmt = $conn->prepare($sql);
+    // Ejecutar la consulta
+    $result = $conn->query($sql);
     
-    // Bind de parámetros
-    $stmt->bindValue(':rol1', 'Técnico', PDO::PARAM_STR);
-    $stmt->bindValue(':rol2', 'Técnico/Administrativo', PDO::PARAM_STR);
-    
-    if (!$stmt->execute()) {
-        throw new Exception("Error al ejecutar la consulta");
+    // Verificar si la consulta fue exitosa
+    if (!$result) {
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Error en la consulta: ' . $conn->error
+        ]);
+        $conn->close();
+        exit;
     }
     
-    $tecnicos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Obtener los resultados
+    $tecnicos = [];
+    while ($row = $result->fetch_assoc()) {
+        $tecnicos[] = $row;
+    }
     
+    // Verificar si se encontraron resultados
     if (empty($tecnicos)) {
         echo json_encode([
-            'status' => 'warning',
+            'success' => true,
             'message' => 'No se encontraron técnicos con los criterios especificados',
             'data' => []
         ]);
     } else {
         echo json_encode([
-            'status' => 'success',
+            'success' => true,
             'data' => $tecnicos
         ]);
     }
     
-} catch(PDOException $e) {
-    echo json_encode([
-        'status' => 'error',
-        'message' => 'Error de base de datos: ' . $e->getMessage()
-    ]);
 } catch(Exception $e) {
     echo json_encode([
-        'status' => 'error',
-        'message' => $e->getMessage()
+        'success' => false,
+        'message' => 'Error: ' . $e->getMessage()
     ]);
 }
+
+// Cerrar la conexión
+$conn->close();
+exit;
 ?>
