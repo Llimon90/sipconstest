@@ -16,7 +16,6 @@ try {
     // Consulta SQL para obtener técnicos
     $sql = "SELECT id, nombre FROM usuarios 
             WHERE (rol = 'Técnico' OR rol = 'Técnico/Administrativo') 
-            AND activo = 1
             ORDER BY nombre";
     
     // Ejecutar la consulta
