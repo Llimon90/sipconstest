@@ -1,5 +1,27 @@
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
+
+
+// Función para obtener técnicos desde la BD
+async function obtenerTecnicos() {
+    try {
+        const response = await fetch('../backend/obtener-tecnicos.php');
+        if (!response.ok) {
+            throw new Error('Error al obtener técnicos');
+        }
+        const result = await response.json();
+        
+        if (result.success && Array.isArray(result.data)) {
+            return result.data;
+        }
+        throw new Error(result.message || 'Formato de respuesta inválido');
+    } catch (error) {
+        console.error('Error al obtener técnicos:', error);
+        return []; // Retorna array vacío si hay error
+    }
+}
+
+
 // Funciones de utilidad
 function getShortFileName(url, maxLength = 20) {
     const fileName = url.split('/').pop();
@@ -187,16 +209,33 @@ async function cargarArchivosAdjuntos(archivos, id) {
 }
 
 // Funciones relacionadas con el formulario
-function createFormHTML(data) {
+async function createFormHTML(data) {
+    // Obtener técnicos desde la BD
+    const tecnicosBD = await obtenerTecnicos();
+    
     // Convertir técnico existente en array si no lo es
     const tecnicosIniciales = Array.isArray(data.tecnico) ? data.tecnico : 
                             (data.tecnico ? [data.tecnico] : []);
 
-                            
+    // Generar opciones HTML para los selects
+    const generarOpcionesTecnicos = (tecnicoSeleccionado = '') => {
+        let options = '<option value="">Sin técnico asignado</option>';
+        
+        tecnicosBD.forEach(tecnico => {
+            options += `
+                <option value="${tecnico.id}" ${tecnico.id === tecnicoSeleccionado || 
+                 tecnico.nombre === tecnicoSeleccionado ? 'selected' : ''}>
+                    ${tecnico.nombre}
+                </option>
+            `;
+        });
+        
+        return options;
+    };
 
     return `
-        <form id="form-editar">
-            <p><strong># REPORTE INTERNO:</strong> ${data.numero_incidente}</p>
+        <form id="form-editar">            
+        <p><strong># REPORTE INTERNO:</strong> ${data.numero_incidente}</p>
             <div style="display: flex; gap: 20px; margin-bottom: 15px;">
                 <div style="flex: 1;">
                     <label># INCIDENCIA CLIENTE:</label>&nbsp;
@@ -229,45 +268,25 @@ function createFormHTML(data) {
                 <label>TÉCNICOS:</label>
                 <div id="tecnicos-container">
                     ${tecnicosIniciales.map((tecnico, index) => `
-<div class="tecnico-group" style="margin-bottom: 10px; display: flex; align-items: center;">
-    <select name="tecnicos[]" class="tecnico-select" ${index === 0 ? '' : 'required'} style="width: 90%;">
-        <option value="" ${!tecnico ? 'selected' : ''}>Sin técnico asignado</option>
-        <option value="Victor Cordoba" ${tecnico === "Victor Cordoba" ? 'selected' : ''}>Victor Cordoba</option>
-        <option value="Tomás Vázquez" ${tecnico === "Tomás Vázquez" ? 'selected' : ''}>Tomás Vázquez</option>
-        <option value="Francisco Aguiar" ${tecnico === "Francisco Aguiar" ? 'selected' : ''}>Francisco Aguiar</option>
-        <option value="Mauricio Díaz" ${tecnico === "Mauricio Díaz" ? 'selected' : ''}>Mauricio Díaz</option>
-        <option value="Humberto Vázquez" ${tecnico === "Humberto Vázquez" ? 'selected' : ''}>Humberto Vázquez</option>
-        <option value="Jose López" ${tecnico === "Jose López" ? 'selected' : ''}>José López</option>
-        <option value="Hoscar Martínez" ${tecnico === "Hoscar Martínez" ? 'selected' : ''}>Hoscar Martínez</option>
-        <option value="Jacob Ventura" ${tecnico === "Jacob Ventura" ? 'selected' : ''}>Jacob Ventura</option>
-        <option value="Luis Limón" ${tecnico === "Luis Limón" ? 'selected' : ''}>Luis Limón</option>
-        <option value="Ernesto Chávez" ${tecnico === "Ernesto Chávez" ? 'selected' : ''}>Ernesto Chávez</option>
-    </select>
-    <button type="button" class="eliminar-tecnico" style="background: none; border: none; cursor: pointer; padding: 0; margin-left: 5px;">
-        <i class="fas fa-trash-alt" style="color: #ff0000;"></i>
-    </button>
-</div>
-`).join('')}
-${tecnicosIniciales.length === 0 ? `
-    <div class="tecnico-group" style="margin-bottom: 10px; display: flex; align-items: center;">
-        <select name="tecnicos[]" class="tecnico-select" style="width: 90%;">
-            <option value="" selected>Sin técnico asignado</option>
-            <option value="Victor Cordoba">Victor Cordoba</option>
-            <option value="Tomás Vázquez">Tomás Vázquez</option>
-            <option value="Francisco Aguiar">Francisco Aguiar</option>
-            <option value="Mauricio Díaz">Mauricio Díaz</option>
-            <option value="Humberto Vázquez">Humberto Vázquez</option>
-            <option value="Jose López">José López</option>
-            <option value="Hoscar Martínez">Hoscar Martínez</option>
-            <option value="Jacob Ventura">Jacob Ventura</option>
-            <option value="Luis Limón">Luis Limón</option>
-            <option value="Ernesto Chávez">Ernesto Chávez</option>
-        </select>
-        <button type="button" class="eliminar-tecnico" style="background: none; border: none; cursor: pointer; padding: 0; margin-left: 5px;">
-            <i class="fas fa-trash-alt" style="color: #ff0000;"></i>
-        </button>
-    </div>
-` : ''}
+                        <div class="tecnico-group" style="margin-bottom: 10px; display: flex; align-items: center;">
+                            <select name="tecnicos[]" class="tecnico-select" ${index === 0 ? '' : 'required'} style="width: 90%;">
+                                ${generarOpcionesTecnicos(tecnico)}
+                            </select>
+                            <button type="button" class="eliminar-tecnico" style="background: none; border: none; cursor: pointer; padding: 0; margin-left: 5px;">
+                                <i class="fas fa-trash-alt" style="color: #ff0000;"></i>
+                            </button>
+                        </div>
+                    `).join('')}
+                    ${tecnicosIniciales.length === 0 ? `
+                        <div class="tecnico-group" style="margin-bottom: 10px; display: flex; align-items: center;">
+                            <select name="tecnicos[]" class="tecnico-select" style="width: 90%;">
+                                ${generarOpcionesTecnicos()}
+                            </select>
+                            <button type="button" class="eliminar-tecnico" style="background: none; border: none; cursor: pointer; padding: 0; margin-left: 5px;">
+                                <i class="fas fa-trash-alt" style="color: #ff0000;"></i>
+                            </button>
+                        </div>
+                    ` : ''}
                 </div>
                 <button type="button" id="agregar-tecnico" style="margin-top: 5px; padding: 5px 10px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">
                     + Agregar técnico
@@ -316,105 +335,143 @@ ${tecnicosIniciales.length === 0 ? `
         </form>
 
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const tecnicosContainer = document.getElementById('tecnicos-container');
-                const agregarTecnicoBtn = document.getElementById('agregar-tecnico');
-                
-                // Función para actualizar las opciones disponibles en los selects
-                function actualizarOpcionesTecnicos() {
-                    const selects = document.querySelectorAll('.tecnico-select');
-                    const selectedValues = Array.from(selects).map(select => select.value);
-                    
-                    selects.forEach(select => {
-                        const currentValue = select.value;
-                        Array.from(select.options).forEach(option => {
-                            if (option.value && option.value !== '') {
-                                option.disabled = selectedValues.includes(option.value) && option.value !== currentValue;
-                            }
-                        });
-                    });
-                }
-                
-                // Agregar nuevo técnico
-                agregarTecnicoBtn.addEventListener('click', function() {
-                    const tecnicoGroup = document.createElement('div');
-                    tecnicoGroup.className = 'tecnico-group';
-                    tecnicoGroup.style.marginBottom = '10px';
-                    tecnicoGroup.style.display = 'flex';
-                    tecnicoGroup.style.alignItems = 'center';
-                    
-                    const select = document.createElement('select');
-                    select.name = 'tecnicos[]';
-                    select.className = 'tecnico-select';
-                    select.required = true;
-                    select.style.width = '90%';
-                    
-                    select.innerHTML = \`
-                        <option value="" disabled selected>Seleccione un técnico</option>
-                        <option value="Victor Cordoba">Victor Cordoba</option>
-                        <option value="Tomás Vázquez">Tomás Vázquez</option>
-                        <option value="Francisco Aguiar">Francisco Aguiar</option>
-                        <option value="Mauricio Díaz">Mauricio Díaz</option>
-                        <option value="Humberto Vázquez">Humberto Vázquez</option>
-                        <option value="Jose López">José López</option>
-                        <option value="Hoscar Martínez">Hoscar Martínez</option>
-                        <option value="Jacob Ventura">Jacob Ventura</option>
-                        <option value="Luis Limón">Luis Limón</option>
-                        <option value="Ernesto Chávez">Ernesto Chávez</option>
-                    \`;
-                    
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.type = 'button';
-                    deleteBtn.className = 'eliminar-tecnico';
-                    deleteBtn.innerHTML = '×';
-                    deleteBtn.style.marginLeft = '5px';
-                    deleteBtn.style.background = 'red';
-                    deleteBtn.style.color = 'white';
-                    deleteBtn.style.border = 'none';
-                    deleteBtn.style.borderRadius = '50%';
-                    deleteBtn.style.width = '20px';
-                    deleteBtn.style.height = '20px';
-                    deleteBtn.style.cursor = 'pointer';
-                    
-                    deleteBtn.addEventListener('click', function() {
-                        tecnicoGroup.remove();
-                        actualizarOpcionesTecnicos();
-                    });
-                    
-                    select.addEventListener('change', actualizarOpcionesTecnicos);
-                    
-                    tecnicoGroup.appendChild(select);
-                    tecnicoGroup.appendChild(deleteBtn);
-                    tecnicosContainer.appendChild(tecnicoGroup);
-                    
-                    actualizarOpcionesTecnicos();
-                });
-                
-                // Configurar eventos para los selects existentes
-                document.querySelectorAll('.tecnico-select').forEach(select => {
-                    select.addEventListener('change', actualizarOpcionesTecnicos);
-                });
-                
-                // Configurar eventos para los botones de eliminar existentes
-                document.querySelectorAll('.eliminar-tecnico').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        this.closest('.tecnico-group').remove();
-                        actualizarOpcionesTecnicos();
-                    });
+            document.addEventListener('DOMContentLoaded', async function() {
+        const tecnicosContainer = document.getElementById('tecnicos-container');
+        const agregarTecnicoBtn = document.getElementById('agregar-tecnico');
+        
+        // Función para obtener técnicos desde la BD
+        async function obtenerTecnicos() {
+            try {
+                const response = await fetch('../backend/obtener-tecnicos.php');
+                if (!response.ok) throw new Error('Error al obtener técnicos');
+                const result = await response.json();
+                return result.success ? result.data : [];
+            } catch (error) {
+                console.error('Error:', error);
+                return [];
+            }
+        }
+
+        // Función para generar opciones HTML para los selects
+        function generarOpcionesTecnicos(tecnicos, valorSeleccionado = '') {
+            let options = '<option value="" disabled selected>Seleccione un técnico</option>';
+            tecnicos.forEach(tecnico => {
+                const selected = tecnico.id == valorSeleccionado || tecnico.nombre === valorSeleccionado ? 'selected' : '';
+                options += `<option value="${tecnico.id}" ${selected}>${tecnico.nombre}</option>`;
+            });
+            return options;
+        }
+
+        // Función para actualizar las opciones disponibles en los selects
+        function actualizarOpcionesTecnicos() {
+            const selects = document.querySelectorAll('.tecnico-select');
+            const selectedValues = Array.from(selects).map(select => select.value);
+            
+            selects.forEach(select => {
+                const currentValue = select.value;
+                Array.from(select.options).forEach(option => {
+                    if (option.value && option.value !== '') {
+                        option.disabled = selectedValues.includes(option.value) && option.value !== currentValue;
+                    }
                 });
             });
+        }
+        
+        // Agregar nuevo técnico (ahora es async)
+        agregarTecnicoBtn.addEventListener('click', async function() {
+            const tecnicos = await obtenerTecnicos();
+            
+            const tecnicoGroup = document.createElement('div');
+            tecnicoGroup.className = 'tecnico-group';
+            tecnicoGroup.style.marginBottom = '10px';
+            tecnicoGroup.style.display = 'flex';
+            tecnicoGroup.style.alignItems = 'center';
+            
+            const select = document.createElement('select');
+            select.name = 'tecnicos[]';
+            select.className = 'tecnico-select';
+            select.required = true;
+            select.style.width = '90%';
+            
+            // Generar opciones desde la BD
+            select.innerHTML = generarOpcionesTecnicos(tecnicos);
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.className = 'eliminar-tecnico';
+            deleteBtn.innerHTML = '×';
+            deleteBtn.style.marginLeft = '5px';
+            deleteBtn.style.background = 'red';
+            deleteBtn.style.color = 'white';
+            deleteBtn.style.border = 'none';
+            deleteBtn.style.borderRadius = '50%';
+            deleteBtn.style.width = '20px';
+            deleteBtn.style.height = '20px';
+            deleteBtn.style.cursor = 'pointer';
+            
+            deleteBtn.addEventListener('click', function() {
+                tecnicoGroup.remove();
+                actualizarOpcionesTecnicos();
+            });
+            
+            select.addEventListener('change', actualizarOpcionesTecnicos);
+            
+            tecnicoGroup.appendChild(select);
+            tecnicoGroup.appendChild(deleteBtn);
+            tecnicosContainer.appendChild(tecnicoGroup);
+            
+            actualizarOpcionesTecnicos();
+        });
+        
+       // Cargar técnicos existentes al iniciar (para selects precargados)
+document.querySelectorAll('.tecnico-select').forEach(async select => {
+    const tecnicos = await obtenerTecnicos();
+    const currentValue = select.value;
+    
+    // Guardar el texto del option seleccionado si existe
+    let selectedOptionText = '';
+    if (currentValue && select.selectedIndex >= 0) {
+        selectedOptionText = select.options[select.selectedIndex].text;
+    }
+    
+    // Regenerar las opciones
+    select.innerHTML = generarOpcionesTecnicos(tecnicos, currentValue);
+    
+    // Restaurar la selección si existía
+    if (currentValue) {
+        const optionToSelect = Array.from(select.options).find(opt => opt.value === currentValue);
+        if (optionToSelect) {
+            optionToSelect.selected = true;
+        }
+    }
+    
+    // Configurar el evento change
+    select.addEventListener('change', actualizarOpcionesTecnicos);
+});
+        
+        // Configurar eventos para los botones de eliminar existentes
+        document.querySelectorAll('.eliminar-tecnico').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.closest('.tecnico-group').remove();
+                actualizarOpcionesTecnicos();
+            });
+        });
+    });
         </script>
     `;
 }
 
 // En la función setupTecnicosMultiples, modificar la creación del botón de eliminar
-function setupTecnicosMultiples() {
+async function setupTecnicosMultiples() {
     const tecnicosContainer = document.getElementById('tecnicos-container');
     const agregarTecnicoBtn = document.getElementById('agregar-tecnico');
     
     if (!agregarTecnicoBtn) return;
     
-    // Función para actualizar las opciones disponibles
+    // Obtener técnicos desde la BD
+    const tecnicos = await obtenerTecnicos();
+    
+    // Función para actualizar opciones
     function actualizarOpcionesTecnicos() {
         const selects = document.querySelectorAll('.tecnico-select');
         const selectedValues = Array.from(selects)
@@ -431,33 +488,26 @@ function setupTecnicosMultiples() {
         });
     }
     
-function crearSelectTecnico() {
-    const tecnicoGroup = document.createElement('div');
-    tecnicoGroup.className = 'tecnico-group';
-    tecnicoGroup.style.marginBottom = '10px';
-    tecnicoGroup.style.display = 'flex';
-    tecnicoGroup.style.alignItems = 'center';
-    
-    const select = document.createElement('select');
-    select.name = 'tecnicos[]';
-    select.className = 'tecnico-select';
-    select.required = true;
-    select.style.width = '90%';
-    
-    select.innerHTML = `
-        <option value="" disabled selected>Seleccione un técnico</option>
-        <option value="Victor Cordoba">Victor Cordoba</option>
-        <option value="Tomás Vázquez">Tomás Vázquez</option>
-        <option value="Francisco Aguiar">Francisco Aguiar</option>
-        <option value="Mauricio Díaz">Mauricio Díaz</option>
-        <option value="Humberto Vázquez">Humberto Vázquez</option>
-        <option value="Jose López">José López</option>
-        <option value="Hoscar Martínez">Hoscar Martínez</option>
-        <option value="Jacob Ventura">Jacob Ventura</option>
-        <option value="Luis Limón">Luis Limón</option>
-        <option value="Ernesto Chávez">Ernesto Chávez</option>
-    `;
-    
+    // Función para crear select
+    function crearSelectTecnico() {
+        const tecnicoGroup = document.createElement('div');
+        tecnicoGroup.className = 'tecnico-group';
+        tecnicoGroup.style.marginBottom = '10px';
+        tecnicoGroup.style.display = 'flex';
+        tecnicoGroup.style.alignItems = 'center';
+        
+        const select = document.createElement('select');
+        select.name = 'tecnicos[]';
+        select.className = 'tecnico-select';
+        select.required = true;
+        select.style.width = '90%';
+        
+        // Generar opciones
+        let options = '<option value="" selected disabled>Seleccione un técnico</option>';
+        tecnicos.forEach(tecnico => {
+            options += `<option value="${tecnico.id}">${tecnico.nombre}</option>`;
+        });
+        select.innerHTML = options;
         
         const deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
@@ -470,7 +520,6 @@ function crearSelectTecnico() {
         deleteBtn.style.marginLeft = '5px';
         
         deleteBtn.addEventListener('click', function() {
-            // Permitir eliminar incluso si es el único técnico
             tecnicoGroup.remove();
             actualizarOpcionesTecnicos();
         });
@@ -484,24 +533,18 @@ function crearSelectTecnico() {
         actualizarOpcionesTecnicos();
     }
     
-    // Evento para el botón de agregar técnico
+    // Configurar eventos
     agregarTecnicoBtn.addEventListener('click', crearSelectTecnico);
-    
-    // Configurar eventos para los selects existentes
     document.querySelectorAll('.tecnico-select').forEach(select => {
         select.addEventListener('change', actualizarOpcionesTecnicos);
     });
-    
-    // Configurar eventos para los botones de eliminar existentes
     document.querySelectorAll('.eliminar-tecnico').forEach(btn => {
         btn.addEventListener('click', function() {
-            // Permitir eliminar incluso técnicos precargados
             this.closest('.tecnico-group').remove();
             actualizarOpcionesTecnicos();
         });
     });
 }
-
 
 async function handleFormSubmit(e, id) {
     e.preventDefault();
