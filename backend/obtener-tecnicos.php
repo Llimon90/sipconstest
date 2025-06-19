@@ -1,20 +1,23 @@
 <?php
 header('Content-Type: application/json');
-require_once 'conexion.php';
+
+// Configuración de la base de datos (ajusta con tus credenciales)
+include('../backend/conexion.php'); // O incluye directamente la configuración
 
 try {
-    $stmt = $conn->prepare("SELECT id, nombre FROM usuarios WHERE rol = 'tecnico' ORDER BY nombre");
+    // Consulta para obtener solo técnicos y administrativos/técnicos
+    $sql = "SELECT id, nombre FROM usuarios 
+            WHERE rol IN ('Técnico', 'Administrativo/Técnico') 
+            AND activo = 1
+            ORDER BY nombre";
+    
+    $stmt = $conn->prepare($sql);
     $stmt->execute();
+    
     $tecnicos = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    echo json_encode([
-        'success' => true,
-        'tecnicos' => $tecnicos
-    ]);
-} catch (Exception $e) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Error al obtener técnicos: ' . $e->getMessage()
-    ]);
+    echo json_encode($tecnicos);
+} catch(PDOException $e) {
+    echo json_encode(['error' => 'Error de conexión: ' . $e->getMessage()]);
 }
 ?>
