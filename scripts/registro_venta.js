@@ -76,6 +76,15 @@ document.addEventListener('DOMContentLoaded', () => {
     showMessage('Enviando...', 'info');
 
     try {
+      // Primero obtenemos el próximo folio disponible
+      const folioResponse = await fetch('../backend/obtener-proximo-folio.php?prefijo=VT');
+      const folioData = await folioResponse.json();
+      
+      if (!folioResponse.ok) throw new Error(folioData.mensaje || 'Error al obtener folio');
+      
+      // Agregamos el folio a los datos
+      data.folio = folioData.folio;
+
       const res = await fetch('../backend/registro_ventas.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -85,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const j = await res.json().catch(() => { throw new Error('Respuesta no JSON'); });
       if (!res.ok) throw new Error(j.mensaje || `Error ${res.status}`);
 
-      showMessage(j.mensaje, 'success');
+      showMessage(`Venta registrada con folio: ${data.folio}`, 'success');
       form.reset();
       generateSeries();
       cargarVentas(); // Recargar la lista después de registrar
@@ -151,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (ventasFiltradas.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8">No se encontraron ventas con los filtros aplicados</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9">No se encontraron ventas con los filtros aplicados</td></tr>';
         showMessage('', ''); // Limpiar mensaje de carga
         return;
       }
@@ -162,16 +171,29 @@ document.addEventListener('DOMContentLoaded', () => {
       // Mostrar ventas filtradas
       ventasFiltradas.forEach(venta => {
         const tr = document.createElement('tr');
+        
+        // Crear enlace al detalle de la venta
+        const folioLink = document.createElement('a');
+        folioLink.href = `detalle-venta.html?id=${venta.id}`;
+        folioLink.textContent = venta.folio || 'S/F';
+        folioLink.title = 'Ver detalle de venta';
+        
+        const tdFolio = document.createElement('td');
+        tdFolio.appendChild(folioLink);
+        
         tr.innerHTML = `
           <td>${new Date(venta.fecha_registro).toLocaleDateString()}</td>
           <td>${venta.cliente}</td>
           <td>${venta.sucursal || '-'}</td>
           <td>${venta.equipo}</td>
           <td>${venta.marca || ''} ${venta.modelo || ''}</td>
-          <td>${venta.numero_serie || venta.numero_serie || '-'}</td>
+          <td>${venta.numero_serie || '-'}</td>
           <td>${venta.garantia} meses</td>
           <td>${venta.notas || '-'}</td>
         `;
+        
+        // Insertar el folio como primer columna
+        tr.insertBefore(tdFolio, tr.firstChild);
         tbody.appendChild(tr);
       });
       
