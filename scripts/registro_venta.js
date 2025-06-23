@@ -165,8 +165,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // Ordenar por fecha más reciente primero
-      ventasFiltradas.sort((a, b) => new Date(b.fecha_registro) - new Date(a.fecha_registro));
+     // Ordenar por folio de más reciente a más antiguo (VT-XXXX descendente)
+    ventasFiltradas.sort((a, b) => {
+      // Extraer el número del folio (eliminar "VT-" y convertir a número)
+      const numA = parseInt(a.folio.replace('VT-', '')) || 0;
+      const numB = parseInt(b.folio.replace('VT-', '')) || 0;
+      return numB - numA; // Orden descendente
+    });
 
       // Mostrar ventas filtradas
       ventasFiltradas.forEach(venta => {
