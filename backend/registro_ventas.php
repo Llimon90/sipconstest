@@ -35,10 +35,10 @@ try {
     require_once 'conexion.php';
 
     $sql = "INSERT INTO ventas (
-                cliente, sucursal, equipo, marca, modelo, numero_serie,
+                folio, cliente, sucursal, equipo, marca, modelo, numero_serie,
                 garantia, servicio, notas, fecha_registro
             ) VALUES (
-                :cliente, :sucursal, :equipo, :marca, :modelo, :numero_serie,
+                :folio, :cliente, :sucursal, :equipo, :marca, :modelo, :numero_serie,
                 :garantia, :servicio, :notas, NOW()
             )";
 
@@ -47,6 +47,7 @@ try {
 
     foreach ($data['numero_series'] as $serie) {
         $stmt->execute([
+            ':folio'        => trim($data['folio']),
             ':cliente'      => trim($data['cliente']),
             ':sucursal'     => trim($data['sucursal'] ?? ''),
             ':equipo'       => trim($data['equipo']),
