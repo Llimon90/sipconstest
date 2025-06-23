@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Venta</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 8px; box-sizing: border-box; }
+        .file-container { margin-top: 20px; }
+        .file-thumbnail { 
+            display: inline-block; 
+            margin: 10px; 
+            text-align: center; 
+            position: relative;
+            border: 1px solid #ddd;
+            padding: 5px;
+        }
+        .file-thumbnail img { max-width: 150px; max-height: 150px; }
+        .delete-file { 
+            position: absolute; 
+            top: -10px; 
+            right: -10px; 
+            background: red; 
+            color: white; 
+            border-radius: 50%; 
+            width: 20px; 
+            height: 20px; 
+            text-align: center; 
+            cursor: pointer;
+        }
+        .btn { 
+            padding: 10px 15px; 
+            background: #4CAF50; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            margin-right: 10px;
+        }
+        .btn-danger { background: #f44336; }
+    </style>
+</head>
+<body>
+    <h1>Detalle de Venta <span id="folio"></span></h1>
+    
+    <div id="mensaje" class="mensaje"></div>
+    
+    <form id="form-venta">
+        <div class="form-group">
+            <label for="cliente">Cliente:</label>
+            <input type="text" id="cliente" name="cliente" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="sucursal">Sucursal:</label>
+            <input type="text" id="sucursal" name="sucursal">
+        </div>
+        
+        <div class="form-group">
+            <label for="equipo">Equipo:</label>
+            <input type="text" id="equipo" name="equipo" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="marca">Marca:</label>
+            <input type="text" id="marca" name="marca">
+        </div>
+        
+        <div class="form-group">
+            <label for="modelo">Modelo:</label>
+            <input type="text" id="modelo" name="modelo">
+        </div>
+        
+        <div class="form-group">
+            <label for="numero_serie">Número de Serie:</label>
+            <input type="text" id="numero_serie" name="numero_serie">
+        </div>
+        
+        <div class="form-group">
+            <label for="garantia">Garantía (meses):</label>
+            <input type="number" id="garantia" name="garantia" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="notas">Notas:</label>
+            <textarea id="notas" name="notas" rows="4"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>Servicio técnico:</label>
+            <input type="checkbox" id="servicio" name="servicio">
+        </div>
+        
+        <button type="button" id="btn-guardar" class="btn">Guardar Cambios</button>
+    </form>
+    
+    <div class="file-container">
+        <h2>Documentos Adjuntos</h2>
+        <input type="file" id="file-upload" multiple accept=".pdf,.jpg,.jpeg,.png">
+        <button type="button" id="btn-subir" class="btn">Subir Archivos</button>
+        
+        <div id="archivos-container"></div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const ventaId = urlParams.get('id');
+            const mensaje = document.getElementById('mensaje');
+            const folio = document.getElementById('folio');
+            const form = document.getElementById('form-venta');
+            const btnGuardar = document.getElementById('btn-guardar');
+            const btnSubir = document.getElementById('btn-subir');
+            const fileUpload = document.getElementById('file-upload');
+            const archivosContainer = document.getElementById('archivos-container');
+            
+            // Mostrar mensajes
+            const showMessage = (text, type = 'info') => {
+                mensaje.textContent = text;
+                mensaje.className = type;
+                if (type === 'success') setTimeout(() => { 
+                    mensaje.textContent = ''; 
+                    mensaje.className = ''; 
+                }, 5000);
+            };
+            
+            // Cargar datos de la venta
+            const cargarVenta = async () => {
+                try {
+                    const response = await fetch(`../backend/obtener-venta.php?id=${ventaId}`);
+                    const data = await response.json();
+                    
+                    if (!data.exito) throw new Error(data.mensaje || 'Error al cargar venta');
+                    
+                    // Mostrar datos en el formulario
+                    folio.textContent = data.venta.folio || 'Sin folio';
+                    form.cliente.value = data.venta.cliente || '';
+                    form.sucursal.value = data.venta.sucursal || '';
+                    form.equipo.value = data.venta.equipo || '';
+                    form.marca.value = data.venta.marca || '';
+                    form.modelo.value = data.venta.modelo || '';
+                    form.numero_serie.value = data.venta.numero_serie || '';
+                    form.garantia.value = data.venta.garantia || '';
+                    form.notas.value = data.venta.notas || '';
+                    form.servicio.checked = data.venta.servicio || false;
+                    
+                    // Cargar archivos adjuntos
+                    cargarArchivos();
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    showMessage(error.message, 'error');
+                }
+            };
+            
+            // Guardar cambios
+            const guardarCambios = async () => {
+                try {
+                    const data = {
+                        id: ventaId,
+                        cliente: form.cliente.value.trim(),
+                        sucursal: form.sucursal.value.trim(),
+                        equipo: form.equipo.value.trim(),
+                        marca: form.marca.value.trim(),
+                        modelo: form.modelo.value.trim(),
+                        numero_serie: form.numero_serie.value.trim(),
+                        garantia: form.garantia.value.trim(),
+                        servicio: form.servicio.checked,
+                        notas: form.notas.value.trim()
+                    };
+                    
+                    const response = await fetch('../backend/actualizar-venta.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (!result.exito) throw new Error(result.mensaje || 'Error al actualizar');
+                    
+                    showMessage('Cambios guardados correctamente', 'success');
+                } catch (error) {
+                    console.error('Error:', error);
+                    showMessage(error.message, 'error');
+                }
+            };
+            
+            // Cargar archivos adjuntos
+            const cargarArchivos = async () => {
+                try {
+                    const response = await fetch(`../backend/obtener-archivos-venta.php?venta_id=${ventaId}`);
+                    const data = await response.json();
+                    
+                    archivosContainer.innerHTML = '';
+                    
+                    if (data.exito && data.archivos.length > 0) {
+                        data.archivos.forEach(archivo => {
+                            const fileDiv = document.createElement('div');
+                            fileDiv.className = 'file-thumbnail';
+                            
+                            const deleteBtn = document.createElement('span');
+                            deleteBtn.className = 'delete-file';
+                            deleteBtn.innerHTML = '×';
+                            deleteBtn.onclick = () => eliminarArchivo(archivo.id);
+                            
+                            if (archivo.tipo === 'application/pdf') {
+                                fileDiv.innerHTML = `
+                                    <div>PDF</div>
+                                    <div>${archivo.nombre}</div>
+                                `;
+                            } else {
+                                fileDiv.innerHTML = `
+                                    <img src="../uploads/${archivo.nombre}" alt="${archivo.nombre}">
+                                    <div>${archivo.nombre}</div>
+                                `;
+                            }
+                            
+                            fileDiv.appendChild(deleteBtn);
+                            archivosContainer.appendChild(fileDiv);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error al cargar archivos:', error);
+                }
+            };
+            
+            // Subir archivos
+            const subirArchivos = async () => {
+                if (fileUpload.files.length === 0) {
+                    showMessage('Seleccione al menos un archivo', 'error');
+                    return;
+                }
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('venta_id', ventaId);
+                    
+                    for (let i = 0; i < fileUpload.files.length; i++) {
+                        formData.append('archivos[]', fileUpload.files[i]);
+                    }
+                    
+                    const response = await fetch('../backend/subir-archivo-venta.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (!result.exito) throw new Error(result.mensaje || 'Error al subir archivos');
+                    
+                    showMessage('Archivos subidos correctamente', 'success');
+                    fileUpload.value = '';
+                    cargarArchivos();
+                } catch (error) {
+                    console.error('Error:', error);
+                    showMessage(error.message, 'error');
+                }
+            };
+            
+            // Eliminar archivo
+            const eliminarArchivo = async (archivoId) => {
+                if (!confirm('¿Está seguro de eliminar este archivo?')) return;
+                
+                try {
+                    const response = await fetch('../backend/eliminar-archivo-venta.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: archivoId })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (!result.exito) throw new Error(result.mensaje || 'Error al eliminar archivo');
+                    
+                    showMessage('Archivo eliminado correctamente', 'success');
+                    cargarArchivos();
+                } catch (error) {
+                    console.error('Error:', error);
+                    showMessage(error.message, 'error');
+                }
+            };
+            
+            // Event listeners
+            btnGuardar.addEventListener('click', guardarCambios);
+            btnSubir.addEventListener('click', subirArchivos);
+            
+            // Inicialización
+            if (ventaId) {
+                cargarVenta();
+            } else {
+                showMessage('No se especificó ID de venta', 'error');
+            }
+        });
+    </script>
+</body>
+</html>
