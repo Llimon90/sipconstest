@@ -105,6 +105,8 @@
     </div>
     
     <script>
+        // miniatura archivos
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const ventaId = urlParams.get('id');
@@ -188,101 +190,166 @@
                 }
             };
             
-            // Cargar archivos adjuntos
-            const cargarArchivos = async () => {
-                try {
-                    const response = await fetch(`../backend/obtener-archivos-venta.php?venta_id=${ventaId}`);
-                    const data = await response.json();
-                    
-                    archivosContainer.innerHTML = '';
-                    
-                    if (data.exito && data.archivos.length > 0) {
-                        data.archivos.forEach(archivo => {
-                            const fileDiv = document.createElement('div');
-                            fileDiv.className = 'file-thumbnail';
-                            
-                            const deleteBtn = document.createElement('span');
-                            deleteBtn.className = 'delete-file';
-                            deleteBtn.innerHTML = '×';
-                            deleteBtn.onclick = () => eliminarArchivo(archivo.id);
-                            
-                            if (archivo.tipo === 'application/pdf') {
-                                fileDiv.innerHTML = `
-                                    <div>PDF</div>
-                                    <div>${archivo.nombre}</div>
-                                `;
-                            } else {
-                                fileDiv.innerHTML = `
-                                    <img src="../uploads/${archivo.nombre}" alt="${archivo.nombre}">
-                                    <div>${archivo.nombre}</div>
-                                `;
-                            }
-                            
-                            fileDiv.appendChild(deleteBtn);
-                            archivosContainer.appendChild(fileDiv);
-                        });
-                    }
-                } catch (error) {
-                    console.error('Error al cargar archivos:', error);
-                }
-            };
             
-            // Subir archivos
-            const subirArchivos = async () => {
-                if (fileUpload.files.length === 0) {
-                    showMessage('Seleccione al menos un archivo', 'error');
-                    return;
-                }
-                
-                try {
-                    const formData = new FormData();
-                    formData.append('venta_id', ventaId);
-                    
-                    for (let i = 0; i < fileUpload.files.length; i++) {
-                        formData.append('archivos[]', fileUpload.files[i]);
-                    }
-                    
-                    const response = await fetch('../backend/subir-archivo-venta.php', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (!result.exito) throw new Error(result.mensaje || 'Error al subir archivos');
-                    
-                    showMessage('Archivos subidos correctamente', 'success');
-                    fileUpload.value = '';
-                    cargarArchivos();
-                } catch (error) {
-                    console.error('Error:', error);
-                    showMessage(error.message, 'error');
-                }
-            };
-            
-            // Eliminar archivo
-            const eliminarArchivo = async (archivoId) => {
-                if (!confirm('¿Está seguro de eliminar este archivo?')) return;
-                
-                try {
-                    const response = await fetch('../backend/eliminar-archivo-venta.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id: archivoId })
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (!result.exito) throw new Error(result.mensaje || 'Error al eliminar archivo');
-                    
-                    showMessage('Archivo eliminado correctamente', 'success');
-                    cargarArchivos();
-                } catch (error) {
-                    console.error('Error:', error);
-                    showMessage(error.message, 'error');
-                }
-            };
-            
+// Función para cargar archivos
+async function cargarArchivosVenta(ventaId) {
+    try {
+        const response = await fetch(`../backend/obtener-archivos-venta.php?venta_id=${ventaId}`);
+        const data = await response.json();
+        
+        const container = document.getElementById('files-container');
+        container.innerHTML = '';
+        
+        if (data.exito && data.archivos.length > 0) {
+            for (const archivo of data.archivos) {
+                await crearMiniaturaArchivo(archivo, container);
+            }
+        } else {
+            container.innerHTML = '<p>No hay archivos adjuntos</p>';
+        }
+    } catch (error) {
+        console.error('Error al cargar archivos:', error);
+        mostrarNotificacion('Error al cargar archivos adjuntos', 'error');
+    }
+}
+
+// Función para crear miniaturas
+async function crearMiniaturaArchivo(archivo, container) {
+    const ext = archivo.nombre.split('.').pop().toLowerCase();
+    const fileUrl = `../uploads/${archivo.nombre}`;
+    
+    const fileElement = document.createElement('div');
+    fileElement.className = 'file-thumbnail';
+    fileElement.dataset.id = archivo.id;
+    
+    // Contenido de la miniatura
+    let thumbnailContent;
+    
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+        thumbnailContent = `<img src="${fileUrl}" alt="${archivo.nombre_original}">`;
+    } else if (ext === 'pdf') {
+        thumbnailContent = `<canvas class="pdf-thumbnail"></canvas>`;
+    } else {
+        thumbnailContent = `<div class="file-icon">${ext.toUpperCase()}</div>`;
+    }
+    
+    fileElement.innerHTML = `
+        ${thumbnailContent}
+        <div class="file-name">${acortarNombre(archivo.nombre_original, 15)}</div>
+        <div class="file-actions">
+            <button class="delete-file" title="Eliminar archivo">×</button>
+        </div>
+    `;
+    
+    container.appendChild(fileElement);
+    
+    // Renderizar PDF si es necesario
+    if (ext === 'pdf') {
+        try {
+            await renderizarMiniaturaPDF(fileUrl, fileElement.querySelector('.pdf-thumbnail'));
+        } catch (error) {
+            console.error('Error al renderizar PDF:', error);
+        }
+    }
+    
+    // Evento para eliminar
+    fileElement.querySelector('.delete-file').addEventListener('click', () => {
+        eliminarArchivoVenta(archivo.id, fileElement);
+    });
+}
+
+// Función para renderizar PDF
+async function renderizarMiniaturaPDF(url, canvas) {
+    try {
+        const pdf = await pdfjsLib.getDocument(url).promise;
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: 0.5 });
+        
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        
+        await page.render({
+            canvasContext: canvas.getContext('2d'),
+            viewport: viewport
+        }).promise;
+    } catch (error) {
+        console.error('Error al renderizar PDF:', error);
+        throw error;
+    }
+}
+
+// Función para eliminar archivos
+async function eliminarArchivoVenta(archivoId, element) {
+    if (!confirm('¿Está seguro de eliminar este archivo?')) return;
+    
+    try {
+        element.classList.add('eliminando');
+        
+        const response = await fetch('../backend/eliminar-archivo-venta.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: archivoId })
+        });
+        
+        const data = await response.json();
+        
+        if (!data.exito) throw new Error(data.mensaje || 'Error al eliminar');
+        
+        element.remove();
+        mostrarNotificacion('Archivo eliminado correctamente', 'success');
+    } catch (error) {
+        console.error('Error al eliminar archivo:', error);
+        mostrarNotificacion(error.message, 'error');
+        element.classList.remove('eliminando');
+    }
+}
+
+// Función para subir archivos
+document.getElementById('upload-btn').addEventListener('click', async () => {
+    const filesInput = document.getElementById('file-upload');
+    const ventaId = obtenerIdVenta(); // Función que obtiene el ID de la venta
+    
+    if (filesInput.files.length === 0) {
+        mostrarNotificacion('Seleccione al menos un archivo', 'error');
+        return;
+    }
+    
+    try {
+        const formData = new FormData();
+        formData.append('venta_id', ventaId);
+        
+        for (let i = 0; i < filesInput.files.length; i++) {
+            formData.append('archivos[]', filesInput.files[i]);
+        }
+        
+        const response = await fetch('../backend/subir-archivo-venta.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (!data.exito) throw new Error(data.mensaje || 'Error al subir archivos');
+        
+        mostrarNotificacion('Archivos subidos correctamente', 'success');
+        filesInput.value = '';
+        cargarArchivosVenta(ventaId);
+    } catch (error) {
+        console.error('Error al subir archivos:', error);
+        mostrarNotificacion(error.message, 'error');
+    }
+});
+
+// Función auxiliar para acortar nombres
+function acortarNombre(nombre, maxLength) {
+    if (nombre.length <= maxLength) return nombre;
+    return nombre.substring(0, maxLength) + '...';
+}
+
+// Función para mostrar notificaciones
+function mostrarNotificacion(mensaje, tipo = 'success') {
+    // Implementación similar a showNotification del código original
+}
             // Event listeners
             btnGuardar.addEventListener('click', guardarCambios);
             btnSubir.addEventListener('click', subirArchivos);
@@ -295,5 +362,14 @@
             }
         });
     </script>
+
+    <div class="file-management-section">
+    <h3>Documentos Adjuntos</h3>
+    <div class="file-upload-container">
+        <input type="file" id="file-upload" multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.webp">
+        <button id="upload-btn" class="btn">Subir Archivos</button>
+    </div>
+    <div id="files-container" class="files-grid"></div>
+</div>
 </body>
 </html>

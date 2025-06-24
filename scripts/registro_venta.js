@@ -1,3 +1,5 @@
+
+
 document.addEventListener('DOMContentLoaded', () => {
   // Elementos del formulario de registro
   const form = document.getElementById('form-venta');
