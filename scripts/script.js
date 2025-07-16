@@ -1,10 +1,11 @@
-  // Colocar fecha actual
+const form = document.getElementById('new-incidencia-form');
+
+  // Establecer la fecha actual
   document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 
-  document.getElementById('new-incidencia-form').addEventListener('submit', function(event) {
-    event.preventDefault(); // Prevenir envio tradicional
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
 
-    const form = this;
     const nuevaIncidencia = {
       numero: document.getElementById('numero').value,
       cliente: document.getElementById('cliente').value,
@@ -25,8 +26,9 @@
     .then(response => response.json())
     .then(data => {
       alert(data.message || data.error);
-      // Recarga la página al darle aceptar en el alert
-      window.location.reload(); // recarga completa :contentReference[oaicite:1]{index=1}
+      form.reset();  // ⇒ Limpia todo el formulario
+      // Opcional: volver a establecer la fecha actual tras reset
+      document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
     })
     .catch(error => {
       console.error('Error al enviar los datos:', error);
