@@ -1,6 +1,6 @@
-const form = document.getElementById('new-incidencia-form');
+  const form = document.getElementById('new-incidencia-form');
 
-  // Establecer la fecha actual
+  // Establecer la fecha actual en el input al cargar
   document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 
   form.addEventListener('submit', function(event) {
@@ -25,10 +25,11 @@ const form = document.getElementById('new-incidencia-form');
     })
     .then(response => response.json())
     .then(data => {
+      // Mostrar alert, bloqueará la ejecución hasta que se cierre
       alert(data.message || data.error);
-      form.reset();  // ⇒ Limpia todo el formulario
-      // Opcional: volver a establecer la fecha actual tras reset
-      document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+
+      // Recargar la página al pulsar "Aceptar" del alert
+      window.location.reload();  // recarga completa :contentReference[oaicite:1]{index=1}
     })
     .catch(error => {
       console.error('Error al enviar los datos:', error);
