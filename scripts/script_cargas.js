@@ -103,38 +103,38 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 // Función para cargar técnicos en el select
-async function cargarTecnicosEnSelect() {
-    try {
-        const response = await fetch('../backend/obtener-tecnicos.php');
+// async function cargarTecnicosEnSelect() {
+//     try {
+//         const response = await fetch('../backend/obtener-tecnicos.php');
         
-        if (!response.ok) {
-            throw new Error(`Error HTTP! estado: ${response.status}`);
-        }
+//         if (!response.ok) {
+//             throw new Error(`Error HTTP! estado: ${response.status}`);
+//         }
         
-        const resultado = await response.json();
+//         const resultado = await response.json();
         
-        // Verificar la estructura de la respuesta
-        if (!resultado.success || !Array.isArray(resultado.data)) {
-            throw new Error('Formato de respuesta inválido');
-        }
+//         // Verificar la estructura de la respuesta
+//         if (!resultado.success || !Array.isArray(resultado.data)) {
+//             throw new Error('Formato de respuesta inválido');
+//         }
         
-        const selectTecnico = document.getElementById('tecnico');
-        selectTecnico.innerHTML = '<option value="">Seleccione un técnico</option>';
+//         const selectTecnico = document.getElementById('tecnico');
+//         selectTecnico.innerHTML = '<option value="">Seleccione un técnico</option>';
         
-        // Usar resultado.data que es el array garantizado
-        resultado.data.forEach(tecnico => {
-            const option = document.createElement('option');
-            option.value = tecnico.id;
-            option.textContent = tecnico.nombre;
-            selectTecnico.appendChild(option);
-        });
+//         // Usar resultado.data que es el array garantizado
+//         resultado.data.forEach(tecnico => {
+//             const option = document.createElement('option');
+//             option.value = tecnico.id;
+//             option.textContent = tecnico.nombre;
+//             selectTecnico.appendChild(option);
+//         });
         
-    } catch (error) {
-        console.error('Error al cargar técnicos:', error);
-        // Mostrar mensaje más informativo
-        alert('Error al cargar técnicos: ' + error.message);
-    }
-}
+//     } catch (error) {
+//         console.error('Error al cargar técnicos:', error);
+//         // Mostrar mensaje más informativo
+//         alert('Error al cargar técnicos: ' + error.message);
+//     }
+// }
 
 // Llamar la función cuando se cargue la página
 document.addEventListener("DOMContentLoaded", function() {
