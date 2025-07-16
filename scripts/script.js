@@ -1,12 +1,17 @@
-  const form = document.getElementById('new-incidencia-form');
-
-  // Establecer la fecha actual en el input al cargar
+const form = document.getElementById('new-incidencia-form');
+  const btnRegistrar = document.getElementById('btn-registrar');
+  const btnActualizar = document.getElementById('btn-actualizar');
+  const btnEliminar = document.getElementById('btn-eliminar');
+  
+  // Establece fecha actual al cargar
   document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
 
   form.addEventListener('submit', function(event) {
     event.preventDefault();
 
+    // Prepara objeto con los datos actuales del formulario
     const nuevaIncidencia = {
+      id: document.getElementById('incidencia-id').value || null,
       numero: document.getElementById('numero').value,
       cliente: document.getElementById('cliente').value,
       contacto: document.getElementById('contacto').value,
@@ -25,11 +30,9 @@
     })
     .then(response => response.json())
     .then(data => {
-      // Mostrar alert, bloqueará la ejecución hasta que se cierre
       alert(data.message || data.error);
-
-      // Recargar la página al pulsar "Aceptar" del alert
-      window.location.reload();  // recarga completa :contentReference[oaicite:1]{index=1}
+      // Recarga completa al cerrar el alert
+      window.location.reload();
     })
     .catch(error => {
       console.error('Error al enviar los datos:', error);
