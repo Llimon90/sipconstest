@@ -2,7 +2,6 @@
 let paginaActual = 1;
 let registrosPorPagina = 10;
 let incidenciasTotales = [];
-let filtroActivo = false;
 
 document.addEventListener("DOMContentLoaded", function () {
   // Configuración de Flatpickr para las fechas
@@ -50,28 +49,41 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // Botones para filtros rápidos
-  document.getElementById("btn-activas").addEventListener("click", function() {
-    document.getElementById("solo-activas").checked = true;
-    paginaActual = 1;
-    cargarIncidencias();
-  });
-
-  document.getElementById("btn-todas").addEventListener("click", function() {
-    document.getElementById("solo-activas").checked = false;
-    paginaActual = 1;
-    cargarIncidencias();
-  });
-
-  document.getElementById("btn-basculas").addEventListener("click", function() {
-    document.getElementById("tipo-equipo").value = "bascula";
-    paginaActual = 1;
-    cargarIncidencias();
-  });
-
-  document.getElementById("btn-pos").addEventListener("click", function() {
-    document.getElementById("tipo-equipo").value = "pos";
-    paginaActual = 1;
-    cargarIncidencias();
+  document.querySelectorAll('.btn-filtro-rapido').forEach(button => {
+    button.addEventListener('click', function() {
+      const filtro = this.getAttribute('data-filtro');
+      
+      // Resetear todos los filtros primero
+      document.getElementById("solo-activas").checked = false;
+      document.getElementById("tipo-equipo").value = "";
+      document.getElementById("cliente").value = "";
+      document.getElementById("estatus").value = "";
+      document.getElementById("fecha-inicio").value = "";
+      document.getElementById("fecha-fin").value = "";
+      document.getElementById("sucursal").value = "";
+      document.getElementById("tecnico").value = "";
+      
+      switch(filtro) {
+        case 'activas':
+          document.getElementById("solo-activas").checked = true;
+          break;
+        case 'bascula':
+          document.getElementById("tipo-equipo").value = "bascula";
+          break;
+        case 'mr-tienda':
+          document.getElementById("tipo-equipo").value = "mr-tienda";
+          break;
+        case 'plataforma':
+          document.getElementById("tipo-equipo").value = "plataforma";
+          break;
+        case 'todos':
+          // Ya están reseteados los valores
+          break;
+      }
+      
+      paginaActual = 1;
+      cargarIncidencias();
+    });
   });
 });
 
