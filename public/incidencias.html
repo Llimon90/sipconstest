@@ -54,24 +54,21 @@
         </div>
 
         <div class="form-row">
-
           <div>
             <label for="sucursal">Sucursal</label>
             <input type="text" id="sucursal" name="sucursal" placeholder="Sucursal o dirección">
           </div>
       
-
           <div>
             <label for="contacto">Reporta</label>
             <input type="text" id="contacto" name="contacto" required placeholder="Persona que reporta incidencia">
           </div>
-
         </div>
 
         <div class="form-row">
           <div>
-            <label for="falla">Falla Reportada</label>
-            <input type="text" id="falla" name="falla" maxlength="500">
+            <label for="equipo">Equipo</label>
+            <input type="text" id="equipo" name="equipo" placeholder="Modelo o número de serie del equipo">
           </div>
 
           <div>
@@ -81,6 +78,11 @@
         </div>
 
         <div class="form-row">
+          <div>
+            <label for="falla">Falla Reportada</label>
+            <input type="text" id="falla" name="falla" maxlength="500">
+          </div>
+
           <div>
             <label for="tecnico">Técnico Asignado</label>
             <select id="tecnico" name="tecnico" >
@@ -97,7 +99,9 @@
               <option value="Ernesto Chávez">Ernesto Chávez</option>
             </select>
           </div>
+        </div>
 
+        <div class="form-row">
           <div>
             <label for="estatus">Estatus</label>
             <select id="estatus" name="estatus" required>
@@ -109,9 +113,7 @@
               <option value="Cerrado con factura">Cerrado con factura</option>
             </select>
           </div>
-        </div>
 
-        <div class="form-row">
           <div>
             <label for="notas">Notas</label>
             <input type="text" id="notas" name="notas" maxlength="500" placeholder="Información adicional sobre el servicio">
@@ -140,7 +142,7 @@
             <th># Reporte interno</th>
             <th># Incidencia cliente</th>
             <th>Cliente</th>
-       
+            <th>Equipo</th>
             <th>Sucursal</th>
             <th>Falla</th>
             <th>Fecha</th>
@@ -155,24 +157,15 @@
       </table>
     </section>
 
-
-
-
-   
-
+  </main>
 
   <!-- /*Establecer fecha actual en el input de fecha*/ -->
   <script>
-
     document.addEventListener("DOMContentLoaded", function() {
       document.getElementById("fecha").value = new Date().toISOString().split('T')[0];
     });
   </script>
 
-
-<script src="../scripts/script_cargas.js?v=8"></script>
-
-
-
+  <script src="../scripts/script_cargas.js?v=9"></script>
 </body>
 </html>
