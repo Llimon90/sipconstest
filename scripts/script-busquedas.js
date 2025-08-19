@@ -15,6 +15,10 @@ document.addEventListener("DOMContentLoaded", function () {
     allowInput: true
   });
 
+  // Inicializar tooltips de Bootstrap
+  const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+  const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
   cargarIncidencias();
   cargarClientes();
 
@@ -116,6 +120,9 @@ async function cargarIncidencias() {
   }
 
   try {
+    // Mostrar indicador de carga
+    document.getElementById("tabla-body").innerHTML = `<tr><td colspan="9" class="text-center">Buscando incidencias...</td></tr>`;
+    
     const response = await fetch(url);
     const data = await response.json();
 
@@ -145,7 +152,7 @@ function mostrarIncidenciasPagina() {
   tablaBody.innerHTML = "";
 
   if (incidenciasPagina.length === 0) {
-    tablaBody.innerHTML = `<tr><td colspan="9">No se encontraron incidencias</td></tr>`;
+    tablaBody.innerHTML = `<tr><td colspan="9" class="text-center">No se encontraron incidencias con los filtros aplicados</td></tr>`;
   } else {
     incidenciasPagina.forEach(incidencia => {
       const row = document.createElement("tr");
