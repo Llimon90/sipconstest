@@ -14,6 +14,8 @@ $fecha_fin = isset($_GET['fecha_fin']) ? trim($_GET['fecha_fin']) : '';
 $estatus = isset($_GET['estatus']) ? trim($_GET['estatus']) : '';
 $sucursal = isset($_GET['sucursal']) ? trim($_GET['sucursal']) : '';
 $tecnico = isset($_GET['tecnico']) ? trim($_GET['tecnico']) : '';
+$tipo_equipo = isset($_GET['tipo_equipo']) ? trim($_GET['tipo_equipo']) : '';
+$solo_activas = isset($_GET['solo_activas']) ? trim($_GET['solo_activas']) : '';
 
 // Construir la consulta SQL con `prepared statements`
 $sql = "SELECT * FROM incidencias WHERE 1";
@@ -55,6 +57,17 @@ if (!empty($tecnico)) {
     $sql .= " AND tecnico LIKE ?";
     $params[] = "%$tecnico%";
     $types .= "s";
+}
+
+if (!empty($tipo_equipo)) {
+    $sql .= " AND tipo_equipo = ?";
+    $params[] = $tipo_equipo;
+    $types .= "s";
+}
+
+// Filtrar por incidencias activas (Abierto, Asignado, Pendiente, Completado)
+if (!empty($solo_activas) && $solo_activas === '1') {
+    $sql .= " AND estatus IN ('Abierto', 'Asignado', 'Pendiente', 'Completado')";
 }
 
 // Agregar orden de más reciente a más antiguo
