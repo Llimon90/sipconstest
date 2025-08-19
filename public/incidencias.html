@@ -7,18 +7,14 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="../css/styles.css?v=1.15">
   <script src="../scripts/script.js?v=6" defer></script>
-  <!-- <script src="../scripts/script-actualiza.js" defer></script> -->
-  
- 
 </head>
 <body>
   
-  <div class="retorna" >
-    <a href="../index.html">  <<- Inicio</a>  </div>
+  <div class="retorna">
+    <a href="../index.html"><<- Inicio</a>
+  </div>
 
-  <!-- Panel lateral  -->
   <aside class="sidebar">
-    
     <ul>
       <li><a href="../index.html">Inicio</a></li>
       <li><a href="incidencias.html">Incidencias</a></li>
@@ -27,29 +23,24 @@
       <li><a href="usuarios.html">Usuarios</a></li>
       <li><a href="#">Configuración</a></li>
     </ul>
-
   </aside>
 
-  <!-- Contenido principal -->
   <main>  
-    <!-- Formulario para registrar una nueva incidencia -->
     <section class="encabezado">
       <h2>Registrar nueva incidencia</h2>
       
       <form id="new-incidencia-form">
-        
         <div class="form-row">
           <div>
             <label for="cliente">Cliente</label>
             <select id="cliente" name="cliente" required>
               <option value="" selected disabled>Seleccione una opción</option>
-
             </select>
           </div>    
 
           <div>
             <label for="numero"># Incidencia Cliente</label>
-            <input type="text" id="numero" name="numero"  placeholder="Ejemplo: ST-66477">
+            <input type="text" id="numero" name="numero" placeholder="Ejemplo: ST-66477">
           </div>
         </div>
 
@@ -68,7 +59,15 @@
         <div class="form-row">
           <div>
             <label for="equipo">Equipo</label>
-            <input type="text" id="equipo" name="equipo" placeholder="Modelo o número de serie del equipo">
+            <select id="equipo" name="equipo">
+              <option value="">Seleccione un equipo</option>
+              <option value="Mr Tienda">Mr Tienda</option>
+              <option value="Mr Chef">Mr Chef</option>
+              <option value="Bascula">Báscula</option>
+              <option value="Plataforma">Plataforma</option>
+              <option value="POS">POS</option>
+              <option value="Otro">Otro</option>
+            </select>
           </div>
 
           <div>
@@ -85,7 +84,7 @@
 
           <div>
             <label for="tecnico">Técnico Asignado</label>
-            <select id="tecnico" name="tecnico" >
+            <select id="tecnico" name="tecnico">
               <option value="">Seleccione una opción</option>
               <option value="Victor Hugo Cordoba">Victor Cordoba</option>
               <option value="Tomás Valdéz">Tomás Valdéz</option>
@@ -123,32 +122,23 @@
         <button type="submit" id="btn-registrar">Registrar Incidencia</button>
         <button type="button" id="btn-actualizar" style="display: none;">Actualizar</button>
         <button type="button" id="btn-eliminar" style="display: none;" class="btn-rojo">Eliminar</button>
-        <input type="hidden" id="incidencia-id"> <!-- ID de la incidencia -->
-        
- 
+        <input type="hidden" id="incidencia-id">
       </form>
     </section>
 
-     <!-- Lista de incidencias -->
-     <section class="lista-incidencias">
-      <h2>Incidencias Activas <a href="incidencias.html"><i  class="fas fa-sync-alt" style="cursor: pointer; color: #1637cc"></i></h2>
+    <section class="lista-incidencias">
+      <h2>Incidencias Activas <a href="incidencias.html"><i class="fas fa-sync-alt" style="cursor: pointer; color: #1637cc"></i></a></h2>
       
-      </a>
-
       <table>
         <thead>
           <tr>
-       
             <th># Reporte interno</th>
             <th># Incidencia cliente</th>
             <th>Cliente</th>
-            <th>Equipo</th>
             <th>Sucursal</th>
             <th>Falla</th>
             <th>Fecha</th>
-           
             <th>Estatus</th>
-     
           </tr>
         </thead>
         <tbody id="tabla-body">
@@ -156,10 +146,8 @@
         </tbody>
       </table>
     </section>
-
   </main>
 
-  <!-- /*Establecer fecha actual en el input de fecha*/ -->
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       document.getElementById("fecha").value = new Date().toISOString().split('T')[0];

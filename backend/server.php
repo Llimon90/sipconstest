@@ -17,8 +17,10 @@ header("Access-Control-Allow-Headers: Content-Type");
 $method = $_SERVER["REQUEST_METHOD"];
 
 if ($method === "GET") {
+    // **INICIO - FUNCIÓN PARA MOSTRAR LA BASE DE DATOS EN EL DOM**
+    
     // Consulta para obtener todas las incidencias sin filtrar
-    $sql = "SELECT * FROM incidencias WHERE estatus IN ('Abierto','Asignado', 'Pendiente', 'Completado') ORDER BY numero_incidente DESC; ";
+    $sql = "SELECT * FROM incidencias WHERE estatus IN ('Abierto','Asignado', 'Pendiente', 'Completado') ORDER BY numero_incidente DESC;";
 
     $result = $conn->query($sql);
 
@@ -32,7 +34,11 @@ if ($method === "GET") {
         echo json_encode(["message" => "No hay incidencias abiertas"]);
     }
     
+    // **FIN - FUNCIÓN PARA MOSTRAR LA BASE DE DATOS EN EL DOM**
+    
 } elseif ($method === "POST") {
+    // **INICIO - FUNCIÓN PARA CREAR NUEVAS INCIDENCIAS**
+    
     // Leer los datos enviados desde fetch()
     $data = json_decode(file_get_contents("php://input"), true);
 
