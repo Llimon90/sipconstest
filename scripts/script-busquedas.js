@@ -71,14 +71,11 @@ document.addEventListener("DOMContentLoaded", function () {
         case 'activas':
           document.getElementById("solo-activas").checked = true;
           break;
-        case 'bascula':
-          document.getElementById("tipo-equipo").value = "bascula";
+        case 'mr-tienda-chef':
+          document.getElementById("tipo-equipo").value = "mr-tienda-chef";
           break;
-        case 'mr-tienda':
-          document.getElementById("tipo-equipo").value = "mr-tienda";
-          break;
-        case 'plataforma':
-          document.getElementById("tipo-equipo").value = "plataforma";
+        case 'otros':
+          document.getElementById("tipo-equipo").value = "otros";
           break;
         case 'todos':
           // Ya están reseteados los valores
@@ -167,7 +164,7 @@ function mostrarIncidenciasPagina() {
       row.appendChild(celdaInterna);
 
       // Celdas restantes
-      const columnas = ['numero', 'cliente', 'sucursal', 'falla', 'tipo_equipo', 'fecha', 'estatus'];
+      const columnas = ['numero', 'cliente', 'sucursal', 'falla', 'equipo', 'fecha', 'estatus'];
       columnas.forEach(campo => {
         const td = document.createElement("td");
         td.textContent = incidencia[campo] || "N/A";
