@@ -64,45 +64,22 @@ if (!empty($solo_activas) && $solo_activas === '1') {
     $sql .= " AND estatus IN ('Abierto', 'Asignado', 'Pendiente', 'Completado')";
 }
 
-// Búsqueda por palabras clave según el tipo de equipo
+// Búsqueda por categoría directa
 if (!empty($tipo_equipo)) {
-    $palabras_clave = [];
-    
     switch($tipo_equipo) {
         case 'mr-tienda-chef':
-            $palabras_clave = [
-                "cajon de dinero", "gaveta", "mr tienda", "mr chef", "nube", 
-                "back office", "capacitacion", "escaner", "pos", "punto de venta", 
-                "jose lopez", "terminal", "tarjeta", "pinpad", "lector", "codigo de barras", 
-                "facturacion", "ticket", "caja registradora", "cocina", "restaurante", 
-                "comanda", "menu", "inventario", "receta", "mesero", "chef"
-            ];
+            $sql .= " AND categoria = 'mr-tienda-chef'";
+            $params[] = 'mr-tienda-chef';
+            $types .= "s";
             break;
         case 'otros':
-            $palabras_clave = [
-                "iqy", "ipes", "celda", "baccula", "plaba", "cas", "plaba-12", 
-                "indicador", "calibracion", "celda de carga", "florido", "bpro", 
-                "bplus", "bcom s", "bcoms", "etiquetadora", "impresora", "cabeza termica", 
-                "cabezal", "mecanismo", "sensor", "plato", "display", "rodillo", 
-                "etiquetas", "etiqueta", "interfaz", "head", "muelle", "teclado", "membrana", "nodo"
-            ];
+            $sql .= " AND categoria = 'otros'";
+            $params[] = 'otros';
+            $types .= "s";
             break;
-    }
-    
-    // Si hay palabras clave para el tipo seleccionado, agregar condición a la consulta
-    if (!empty($palabras_clave)) {
-        $condiciones_keywords = [];
-        foreach ($palabras_clave as $keyword) {
-            $condiciones_keywords[] = "(falla LIKE ? OR notas LIKE ? OR equipo LIKE ? OR tecnico LIKE ?)";
-            for ($i = 0; $i < 4; $i++) {
-                $params[] = "%$keyword%";
-                $types .= "s";
-            }
-        }
-        
-        if (!empty($condiciones_keywords)) {
-            $sql .= " AND (" . implode(" OR ", $condiciones_keywords) . ")";
-        }
+        case 'todos':
+            // No aplicar filtro, mostrar todos
+            break;
     }
 }
 
