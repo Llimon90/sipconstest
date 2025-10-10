@@ -68,10 +68,10 @@ if (!empty($solo_activas) && $solo_activas === '1') {
 if (!empty($tipo_equipo) && $tipo_equipo !== 'todos') {
     if ($tipo_equipo === 'mr-tienda-chef') {
         // Filtrar solo equipos Mr. Tienda/Mr. Chef
-        $sql .= " AND (equipo = 'Mr. Tienda' OR equipo = 'Mr. Chef' OR equipo LIKE '%Mr. Tienda%' OR equipo LIKE '%Mr. Chef%')";
-    } elseif ($tipo_equipo === 'otros') {
+        $sql .= " AND (equipo = 'Mr. Tienda/Mr. Chef')";
+    } elseif ($tipo_equipo === 'Otros') {
         // Filtrar todos los que NO son Mr. Tienda/Mr. Chef
-        $sql .= " AND (equipo != 'Mr. Tienda' AND equipo != 'Mr. Chef' AND equipo NOT LIKE '%Mr. Tienda%' AND equipo NOT LIKE '%Mr. Chef%')";
+        $sql .= " AND (equipo != 'Mr. Tienda/Mr. Chef')";
     }
 }
 
