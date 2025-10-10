@@ -52,21 +52,23 @@ document.addEventListener("DOMContentLoaded", function () {
     mostrarIncidenciasPagina();
   });
 
-  // Botones para filtros rápidos
+  // Botones para filtros rápidos - INTEGRADO
   document.querySelectorAll('.btn-filtro-rapido').forEach(button => {
     button.addEventListener('click', function() {
       const filtro = this.getAttribute('data-filtro');
       
-      // Resetear todos los filtros primero
-      document.getElementById("solo-activas").checked = false;
-      document.getElementById("tipo-equipo").value = "";
-      document.getElementById("cliente").value = "";
-      document.getElementById("estatus").value = "";
-      document.getElementById("fecha-inicio").value = "";
-      document.getElementById("fecha-fin").value = "";
-      document.getElementById("sucursal").value = "";
-      document.getElementById("tecnico").value = "";
+      // Remover clase active de todos los botones
+      document.querySelectorAll('.btn-filtro-rapido').forEach(btn => {
+        btn.classList.remove('active');
+      });
       
+      // Agregar clase active al botón clickeado
+      this.classList.add('active');
+      
+      // Resetear todos los filtros del formulario
+      document.getElementById("report-form").reset();
+      
+      // Configurar el filtro rápido seleccionado
       switch(filtro) {
         case 'mr-tienda-chef':
           document.getElementById("tipo-equipo").value = "mr-tienda-chef";
@@ -75,10 +77,12 @@ document.addEventListener("DOMContentLoaded", function () {
           document.getElementById("tipo-equipo").value = "otros";
           break;
         case 'todos':
-          // Ya están reseteados los valores
+          // No establecer valor, mostrar todos
+          document.getElementById("tipo-equipo").value = "";
           break;
       }
       
+      // Aplicar filtro
       paginaActual = 1;
       cargarIncidencias();
     });
@@ -225,6 +229,12 @@ async function cargarClientes() {
 // Función para limpiar filtros
 function limpiarFiltros() {
   document.getElementById("report-form").reset();
+  
+  // Remover clase active de todos los botones de filtros rápidos
+  document.querySelectorAll('.btn-filtro-rapido').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
   paginaActual = 1;
   cargarIncidencias();
 }
