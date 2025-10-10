@@ -68,12 +68,12 @@ if (!empty($solo_activas) && $solo_activas === '1') {
 if (!empty($tipo_equipo)) {
     switch($tipo_equipo) {
         case 'Mr Tienda/Mr Chef':
-            $sql .= " AND categoria = 'Mr Tienda/Mr Chef'";
+            $sql .= " AND equipo = 'Mr Tienda/Mr Chef'";
             $params[] = 'Mr Tienda/Mr Chef';
             $types .= "s";
             break;
         case 'otros':
-            $sql .= " AND categoria = 'otros'";
+            $sql .= " AND equipo = 'otros'";
             $params[] = 'otros';
             $types .= "s";
             break;
