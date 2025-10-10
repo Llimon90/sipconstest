@@ -67,7 +67,7 @@ if (!empty($solo_activas) && $solo_activas === '1') {
 // Búsqueda por categoría directa
 if (!empty($tipo_equipo)) {
     switch($tipo_equipo) {
-        case 'mr-tienda-chef':
+        case 'Mr Tienda/Mr Chef':
             $sql .= " AND categoria = 'Mr Tienda/Mr Chef'";
             $params[] = 'Mr Tienda/Mr Chef';
             $types .= "s";
