@@ -64,14 +64,14 @@ if (!empty($solo_activas) && $solo_activas === '1') {
     $sql .= " AND estatus IN ('Abierto', 'Asignado', 'Pendiente', 'Completado')";
 }
 
-// Búsqueda por tipo de equipo - FILTROS RÁPIDOS
+// Búsqueda por tipo de equipo - FILTROS RÁPIDOS (CORREGIDO)
 if (!empty($tipo_equipo) && $tipo_equipo !== 'todos') {
     if ($tipo_equipo === 'mr-tienda-chef') {
         // Filtrar solo equipos Mr. Tienda/Mr. Chef
-        $sql .= " AND (equipo = 'Mr. Tienda/Mr. Chef')";
-    } elseif ($tipo_equipo === 'Otros') {
+        $sql .= " AND (equipo LIKE '%Mr. Tienda%' OR equipo LIKE '%Mr. Chef%' OR equipo = 'Mr. Tienda/Mr. Chef')";
+    } elseif ($tipo_equipo === 'otros') {
         // Filtrar todos los que NO son Mr. Tienda/Mr. Chef
-        $sql .= " AND (equipo != 'Mr. Tienda/Mr. Chef')";
+        $sql .= " AND (equipo NOT LIKE '%Mr. Tienda%' AND equipo NOT LIKE '%Mr. Chef%' AND equipo != 'Mr. Tienda/Mr. Chef')";
     }
 }
 

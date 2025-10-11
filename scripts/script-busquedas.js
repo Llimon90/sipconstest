@@ -99,6 +99,14 @@ async function cargarIncidencias() {
   const tipoEquipo = document.getElementById("tipo-equipo").value;
   const soloActivas = document.getElementById("solo-activas").checked;
 
+  // DEBUG: Ver qué valores se están enviando
+  console.log("Filtros aplicados:", {
+    tipoEquipo: tipoEquipo,
+    cliente: cliente,
+    estatus: estatus,
+    soloActivas: soloActivas
+  });
+
   // Validación de fechas
   if (fechaInicio && fechaFin && fechaFin < fechaInicio) {
     alert("❌ La fecha de fin no puede ser menor que la fecha de inicio.");
@@ -117,12 +125,16 @@ async function cargarIncidencias() {
     url += `&solo_activas=1`;
   }
 
+  console.log("URL de búsqueda:", url); // DEBUG
+
   try {
     // Mostrar indicador de carga
     document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8" class="text-center">Buscando incidencias...</td></tr>`;
     
     const response = await fetch(url);
     const data = await response.json();
+
+    console.log("Datos recibidos:", data); // DEBUG
 
     if (data.message) {
       document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8">${data.message}</td></tr>`;
