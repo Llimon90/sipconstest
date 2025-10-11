@@ -1,5 +1,7 @@
 <?php
-// Configurar conexión con la base de datos
+// buscar_reportes.php
+
+// Incluir tu archivo de conexión (asegúrate que $conn quede como instancia mysqli)
 require_once 'conexion.php';
 
 // Verificar conexión
@@ -7,22 +9,22 @@ if ($conn->connect_error) {
     die(json_encode(["error" => "Error de conexión: " . $conn->connect_error]));
 }
 
-// Recibir los parámetros de búsqueda y sanitizarlos
-$cliente = isset($_GET['cliente']) ? trim($_GET['cliente']) : '';
-$fecha_inicio = isset($_GET['fecha_inicio']) ? trim($_GET['fecha_inicio']) : '';
-$fecha_fin = isset($_GET['fecha_fin']) ? trim($_GET['fecha_fin']) : '';
-$estatus = isset($_GET['estatus']) ? trim($_GET['estatus']) : '';
-$sucursal = isset($_GET['sucursal']) ? trim($_GET['sucursal']) : '';
-$tecnico = isset($_GET['tecnico']) ? trim($_GET['tecnico']) : '';
-$tipo_equipo = isset($_GET['tipo_equipo']) ? trim($_GET['tipo_equipo']) : '';
-$solo_activas = isset($_GET['solo_activas']) ? trim($_GET['solo_activas']) : '';
+// Obtener parámetros de la petición
+$cliente       = isset($_GET['cliente']) ? trim($_GET['cliente']) : '';
+$fecha_inicio  = isset($_GET['fecha_inicio']) ? trim($_GET['fecha_inicio']) : '';
+$fecha_fin     = isset($_GET['fecha_fin']) ? trim($_GET['fecha_fin']) : '';
+$estatus       = isset($_GET['estatus']) ? trim($_GET['estatus']) : '';
+$sucursal      = isset($_GET['sucursal']) ? trim($_GET['sucursal']) : '';
+$tecnico       = isset($_GET['tecnico']) ? trim($_GET['tecnico']) : '';
+$tipo_equipo   = isset($_GET['tipo_equipo']) ? trim($_GET['tipo_equipo']) : '';
+$solo_activas  = isset($_GET['solo_activas']) ? trim($_GET['solo_activas']) : '';
 
-// Construir la consulta SQL con `prepared statements`
-$sql = "SELECT * FROM incidencias WHERE 1";
-
+// Construir la consulta base
+$sql = "SELECT * FROM incidencias WHERE 1=1";
 $params = [];
 $types = "";
 
+// Filtros condicionales
 if (!empty($cliente) && $cliente !== 'todos') {
     $sql .= " AND cliente = ?";
     $params[] = $cliente;
@@ -59,41 +61,54 @@ if (!empty($tecnico)) {
     $types .= "s";
 }
 
-// Filtrar por incidencias activas (Abierto, Asignado, Pendiente, Completado)
 if (!empty($solo_activas) && $solo_activas === '1') {
     $sql .= " AND estatus IN ('Abierto', 'Asignado', 'Pendiente', 'Completado')";
 }
 
-// Búsqueda por tipo de equipo - FILTROS RÁPIDOS (CORREGIDO)
+// Filtro rápido: Mr. Tienda / Mr. Chef
 if (!empty($tipo_equipo) && $tipo_equipo !== 'todos') {
     if ($tipo_equipo === 'mr-tienda-chef') {
-        // Filtrar solo equipos Mr. Tienda/Mr. Chef
-        $sql .= " AND (equipo LIKE '%Mr. Tienda%' OR equipo LIKE '%Mr. Chef%' OR equipo = 'Mr. Tienda/Mr. Chef')";
+        // Filtrar los que contengan “Mr. Tienda” o “Mr. Chef”
+        $sql .= " AND (cliente LIKE '%Mr. Tienda%' OR cliente LIKE '%Mr. Chef%' OR equipo LIKE '%Mr. Tienda%' OR equipo LIKE '%Mr. Chef%')";
     } elseif ($tipo_equipo === 'otros') {
-        // Filtrar todos los que NO son Mr. Tienda/Mr. Chef
-        $sql .= " AND (equipo NOT LIKE '%Mr. Tienda%' AND equipo NOT LIKE '%Mr. Chef%' AND equipo != 'Mr. Tienda/Mr. Chef')";
+        // Excluir los que contengan esos valores
+        $sql .= " AND (cliente NOT LIKE '%Mr. Tienda%' AND cliente NOT LIKE '%Mr. Chef%' AND equipo NOT LIKE '%Mr. Tienda%' AND equipo NOT LIKE '%Mr. Chef%')";
     }
 }
 
-// Agregar orden de más reciente a más antiguo
+// Orden por más reciente (o lo que prefieras)
 $sql .= " ORDER BY id DESC";
 
-// Preparar y ejecutar la consulta
+// Preparar la consulta
 $stmt = $conn->prepare($sql);
+if ($stmt === false) {
+    die(json_encode(["error" => "Error al preparar la consulta: " . $conn->error]));
+}
+
+// Si se tienen parámetros, enlazarlos
 if (!empty($params)) {
+    // Usamos “...$params” para expandir el array
     $stmt->bind_param($types, ...$params);
 }
-$stmt->execute();
-$result = $stmt->get_result();
 
+// Ejecutar
+$stmt->execute();
+
+// Obtener resultados
+$result = $stmt->get_result();
 $incidencias = [];
-while ($row = $result->fetch_assoc()) {
-    $incidencias[] = $row;
+while ($fila = $result->fetch_assoc()) {
+    $incidencias[] = $fila;
 }
 
-echo json_encode($incidencias ?: ["message" => "No se encontraron datos"]);
+// Si no hay resultados
+if (empty($incidencias)) {
+    echo json_encode(["message" => "No se encontraron datos"]);
+} else {
+    echo json_encode($incidencias);
+}
 
-// Cerrar la conexión
+// Cerrar
 $stmt->close();
 $conn->close();
 ?>
