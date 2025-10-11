@@ -66,9 +66,9 @@ if (!empty($solo_activas) && $solo_activas === '1') {
 if (!empty($tipo_equipo) && $tipo_equipo !== 'todos') {
     if ($tipo_equipo === 'mr-tienda-chef') {
         // Solo buscar en la columna equipo
-        $sql .= " AND (equipo LIKE '%Mr. Tienda%' OR equipo LIKE '%Mr. Chef%' OR equipo = 'Mr. Tienda/Mr. Chef')";
+        $sql .= " AND (equipo LIKE '%Mr Tienda%' OR equipo LIKE '%Mr Chef%' OR equipo = 'Mr Tienda/Mr Chef')";
     } elseif ($tipo_equipo === 'otros') {
-        $sql .= " AND (equipo NOT LIKE '%Mr. Tienda%' AND equipo NOT LIKE '%Mr. Chef%' AND equipo <> 'Mr. Tienda/Mr. Chef')";
+        $sql .= " AND (equipo NOT LIKE '%Mr Tienda%' AND equipo NOT LIKE '%Mr Chef%' AND equipo <> 'Mr Tienda/Mr Chef')";
     }
 }
 
