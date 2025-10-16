@@ -4,10 +4,10 @@ let registrosPorPagina = 10;
 let incidenciasTotales = [];
 
 /**
- * Función principal que se ejecuta al cargar el DOM
+ * Función que se ejecuta al cargar el DOM
  */
 document.addEventListener("DOMContentLoaded", function () {
-  // Inicializar los campos de fecha con Flatpickr
+  // Inicializar campos de fecha con Flatpickr
   flatpickr("#fecha-inicio", {
     dateFormat: "Y-m-d",
     allowInput: true
@@ -17,22 +17,22 @@ document.addEventListener("DOMContentLoaded", function () {
     allowInput: true
   });
 
-  // Inicializar tooltips de Bootstrap (si usas Bootstrap)
+  // Inicializar tooltips de Bootstrap (si los usas)
   const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
   const tooltipList = [...tooltipTriggerList].map(el => new bootstrap.Tooltip(el));
 
-  // Iniciar carga de datos
+  // Cargar datos iniciales
   cargarIncidencias();
   cargarClientes();
 
   // Evento submit del formulario de filtros
   document.getElementById("report-form").addEventListener("submit", function (e) {
     e.preventDefault();
-    paginaActual = 1;  // volver a la primera página cuando aplicas filtros
+    paginaActual = 1;
     cargarIncidencias();
   });
 
-  // Botones de paginación: anterior
+  // Botón “Anterior”
   document.getElementById("btn-prev").addEventListener("click", function(e) {
     e.preventDefault();
     if (paginaActual > 1) {
@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Botón siguiente
+  // Botón “Siguiente”
   document.getElementById("btn-next").addEventListener("click", function(e) {
     e.preventDefault();
     const totalPaginas = Math.ceil(incidenciasTotales.length / registrosPorPagina);
@@ -51,36 +51,36 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Cambio de cantidad de registros por página
+  // Cambio en cantidad de registros por página
   document.getElementById("select-registros").addEventListener("change", function(e) {
     registrosPorPagina = parseInt(e.target.value);
     paginaActual = 1;
     mostrarIncidenciasPagina();
   });
 
-  // Filtros rápidos (botones tipo “Mr Tienda/Mr Chef”, “Otros”, “Todos”)
+  // Filtros rápidos (botones para “Mr Tienda/Mr Chef”, “Otros”, “Todos”)
   document.querySelectorAll('.btn-filtro-rapido').forEach(button => {
     button.addEventListener('click', function() {
       const filtro = this.getAttribute('data-filtro');
 
-      // Quitar clase “active” de todos
+      // Quitar clase “active” de todos los botones rápidos
       document.querySelectorAll('.btn-filtro-rapido').forEach(btn => {
         btn.classList.remove('active');
       });
-      // Marcar el botón actual como activo
+      // Marcar este botón como activo
       this.classList.add('active');
 
-      // Resetear el formulario de filtros avanzados
+      // Resetear formulario completo
       document.getElementById("report-form").reset();
 
       // Referencia al checkbox “solo activas”
       const soloActivasCheckbox = document.getElementById("solo-activas");
 
-      // Aplicar el filtro rápido correspondiente
+      // Aplicar filtro rápido
       switch (filtro) {
         case 'mr-tienda-chef':
           document.getElementById("tipo-equipo").value = "mr-tienda-chef";
-          soloActivasCheckbox.checked = true;  // activar checkbox
+          soloActivasCheckbox.checked = true;
           break;
         case 'otros':
           document.getElementById("tipo-equipo").value = "otros";
@@ -88,34 +88,48 @@ document.addEventListener("DOMContentLoaded", function () {
           break;
         case 'todos':
           document.getElementById("tipo-equipo").value = "";
-          soloActivasCheckbox.checked = false; // desactivar checkbox
+          soloActivasCheckbox.checked = false;
           break;
       }
 
-      // Resetear la página y recargar
+      // Volver a primera página y recargar
       paginaActual = 1;
       cargarIncidencias();
     });
   });
 
-  // Lógica para filtros avanzados plegables
-  const encabezadoFiltros = document.getElementById("encabezado-filtros-avanzados");
-  const seccionFiltros = document.getElementById("filtros-avanzados");
-  // Ocultar inicialmente
-  seccionFiltros.style.display = "none";
+  // Lógica para filtros avanzados plegables (ahora con clases)
+  // Supongamos que el encabezado tiene la clase `.encabezado-filtros-avanzados`
+  // y la sección de filtros tiene la clase `.filtros-avanzados`
+  const encabezados = document.querySelectorAll(".encabezado-filtros-avanzados");
+  const seccionesFiltros = document.querySelectorAll(".filtros-avanzados");
 
-  encabezadoFiltros.addEventListener("click", () => {
-    // Alternar entre mostrar / ocultar
-    if (seccionFiltros.style.display === "none") {
-      seccionFiltros.style.display = "block";
-    } else {
-      seccionFiltros.style.display = "none";
-    }
+  // Ocultar inicialmente todas las secciones de filtros avanzados
+  seccionesFiltros.forEach(sec => {
+    sec.style.display = "none";
+  });
+
+  encabezados.forEach(enc => {
+    enc.addEventListener("click", () => {
+      // Al hacer clic en este encabezado, encontrar la sección correspondiente (hermana, contenedor, etc.)
+      // Aquí asumimos que el encabezado y la sección están relacionadas de alguna forma (por proximidad en el DOM)
+      // Por simplicidad, vamos a alternar *todas* las secciones de filtros avanzados; si quieres relacionarlas
+      // de forma más específica, puedes hacer una búsqueda relativa al encabezado (por ejemplo, nextElementSibling).
+
+      seccionesFiltros.forEach(sec => {
+        if (sec.style.display === "none") {
+          sec.style.display = "block";
+        } else {
+          sec.style.display = "none";
+        }
+      });
+    });
   });
 });
 
+
 /**
- * Función que pide las incidencias al backend según los filtros actuales
+ * Función que solicita al backend las incidencias según los filtros
  */
 async function cargarIncidencias() {
   const cliente = document.getElementById("cliente").value;
@@ -134,13 +148,13 @@ async function cargarIncidencias() {
     soloActivas: soloActivas
   });
 
-  // Validar rango de fechas
+  // Validar fechas
   if (fechaInicio && fechaFin && fechaFin < fechaInicio) {
     alert("❌ La fecha de fin no puede ser menor que la fecha de inicio.");
     return;
   }
 
-  // Construir la URL de la petición con parámetros
+  // Construir URL con parámetros
   let url = `../backend/buscar_reportes.php?cliente=${encodeURIComponent(cliente)}&fecha_inicio=${encodeURIComponent(fechaInicio)}&fecha_fin=${encodeURIComponent(fechaFin)}&estatus=${encodeURIComponent(estatus)}&sucursal=${encodeURIComponent(sucursal)}&tecnico=${encodeURIComponent(tecnico)}`;
   
   if (tipoEquipo) {
@@ -153,7 +167,7 @@ async function cargarIncidencias() {
   console.log("URL de búsqueda:", url);
 
   try {
-    // Mostrar mensaje de carga en la tabla
+    // Mostrar mensaje de carga
     document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8" class="text-center">Buscando incidencias...</td></tr>`;
     const response = await fetch(url);
     const data = await response.json();
@@ -178,7 +192,7 @@ async function cargarIncidencias() {
 }
 
 /**
- * Muestra las incidencias correspondientes a la página actual
+ * Muestra las incidencias de la página actual
  */
 function mostrarIncidenciasPagina() {
   const inicio = (paginaActual - 1) * registrosPorPagina;
@@ -194,7 +208,7 @@ function mostrarIncidenciasPagina() {
     incidenciasPagina.forEach(incidencia => {
       const row = document.createElement("tr");
 
-      // Columna con enlace al detalle de la incidencia
+      // Columna con enlace al detalle
       const celdaInterna = document.createElement("td");
       const enlace = document.createElement("a");
       enlace.href = `detalle.html?id=${incidencia.id}`;
@@ -203,7 +217,7 @@ function mostrarIncidenciasPagina() {
       celdaInterna.appendChild(enlace);
       row.appendChild(celdaInterna);
 
-      // Otras columnas (cliente, sucursal, falla, fecha, estatus, etc.)
+      // Otras columnas (cliente, sucursal, falla, fecha, estatus)
       const columnas = ['numero', 'cliente', 'sucursal', 'falla', 'fecha', 'estatus'];
       columnas.forEach(campo => {
         const td = document.createElement("td");
@@ -211,7 +225,7 @@ function mostrarIncidenciasPagina() {
         row.appendChild(td);
       });
 
-      // Columna de estado activo/inactivo
+      // Columna de estado activo / inactivo
       const tdEstado = document.createElement("td");
       const esActiva = ['Abierto', 'Asignado', 'Pendiente', 'Completado'].includes(incidencia.estatus);
       const badge = document.createElement("span");
@@ -228,7 +242,7 @@ function mostrarIncidenciasPagina() {
 }
 
 /**
- * Actualiza los botones de paginación y el contador de registros
+ * Actualiza los controles de paginación y el contador
  */
 function actualizarControlesPaginacion() {
   const totalPaginas = Math.ceil(incidenciasTotales.length / registrosPorPagina) || 1;
@@ -247,7 +261,7 @@ function actualizarControlesPaginacion() {
 }
 
 /**
- * Carga los clientes desde el backend (para llenar el <select> de cliente)
+ * Carga los clientes desde el backend para llenar el <select>
  */
 async function cargarClientes() {
   try {
@@ -269,7 +283,7 @@ async function cargarClientes() {
 }
 
 /**
- * Limpia los filtros, desmarca botones rápidos, y recarga incidencias
+ * Limpia los filtros, remueve clases “active” y recarga incidencias
  */
 function limpiarFiltros() {
   document.getElementById("report-form").reset();
