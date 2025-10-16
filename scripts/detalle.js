@@ -217,12 +217,16 @@ function createFormHTML(data) {
                 </div>
             </div>
 
-            <!-- NUEVO CAMPO EQUIPO AGREGADO -->
+                <!-- NUEVO CAMPO EQUIPO -->
             <div style="display: flex; gap: 20px; margin-bottom: 15px;">
                 <div style="flex: 1;">
                     <label>EQUIPO:</label>
-                    <input type="text" id="equipo" value="${data.equipo || ''}" style="width: 100%;">
+                    <select id="equipo" style="width: 100%;">
+                        <option value="Mr. Tienda/Mr. Chef" ${(data.equipo === 'Mr. Tienda/Mr. Chef' || !data.equipo || data.equipo.trim() === '') ? 'selected' : ''}>Mr. Tienda/Mr. Chef</option>
+                        <option value="Otro" ${data.equipo === 'Otro' ? 'selected' : ''}>Otro</option>
+                    </select>
                 </div>
+
                 <div style="flex: 1;">
                     <label>FECHA:</label>
                     <input type="date" id="fecha" value="${data.fecha || ''}" required style="width: 100%;">
