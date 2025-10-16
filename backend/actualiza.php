@@ -11,6 +11,7 @@ $numero = $_POST['numero'];
 $cliente = $_POST['cliente'];
 $contacto = $_POST['contacto'];
 $sucursal = $_POST['sucursal'];
+$equipo = $_POST['equipo']; // NUEVO CAMPO AGREGADO
 $fecha = $_POST['fecha'];
 $tecnico = $_POST['tecnico']; // Esto vendrá como "Tecnico1/Tecnico2/Tecnico3"
 $estatus = $_POST['estatus'];
@@ -24,6 +25,7 @@ $sql = "UPDATE incidencias SET
         cliente = ?, 
         contacto = ?, 
         sucursal = ?, 
+        equipo = ?,  -- NUEVO CAMPO AGREGADO
         fecha = ?, 
         tecnico = ?, 
         estatus = ?, 
@@ -33,11 +35,12 @@ $sql = "UPDATE incidencias SET
         WHERE id = ?";
         
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("ssssssssssi", 
+$stmt->bind_param("sssssssssssi", 
     $numero, 
     $cliente, 
     $contacto, 
     $sucursal, 
+    $equipo,  // NUEVO CAMPO AGREGADO
     $fecha, 
     $tecnico, // Se guardará como string concatenado
     $estatus, 
@@ -46,8 +49,6 @@ $stmt->bind_param("ssssssssssi",
     $notas, 
     $id
 );
-
-// ... (resto del código permanece igual)
 
 if ($stmt->execute()) {
     // Manejar la subida de archivos
