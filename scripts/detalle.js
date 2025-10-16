@@ -222,7 +222,8 @@ function createFormHTML(data) {
                 <div style="flex: 1;">
                     <label>EQUIPO:</label>
                     <select id="equipo" style="width: 100%;">
-                        <option value="Mr. Tienda/Mr. Chef" ${(data.equipo === 'Mr. Tienda/Mr. Chef' || !data.equipo || data.equipo.trim() === '') ? 'selected' : ''}>Mr. Tienda/Mr. Chef</option>
+                        <option value="">SELECCIONE UNA OPCIÓN</option>
+                        <option value="Mr. Tienda/Mr. Chef" ${data.equipo === 'Mr. Tienda/Mr. Chef' ? 'selected' : ''}>Mr. Tienda/Mr. Chef</option>
                         <option value="Otro" ${data.equipo === 'Otro' ? 'selected' : ''}>Otro</option>
                     </select>
                 </div>
