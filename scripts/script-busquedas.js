@@ -1,38 +1,34 @@
-// Variables globales para control de paginación
+// Variables globales para paginación
 let paginaActual = 1;
 let registrosPorPagina = 10;
 let incidenciasTotales = [];
 
-/**
- * Función que se ejecuta al cargar el DOM
- */
 document.addEventListener("DOMContentLoaded", function () {
-  // Inicializar campos de fecha con Flatpickr
+  // Configuración de Flatpickr para las fechas
   flatpickr("#fecha-inicio", {
     dateFormat: "Y-m-d",
     allowInput: true
   });
+  
   flatpickr("#fecha-fin", {
     dateFormat: "Y-m-d",
     allowInput: true
   });
 
-  // Inicializar tooltips de Bootstrap (si los usas)
+  // Inicializar tooltips de Bootstrap
   const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-  const tooltipList = [...tooltipTriggerList].map(el => new bootstrap.Tooltip(el));
+  const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
-  // Cargar datos iniciales
   cargarIncidencias();
   cargarClientes();
 
-  // Evento submit del formulario de filtros
   document.getElementById("report-form").addEventListener("submit", function (e) {
     e.preventDefault();
-    paginaActual = 1;
+    paginaActual = 1; // Resetear a primera página al aplicar nuevos filtros
     cargarIncidencias();
   });
 
-  // Botón “Anterior”
+  // Event listeners para paginación
   document.getElementById("btn-prev").addEventListener("click", function(e) {
     e.preventDefault();
     if (paginaActual > 1) {
@@ -41,7 +37,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Botón “Siguiente”
   document.getElementById("btn-next").addEventListener("click", function(e) {
     e.preventDefault();
     const totalPaginas = Math.ceil(incidenciasTotales.length / registrosPorPagina);
@@ -51,86 +46,54 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Cambio en cantidad de registros por página
   document.getElementById("select-registros").addEventListener("change", function(e) {
     registrosPorPagina = parseInt(e.target.value);
     paginaActual = 1;
     mostrarIncidenciasPagina();
   });
 
-  // Filtros rápidos (botones para “Mr Tienda/Mr Chef”, “Otros”, “Todos”)
+  // Botones para filtros rápidos - INTEGRADO
   document.querySelectorAll('.btn-filtro-rapido').forEach(button => {
     button.addEventListener('click', function() {
       const filtro = this.getAttribute('data-filtro');
-
-      // Quitar clase “active” de todos los botones rápidos
+      
+      // Remover clase active de todos los botones
       document.querySelectorAll('.btn-filtro-rapido').forEach(btn => {
         btn.classList.remove('active');
       });
-      // Marcar este botón como activo
+      
+      // Agregar clase active al botón clickeado
       this.classList.add('active');
-
-      // Resetear formulario completo
+      
+      // Resetear todos los filtros del formulario
       document.getElementById("report-form").reset();
-
+      
       // Referencia al checkbox “solo activas”
       const soloActivasCheckbox = document.getElementById("solo-activas");
-
-      // Aplicar filtro rápido
-      switch (filtro) {
+      
+      // Configurar el filtro rápido seleccionado
+      switch(filtro) {
         case 'mr-tienda-chef':
           document.getElementById("tipo-equipo").value = "mr-tienda-chef";
-          soloActivasCheckbox.checked = true;
+          soloActivasCheckbox.checked = true;   // activar el checkbox
           break;
         case 'otros':
           document.getElementById("tipo-equipo").value = "otros";
-          soloActivasCheckbox.checked = true;
+          soloActivasCheckbox.checked = true;   // activar el checkbox
           break;
         case 'todos':
           document.getElementById("tipo-equipo").value = "";
-          soloActivasCheckbox.checked = false;
+          soloActivasCheckbox.checked = false;  // desactivar el checkbox
           break;
       }
-
-      // Volver a primera página y recargar
+      
+      // Aplicar filtro
       paginaActual = 1;
       cargarIncidencias();
     });
   });
-
-  // Lógica para filtros avanzados plegables (ahora con clases)
-  // Supongamos que el encabezado tiene la clase `.encabezado-filtros-avanzados`
-  // y la sección de filtros tiene la clase `.filtros-avanzados`
-  const encabezados = document.querySelectorAll(".encabezado-filtros-avanzados");
-  const seccionesFiltros = document.querySelectorAll(".filtros-avanzados");
-
-  // Ocultar inicialmente todas las secciones de filtros avanzados
-  seccionesFiltros.forEach(sec => {
-    sec.style.display = "none";
-  });
-
-  encabezados.forEach(enc => {
-    enc.addEventListener("click", () => {
-      // Al hacer clic en este encabezado, encontrar la sección correspondiente (hermana, contenedor, etc.)
-      // Aquí asumimos que el encabezado y la sección están relacionadas de alguna forma (por proximidad en el DOM)
-      // Por simplicidad, vamos a alternar *todas* las secciones de filtros avanzados; si quieres relacionarlas
-      // de forma más específica, puedes hacer una búsqueda relativa al encabezado (por ejemplo, nextElementSibling).
-
-      seccionesFiltros.forEach(sec => {
-        if (sec.style.display === "none") {
-          sec.style.display = "block";
-        } else {
-          sec.style.display = "none";
-        }
-      });
-    });
-  });
 });
 
-
-/**
- * Función que solicita al backend las incidencias según los filtros
- */
 async function cargarIncidencias() {
   const cliente = document.getElementById("cliente").value;
   const fechaInicio = document.getElementById("fecha-inicio").value;
@@ -141,6 +104,7 @@ async function cargarIncidencias() {
   const tipoEquipo = document.getElementById("tipo-equipo").value;
   const soloActivas = document.getElementById("solo-activas").checked;
 
+  // DEBUG: Ver qué valores se están enviando
   console.log("Filtros aplicados:", {
     tipoEquipo: tipoEquipo,
     cliente: cliente,
@@ -148,7 +112,7 @@ async function cargarIncidencias() {
     soloActivas: soloActivas
   });
 
-  // Validar fechas
+  // Validación de fechas
   if (fechaInicio && fechaFin && fechaFin < fechaInicio) {
     alert("❌ La fecha de fin no puede ser menor que la fecha de inicio.");
     return;
@@ -157,22 +121,25 @@ async function cargarIncidencias() {
   // Construir URL con parámetros
   let url = `../backend/buscar_reportes.php?cliente=${encodeURIComponent(cliente)}&fecha_inicio=${encodeURIComponent(fechaInicio)}&fecha_fin=${encodeURIComponent(fechaFin)}&estatus=${encodeURIComponent(estatus)}&sucursal=${encodeURIComponent(sucursal)}&tecnico=${encodeURIComponent(tecnico)}`;
   
+  // Agregar parámetros nuevos si existen
   if (tipoEquipo) {
     url += `&tipo_equipo=${encodeURIComponent(tipoEquipo)}`;
   }
+  
   if (soloActivas) {
     url += `&solo_activas=1`;
   }
 
-  console.log("URL de búsqueda:", url);
+  console.log("URL de búsqueda:", url); // DEBUG
 
   try {
-    // Mostrar mensaje de carga
+    // Mostrar indicador de carga
     document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8" class="text-center">Buscando incidencias...</td></tr>`;
+    
     const response = await fetch(url);
     const data = await response.json();
 
-    console.log("Datos recibidos:", data);
+    console.log("Datos recibidos:", data); // DEBUG
 
     if (data.message) {
       document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8">${data.message}</td></tr>`;
@@ -191,9 +158,6 @@ async function cargarIncidencias() {
   }
 }
 
-/**
- * Muestra las incidencias de la página actual
- */
 function mostrarIncidenciasPagina() {
   const inicio = (paginaActual - 1) * registrosPorPagina;
   const fin = inicio + registrosPorPagina;
@@ -208,7 +172,7 @@ function mostrarIncidenciasPagina() {
     incidenciasPagina.forEach(incidencia => {
       const row = document.createElement("tr");
 
-      // Columna con enlace al detalle
+      // Celda con enlace a detalle.html usando el ID
       const celdaInterna = document.createElement("td");
       const enlace = document.createElement("a");
       enlace.href = `detalle.html?id=${incidencia.id}`;
@@ -217,7 +181,7 @@ function mostrarIncidenciasPagina() {
       celdaInterna.appendChild(enlace);
       row.appendChild(celdaInterna);
 
-      // Otras columnas (cliente, sucursal, falla, fecha, estatus)
+      // Celdas restantes (sin la columna de tipo equipo)
       const columnas = ['numero', 'cliente', 'sucursal', 'falla', 'fecha', 'estatus'];
       columnas.forEach(campo => {
         const td = document.createElement("td");
@@ -225,7 +189,7 @@ function mostrarIncidenciasPagina() {
         row.appendChild(td);
       });
 
-      // Columna de estado activo / inactivo
+      // Celda para estado activo/inactivo
       const tdEstado = document.createElement("td");
       const esActiva = ['Abierto', 'Asignado', 'Pendiente', 'Completado'].includes(incidencia.estatus);
       const badge = document.createElement("span");
@@ -241,32 +205,29 @@ function mostrarIncidenciasPagina() {
   actualizarControlesPaginacion();
 }
 
-/**
- * Actualiza los controles de paginación y el contador
- */
 function actualizarControlesPaginacion() {
   const totalPaginas = Math.ceil(incidenciasTotales.length / registrosPorPagina) || 1;
   const totalRegistros = incidenciasTotales.length;
   const inicio = Math.min((paginaActual - 1) * registrosPorPagina + 1, totalRegistros);
   const fin = Math.min(inicio + registrosPorPagina - 1, totalRegistros);
-
-  document.getElementById("contador-registros").textContent =
+  
+  // Actualizar contador de registros
+  document.getElementById("contador-registros").textContent = 
     `Mostrando ${inicio}-${fin} de ${totalRegistros} registros`;
-
+  
+  // Actualizar estado de botones
   const btnPrev = document.getElementById("btn-prev");
   const btnNext = document.getElementById("btn-next");
-
+  
   btnPrev.classList.toggle("disabled", paginaActual <= 1);
   btnNext.classList.toggle("disabled", paginaActual >= totalPaginas);
 }
 
-/**
- * Carga los clientes desde el backend para llenar el <select>
- */
 async function cargarClientes() {
   try {
     const response = await fetch('../backend/obtener-clientes.php');
     const clientes = await response.json();
+
     const selectClientes = document.getElementById('cliente');
     selectClientes.innerHTML = '<option value="">Seleccionar Cliente</option><option value="todos">Todos los clientes</option>';
 
@@ -282,14 +243,15 @@ async function cargarClientes() {
   }
 }
 
-/**
- * Limpia los filtros, remueve clases “active” y recarga incidencias
- */
+// Función para limpiar filtros
 function limpiarFiltros() {
   document.getElementById("report-form").reset();
+  
+  // Remover clase active de todos los botones de filtros rápidos
   document.querySelectorAll('.btn-filtro-rapido').forEach(btn => {
     btn.classList.remove('active');
   });
+  
   paginaActual = 1;
   cargarIncidencias();
 }
