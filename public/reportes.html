@@ -108,20 +108,19 @@
       <h2>Filtrar incidencias</h2>
       
       <!-- Filtros rápidos -->
-<!-- En la sección de filtros rápidos, cambia los data-filtro: -->
-<div class="d-flex flex-wrap gap-2 mb-3">
-  <button type="button" class="btn btn-outline-success btn-sm btn-filtro-rapido" data-filtro="Mr. Tienda/Mr. Chef" 
-          data-bs-toggle="tooltip" data-bs-placement="top">
-    <i class="bi bi-cash-register"></i> Mr. Tienda/Mr. Chef
-  </button>
-  <button type="button" class="btn btn-outline-info btn-sm btn-filtro-rapido" data-filtro="Otros" 
-          data-bs-toggle="tooltip" data-bs-placement="top">
-    <i class="bi bi-speedometer2"></i> Otros
-  </button>
-  <button type="button" class="btn btn-outline-secondary btn-sm btn-filtro-rapido" data-filtro="todos">
-    <i class="bi bi-list-ul"></i> Mostrar Todos
-  </button>
-</div>
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <button type="button" class="btn btn-outline-success btn-sm btn-filtro-rapido" data-filtro="Mr. Tienda/Mr. Chef" 
+                data-bs-toggle="tooltip" data-bs-placement="top">
+          <i class="bi bi-cash-register"></i> Mr. Tienda/Mr. Chef
+        </button>
+        <button type="button" class="btn btn-outline-info btn-sm btn-filtro-rapido" data-filtro="Otros" 
+                data-bs-toggle="tooltip" data-bs-placement="top">
+          <i class="bi bi-speedometer2"></i> Otros
+        </button>
+        <button type="button" class="btn btn-outline-secondary btn-sm btn-filtro-rapido" data-filtro="todos">
+          <i class="bi bi-list-ul"></i> Mostrar Todos
+        </button>
+      </div>
       
       <form id="report-form">
         <details class="filtros-avanzados" open>
@@ -138,13 +137,14 @@
             
             <div class="col-md-6">
               <label for="tipo-equipo">Tipo de Equipo:</label>
-                <select id="tipo-equipo" name="tipo_equipo" class="form-select">
-                  <option value="">Seleccionar Tipo</option>
-                  <option value="Mr. Tienda/Mr. Chef">Mr. Tienda/Mr. Chef</option>
-                  <option value="Otros">Otros</option>
-                </select>
+              <select id="tipo-equipo" name="tipo_equipo" class="form-select">
+                <option value="">Seleccionar Tipo</option>
+                <option value="Mr. Tienda/Mr. Chef">Mr. Tienda/Mr. Chef</option>
+                <option value="Otros">Otros</option>
+              </select>
             </div>
-        
+          </div>
+
           <div class="form-row mt-3">
             <div class="col-md-4">
               <label for="fecha-inicio">Fecha de Inicio:</label>

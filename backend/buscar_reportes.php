@@ -62,10 +62,9 @@ if (!empty($solo_activas) && $solo_activas === '1') {
     $sql .= " AND estatus IN ('Abierto', 'Asignado', 'Pendiente', 'Completado')";
 }
 
-// Filtro rápido basado en “equipo”
-if (!empty($tipo_equipo) && $tipo_equipo !== 'todos') {
+// Filtro rápido basado en “equipo” - CORREGIDO
+if (!empty($tipo_equipo)) {
     if ($tipo_equipo === 'Mr. Tienda/Mr. Chef') {
-        // Solo buscar en la columna equipo
         $sql .= " AND equipo = 'Mr. Tienda/Mr. Chef'";
     } elseif ($tipo_equipo === 'Otros') {
         $sql .= " AND equipo = 'Otros'";
