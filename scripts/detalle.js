@@ -217,7 +217,7 @@ function createFormHTML(data) {
                 </div>
             </div>
 
-            //NUEVO CAMPO EQUIPO
+        
             <div style="display: flex; gap: 20px; margin-bottom: 15px;">
                 <div style="flex: 1;">
                     <label>EQUIPO:</label>
