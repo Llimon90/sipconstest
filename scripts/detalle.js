@@ -217,16 +217,16 @@ function createFormHTML(data) {
                 </div>
             </div>
 
-                        <!-- NUEVO CAMPO EQUIPO -->
-            <div style="display: flex; gap: 20px; margin-bottom: 15px;">
-                <div style="flex: 1;">
-                    <label>EQUIPO:</label>
-                    <select id="equipo" style="width: 100%;">
-                        <option value="">SELECCIONE UNA OPCIÓN</option>
-                        <option value="mr-tienda-chef" ${data.equipo === 'mr-tienda-chef' ? 'selected' : ''}>Mr. Tienda/Mr. Chef</option>
-                        <option value="otros" ${data.equipo === 'otros' ? 'selected' : ''}>Otro</option>
-                    </select>
-                </div>
+// NUEVO CAMPO EQUIPO
+<div style="display: flex; gap: 20px; margin-bottom: 15px;">
+    <div style="flex: 1;">
+        <label>EQUIPO:</label>
+        <select id="equipo" style="width: 100%;">
+            <option value="">SELECCIONE UNA OPCIÓN</option>
+            <option value="Mr. Tienda/Mr. Chef" ${data.equipo === 'Mr. Tienda/Mr. Chef' ? 'selected' : ''}>Mr. Tienda/Mr. Chef</option>
+            <option value="Otros" ${data.equipo === 'Otros' ? 'selected' : ''}>Otros</option>
+        </select>
+    </div>
 
 
                 <div style="flex: 1;">

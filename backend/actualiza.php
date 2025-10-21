@@ -11,13 +11,16 @@ $numero = $_POST['numero'];
 $cliente = $_POST['cliente'];
 $contacto = $_POST['contacto'];
 $sucursal = $_POST['sucursal'];
-$equipo = $_POST['equipo']; // NUEVO CAMPO AGREGADO
+$equipo = $_POST['equipo']; // NUEVO CAMPO - valores: "Mr. Tienda/Mr. Chef" o "Otros"
 $fecha = $_POST['fecha'];
-$tecnico = $_POST['tecnico']; // Esto vendrá como "Tecnico1/Tecnico2/Tecnico3"
+$tecnico = $_POST['tecnico'];
 $estatus = $_POST['estatus'];
 $falla = $_POST['falla'];
 $accion = $_POST['accion'];
 $notas = $_POST['notas'];
+
+// Debug: Verificar el valor de equipo
+error_log("Valor de equipo recibido: " . $equipo);
 
 // Actualizar la incidencia en la base de datos
 $sql = "UPDATE incidencias SET 
@@ -25,7 +28,7 @@ $sql = "UPDATE incidencias SET
         cliente = ?, 
         contacto = ?, 
         sucursal = ?, 
-        equipo = ?,  -- NUEVO CAMPO AGREGADO
+        equipo = ?,  -- NUEVO CAMPO
         fecha = ?, 
         tecnico = ?, 
         estatus = ?, 
@@ -40,9 +43,9 @@ $stmt->bind_param("sssssssssssi",
     $cliente, 
     $contacto, 
     $sucursal, 
-    $equipo,  // NUEVO CAMPO AGREGADO
+    $equipo,  // NUEVO CAMPO
     $fecha, 
-    $tecnico, // Se guardará como string concatenado
+    $tecnico,
     $estatus, 
     $falla, 
     $accion, 
@@ -74,7 +77,7 @@ if ($stmt->execute()) {
 
     echo json_encode(["success" => true]);
 } else {
-    echo json_encode(["error" => "Error al actualizar la incidencia"]);
+    echo json_encode(["error" => "Error al actualizar la incidencia: " . $stmt->error]);
 }
 
 $stmt->close();
