@@ -53,44 +53,43 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // Botones para filtros rápidos - INTEGRADO
-  document.querySelectorAll('.btn-filtro-rapido').forEach(button => {
-    button.addEventListener('click', function() {
-      const filtro = this.getAttribute('data-filtro');
-      
-      // Remover clase active de todos los botones
-      document.querySelectorAll('.btn-filtro-rapido').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      
-      // Agregar clase active al botón clickeado
-      this.classList.add('active');
-      
-      // Resetear todos los filtros del formulario
-      document.getElementById("report-form").reset();
-      
-      // Referencia al checkbox “solo activas”
-      const soloActivasCheckbox = document.getElementById("solo-activas");
-      
-      // Configurar el filtro rápido seleccionado
-      switch(filtro) {
-        case 'mr-tienda-chef':
-          document.getElementById("tipo-equipo").value = "mr-tienda-chef";
-          soloActivasCheckbox.checked = true;   // activar el checkbox
-          break;
-        case 'otros':
-          document.getElementById("tipo-equipo").value = "otros";
-          soloActivasCheckbox.checked = true;   // activar el checkbox
-          break;
-        case 'todos':
-          document.getElementById("tipo-equipo").value = "";
-          soloActivasCheckbox.checked = false;  // desactivar el checkbox
-          break;
-      }
-      
-      // Aplicar filtro
-      paginaActual = 1;
-      cargarIncidencias();
+document.querySelectorAll('.btn-filtro-rapido').forEach(button => {
+  button.addEventListener('click', function() {
+    const filtro = this.getAttribute('data-filtro');
+    
+    // Remover clase active de todos los botones
+    document.querySelectorAll('.btn-filtro-rapido').forEach(btn => {
+      btn.classList.remove('active');
     });
+    
+    // Agregar clase active al botón clickeado
+    this.classList.add('active');
+    
+    // Resetear todos los filtros del formulario
+    document.getElementById("report-form").reset();
+    
+    // Referencia al checkbox "solo activas"
+    const soloActivasCheckbox = document.getElementById("solo-activas");
+    
+    // Configurar el filtro rápido seleccionado
+    switch(filtro) {
+      case 'Mr. Tienda/Mr. Chef':
+        document.getElementById("tipo-equipo").value = "Mr. Tienda/Mr. Chef";
+        soloActivasCheckbox.checked = true;   // activar el checkbox
+        break;
+      case 'Otros':
+        document.getElementById("tipo-equipo").value = "Otros";
+        soloActivasCheckbox.checked = true;   // activar el checkbox
+        break;
+      case 'todos':
+        document.getElementById("tipo-equipo").value = "";
+        soloActivasCheckbox.checked = false;  // desactivar el checkbox
+        break;
+    }
+    
+    // Aplicar filtro
+    paginaActual = 1;
+    cargarIncidencias();
   });
 });
 
