@@ -1,4 +1,4 @@
-// scripts/soporte.js
+// scripts/soporte.js - Versión actualizada con mejor manejo de errores
 class DocumentacionManager {
     constructor() {
         this.marcas = [];
@@ -56,20 +56,31 @@ class DocumentacionManager {
             this.showLoading(this.marcasContainer, 'Cargando datos...');
             
             const response = await fetch('../backend/obtener_datos.php');
-            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
+            }
+            
+            const text = await response.text();
+            
+            if (!text) {
+                throw new Error('Respuesta vacía del servidor');
+            }
+            
+            const data = JSON.parse(text);
             
             if (data.success) {
-                this.marcas = data.marcas;
-                this.modelos = data.modelos;
-                this.documentos = data.documentos;
+                this.marcas = data.marcas || [];
+                this.modelos = data.modelos || {};
+                this.documentos = data.documentos || {};
                 this.loadMarcas();
                 this.llenarSelectMarcas();
             } else {
-                throw new Error(data.error);
+                throw new Error(data.error || 'Error desconocido del servidor');
             }
         } catch (error) {
             console.error('Error cargando datos:', error);
-            this.showError(this.marcasContainer, 'Error cargando los datos');
+            this.showError(this.marcasContainer, `Error cargando los datos: ${error.message}`);
         }
     }
 
@@ -78,7 +89,17 @@ class DocumentacionManager {
     }
 
     showError(container, message) {
-        container.innerHTML = `<div class="error">${message}</div>`;
+        container.innerHTML = `
+            <div class="error">
+                <p>${message}</p>
+                <button onclick="location.reload()" class="btn-primary" style="margin-top: 10px;">
+                    Reintentar
+                </button>
+                <button onclick="window.open('../backend/test_conexion.php', '_blank')" class="btn-secondary" style="margin-top: 10px;">
+                    Probar Conexión
+                </button>
+            </div>
+        `;
     }
 
     llenarSelectMarcas() {
