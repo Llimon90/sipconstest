@@ -173,7 +173,7 @@ function mostrarModelos(modelos, marcaNombre) {
                     <h3>${modelo.nombre}</h3>
                     <p>${modelo.tipo_equipo}</p>
                     <div class="model-actions">
-                        <button class="btn-small" onclick="event.stopPropagation(); editarModelo(${modelo.id})">
+                        <button class="btn-small" onclick="event.stopPropagation();">
                             <i class="fas fa-edit"></i>
                         </button>
                     </div>
@@ -237,7 +237,7 @@ function mostrarDocumentos(documentos, modeloNombre) {
             <div class="no-data">
                 <i class="fas fa-file-pdf fa-3x"></i>
                 <p>No hay documentos para este modelo</p>
-                <small>Puedes agregar documentos al editar el modelo</small>
+                <small>Puedes agregar documentos al crear el modelo</small>
             </div>
         `;
     } else {
@@ -252,10 +252,10 @@ function mostrarDocumentos(documentos, modeloNombre) {
                     <small>Subido: ${new Date(doc.fecha_subida).toLocaleDateString()}</small>
                 </div>
                 <div class="doc-actions">
-                    <button class="btn-primary" onclick="verDocumento('${doc.ruta_archivo}')">
+                    <button class="btn-primary" onclick="verDocumento('${doc.ruta_publica || doc.ruta_archivo}')">
                         <i class="fas fa-eye"></i> Ver
                     </button>
-                    <button class="btn-secondary" onclick="descargarDocumento('${doc.ruta_archivo}', '${doc.nombre_archivo}')">
+                    <button class="btn-secondary" onclick="descargarDocumento('${doc.ruta_publica || doc.ruta_archivo}', '${doc.nombre_archivo}')">
                         <i class="fas fa-download"></i> Descargar
                     </button>
                 </div>
@@ -360,6 +360,12 @@ async function guardarModelo(e) {
     
     const formData = new FormData(document.getElementById('modelForm'));
     
+    // Mostrar loading
+    const submitBtn = document.querySelector('#modelForm button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+    submitBtn.disabled = true;
+    
     try {
         const response = await fetch('../backend/soporte_backend.php?action=add_modelo', {
             method: 'POST',
@@ -389,6 +395,10 @@ async function guardarModelo(e) {
     } catch (error) {
         console.error('Error al agregar modelo:', error);
         alert('Error al agregar el modelo: ' + error.message);
+    } finally {
+        // Restaurar botón
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
     }
 }
 
@@ -442,24 +452,17 @@ function verDocumento(ruta) {
     const modal = document.getElementById('previewModal');
     const pdfViewer = document.getElementById('pdfViewer');
     
-    // Ajustar la ruta para que sea accesible desde el frontend
-    const rutaPublica = ruta.replace('../', '/');
-    pdfViewer.src = rutaPublica;
+    // Usar ruta pública directamente
+    pdfViewer.src = ruta;
     modal.style.display = 'block';
 }
 
 function descargarDocumento(ruta, nombre) {
     console.log('Descargando documento:', nombre);
     const link = document.createElement('a');
-    link.href = ruta.replace('../', '/');
+    link.href = ruta;
     link.download = nombre;
     link.click();
-}
-
-// Función placeholder para editar modelo
-function editarModelo(modeloId) {
-    console.log('Editando modelo:', modeloId);
-    alert('Funcionalidad de edición en desarrollo para el modelo ID: ' + modeloId);
 }
 
 // Buscar contenido
