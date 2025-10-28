@@ -1,8 +1,6 @@
 // Variables globales
 let currentMarcaId = null;
 let currentModeloId = null;
-
-// Variables globales para búsqueda
 let searchTimeout = null;
 let currentSearchTerm = '';
 
@@ -15,9 +13,21 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('addModelBtn').addEventListener('click', mostrarModalAgregarModelo);
     document.getElementById('cancelAddModel').addEventListener('click', cerrarModalAgregarModelo);
     document.getElementById('modelForm').addEventListener('submit', guardarModelo);
-    document.getElementById('searchBtn').addEventListener('input', buscarContenido);
-    document.getElementById('searchInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') buscarContenido();
+    
+    // Búsqueda
+    document.getElementById('searchInput').addEventListener('input', buscarContenido);
+    document.getElementById('searchBtn').addEventListener('click', function() {
+        const searchTerm = document.getElementById('searchInput').value.trim();
+        if (searchTerm) {
+            ejecutarBusqueda(searchTerm);
+        }
+    });
+    
+    // Limpiar búsqueda al hacer clic en la X del input
+    document.getElementById('searchInput').addEventListener('search', function() {
+        if (this.value === '') {
+            ocultarResultadosBusqueda();
+        }
     });
     
     // Modales
@@ -34,18 +44,25 @@ document.addEventListener('DOMContentLoaded', function() {
 async function cargarMarcas() {
     console.log('Cargando marcas...');
     const container = document.getElementById('marcas-container');
+    container.innerHTML = '<div class="loading">Cargando marcas...</div>';
     
     try {
         const response = await fetch('../backend/soporte_backend.php?action=get_marcas');
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`Error HTTP: ${response.status}`);
         }
         
         const text = await response.text();
         console.log('Respuesta del servidor:', text);
         
-        const data = JSON.parse(text);
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (parseError) {
+            console.error('Error parseando JSON:', parseError);
+            throw new Error('Respuesta del servidor no es JSON válido');
+        }
         
         if (data.success) {
             console.log(`Marcas cargadas: ${data.count}`);
@@ -271,6 +288,155 @@ function mostrarDocumentos(documentos, modeloNombre) {
     document.getElementById('back-to-models').onclick = volverAModelos;
 }
 
+// Funciones de búsqueda
+function buscarContenido() {
+    const searchTerm = document.getElementById('searchInput').value.trim();
+    
+    if (searchTerm.length === 0) {
+        // Si está vacío, volver a mostrar marcas
+        ocultarResultadosBusqueda();
+        return;
+    }
+
+    if (searchTerm.length < 2) {
+        return; // No buscar con menos de 2 caracteres
+    }
+
+    currentSearchTerm = searchTerm;
+    
+    // Limpiar timeout anterior
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
+
+    // Esperar 500ms después de que el usuario deje de escribir
+    searchTimeout = setTimeout(() => {
+        ejecutarBusqueda(searchTerm);
+    }, 500);
+}
+
+// Función para ejecutar la búsqueda
+async function ejecutarBusqueda(termino) {
+    console.log('Buscando:', termino);
+    
+    const container = document.getElementById('marcas-container');
+    container.innerHTML = '<div class="loading">Buscando...</div>';
+
+    try {
+        const response = await fetch(`../backend/soporte_backend.php?action=buscar&q=${encodeURIComponent(termino)}`);
+        
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        if (data.success) {
+            mostrarResultadosBusqueda(data.resultados, termino);
+        } else {
+            throw new Error(data.message || 'Error en la búsqueda');
+        }
+    } catch (error) {
+        console.error('Error en búsqueda:', error);
+        container.innerHTML = `
+            <div class="error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Error en la búsqueda</p>
+                <small>${error.message}</small>
+            </div>
+        `;
+    }
+}
+
+// Función para mostrar resultados de búsqueda
+function mostrarResultadosBusqueda(resultados, termino) {
+    const container = document.getElementById('marcas-container');
+    const { marcas, modelos, total } = resultados;
+
+    if (total === 0) {
+        container.innerHTML = `
+            <div class="no-data">
+                <i class="fas fa-search fa-3x"></i>
+                <p>No se encontraron resultados para: "${termino}"</p>
+                <small>Intenta con otros términos de búsqueda</small>
+            </div>
+        `;
+        return;
+    }
+
+    let html = `
+        <div class="search-results-header">
+            <h3>Resultados de búsqueda: "${termino}"</h3>
+            <div class="search-stats">
+                ${marcas.length} marcas, ${modelos.length} modelos
+            </div>
+            <button class="btn-secondary" onclick="ocultarResultadosBusqueda()">
+                <i class="fas fa-arrow-left"></i> Volver a todas las marcas
+            </button>
+        </div>
+    `;
+
+    // Mostrar marcas encontradas
+    if (marcas.length > 0) {
+        html += `
+            <div class="search-section">
+                <h4><i class="fas fa-industry"></i> Marcas (${marcas.length})</h4>
+                <div class="model-grid-content">
+                    ${marcas.map(marca => `
+                        <div class="model-card" onclick="cargarModelos(${marca.id}, '${marca.nombre.replace(/'/g, "\\'")}')">
+                            <div class="model-icon">
+                                <i class="fas fa-industry"></i>
+                            </div>
+                            <h3>${resaltarTexto(marca.nombre, termino)}</h3>
+                            <p>Ver modelos de la marca</p>
+                            <div class="search-badge">Marca</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    // Mostrar modelos encontrados
+    if (modelos.length > 0) {
+        html += `
+            <div class="search-section">
+                <h4><i class="fas fa-laptop"></i> Modelos (${modelos.length})</h4>
+                <div class="model-grid-content">
+                    ${modelos.map(modelo => `
+                        <div class="model-card" onclick="cargarModelos(${modelo.marca_id}, '${modelo.marca_nombre.replace(/'/g, "\\'")}')">
+                            <div class="model-icon">
+                                <i class="fas fa-laptop"></i>
+                            </div>
+                            <h3>${resaltarTexto(modelo.nombre, termino)}</h3>
+                            <p>${resaltarTexto(modelo.tipo_equipo, termino)}</p>
+                            <small>Marca: ${modelo.marca_nombre}</small>
+                            <div class="search-badge">Modelo</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    container.innerHTML = html;
+}
+
+// Función para resaltar texto en los resultados
+function resaltarTexto(texto, termino) {
+    if (!termino) return texto;
+    
+    const regex = new RegExp(`(${termino.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    return texto.replace(regex, '<mark class="search-highlight">$1</mark>');
+}
+
+// Función para ocultar resultados de búsqueda
+function ocultarResultadosBusqueda() {
+    document.getElementById('searchInput').value = '';
+    currentSearchTerm = '';
+    cargarMarcas();
+}
+
 // Modal para agregar marca
 function mostrarModalAgregarMarca() {
     const marcaNombre = prompt('Ingrese el nombre de la nueva marca:');
@@ -310,7 +476,7 @@ async function agregarMarca(nombre) {
     }
 }
 
-// Modal para agregar modelo - MEJORADA
+// Modal para agregar modelo
 async function mostrarModalAgregarModelo() {
     console.log('Mostrando modal para agregar modelo');
     
@@ -318,17 +484,10 @@ async function mostrarModalAgregarModelo() {
         const response = await fetch('../backend/soporte_backend.php?action=get_marcas');
         
         if (!response.ok) {
-            throw new Error(`Error HTTP: ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-
-        const text = await response.text();
-        let data;
         
-        try {
-            data = JSON.parse(text);
-        } catch (parseError) {
-            throw new Error('Respuesta no es JSON válido');
-        }
+        const data = await response.json();
         
         if (data.success) {
             const selectMarca = document.getElementById('marca');
@@ -353,11 +512,8 @@ async function mostrarModalAgregarModelo() {
             if (currentMarcaId) {
                 selectMarca.value = currentMarcaId;
             }
-
-            // Limpiar y mostrar el modal
-            document.getElementById('modelForm').reset();
-            document.getElementById('addModelModal').style.display = 'block';
             
+            document.getElementById('addModelModal').style.display = 'block';
         } else {
             throw new Error(data.message || 'Error al cargar marcas');
         }
@@ -367,7 +523,7 @@ async function mostrarModalAgregarModelo() {
     }
 }
 
-// Función para guardar nuevo modelo - CORREGIDA
+// Guardar nuevo modelo
 async function guardarModelo(e) {
     e.preventDefault();
     console.log('Guardando nuevo modelo...');
@@ -460,6 +616,7 @@ async function guardarModelo(e) {
         submitBtn.disabled = false;
     }
 }
+
 // Funciones de navegación
 function volverAMarcas() {
     console.log('Volviendo a marcas');
@@ -504,7 +661,7 @@ function actualizarBreadcrumbDocumentos(modeloNombre) {
     `;
 }
 
-// Funciones para documentos - ACTUALIZADAS
+// Funciones para documentos
 function verDocumento(ruta) {
     console.log('Viendo documento:', ruta);
     const modal = document.getElementById('previewModal');
@@ -518,196 +675,11 @@ function verDocumento(ruta) {
 
 function descargarDocumento(ruta, nombre) {
     console.log('Descargando documento:', nombre);
-    const url = `../backend/descargar_documento.php?archivo=${encodeURIComponent(ruta)}&download=1`;
-    
-    // Crear link temporal para descarga
     const link = document.createElement('a');
+    const url = `../backend/descargar_documento.php?archivo=${encodeURIComponent(ruta)}&download=1`;
     link.href = url;
     link.download = nombre;
-    link.style.display = 'none';
-    document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
-}
-
-// Reemplazar la función buscarContenido existente
-function buscarContenido() {
-    const searchTerm = document.getElementById('searchInput').value.trim();
-    
-    if (searchTerm.length === 0) {
-        // Si está vacío, volver a mostrar marcas
-        ocultarResultadosBusqueda();
-        return;
-    }
-
-    if (searchTerm.length < 2) {
-        return; // No buscar con menos de 2 caracteres
-    }
-
-    currentSearchTerm = searchTerm;
-    
-    // Limpiar timeout anterior
-    if (searchTimeout) {
-        clearTimeout(searchTimeout);
-    }
-
-    // Esperar 500ms después de que el usuario deje de escribir
-    searchTimeout = setTimeout(() => {
-        ejecutarBusqueda(searchTerm);
-    }, 500);
-}
-
-// Función para ejecutar la búsqueda
-async function ejecutarBusqueda(termino) {
-    console.log('Buscando:', termino);
-    
-    const container = document.getElementById('marcas-container');
-    container.innerHTML = '<div class="loading">Buscando...</div>';
-
-    try {
-        const response = await fetch(`../backend/soporte_backend.php?action=buscar&q=${encodeURIComponent(termino)}`);
-        
-        if (!response.ok) {
-            throw new Error(`Error HTTP: ${response.status}`);
-        }
-
-        const data = await response.json();
-        
-        if (data.success) {
-            mostrarResultadosBusqueda(data.resultados, termino);
-        } else {
-            throw new Error(data.message || 'Error en la búsqueda');
-        }
-    } catch (error) {
-        console.error('Error en búsqueda:', error);
-        container.innerHTML = `
-            <div class="error">
-                <i class="fas fa-exclamation-triangle"></i>
-                <p>Error en la búsqueda</p>
-                <small>${error.message}</small>
-            </div>
-        `;
-    }
-}
-
-// Función para mostrar resultados de búsqueda
-function mostrarResultadosBusqueda(resultados, termino) {
-    const container = document.getElementById('marcas-container');
-    const { marcas, modelos, documentos, total } = resultados;
-
-    if (total === 0) {
-        container.innerHTML = `
-            <div class="no-data">
-                <i class="fas fa-search fa-3x"></i>
-                <p>No se encontraron resultados para: "${termino}"</p>
-                <small>Intenta con otros términos de búsqueda</small>
-            </div>
-        `;
-        return;
-    }
-
-    let html = `
-        <div class="search-results-header">
-            <h3>Resultados de búsqueda: "${termino}"</h3>
-            <div class="search-stats">
-                ${marcas.length} marcas, ${modelos.length} modelos, ${documentos.length} documentos
-            </div>
-            <button class="btn-secondary" onclick="ocultarResultadosBusqueda()">
-                <i class="fas fa-arrow-left"></i> Volver a todas las marcas
-            </button>
-        </div>
-    `;
-
-    // Mostrar marcas encontradas
-    if (marcas.length > 0) {
-        html += `
-            <div class="search-section">
-                <h4><i class="fas fa-industry"></i> Marcas (${marcas.length})</h4>
-                <div class="model-grid-content">
-                    ${marcas.map(marca => `
-                        <div class="model-card" onclick="cargarModelos(${marca.id}, '${marca.nombre.replace(/'/g, "\\'")}')">
-                            <div class="model-icon">
-                                <i class="fas fa-industry"></i>
-                            </div>
-                            <h3>${resaltarTexto(marca.nombre, termino)}</h3>
-                            <p>Ver modelos de la marca</p>
-                            <div class="search-badge">Marca</div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    // Mostrar modelos encontrados
-    if (modelos.length > 0) {
-        html += `
-            <div class="search-section">
-                <h4><i class="fas fa-laptop"></i> Modelos (${modelos.length})</h4>
-                <div class="model-grid-content">
-                    ${modelos.map(modelo => `
-                        <div class="model-card" onclick="cargarModelos(${modelo.id}, '${modelo.marca_nombre.replace(/'/g, "\\'")}')">
-                            <div class="model-icon">
-                                <i class="fas fa-laptop"></i>
-                            </div>
-                            <h3>${resaltarTexto(modelo.nombre, termino)}</h3>
-                            <p>${resaltarTexto(modelo.tipo_equipo, termino)}</p>
-                            <small>Marca: ${modelo.marca_nombre}</small>
-                            <div class="search-badge">Modelo</div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    // Mostrar documentos encontrados
-    if (documentos.length > 0) {
-        html += `
-            <div class="search-section">
-                <h4><i class="fas fa-file-pdf"></i> Documentos (${documentos.length})</h4>
-                <div class="doc-list">
-                    ${documentos.map(doc => `
-                        <div class="doc-item">
-                            <div class="doc-icon">
-                                <i class="fas fa-file-pdf"></i>
-                            </div>
-                            <div class="doc-info">
-                                <h4>${resaltarTexto(doc.nombre_archivo, termino)}</h4>
-                                <p>Tipo: ${doc.tipo_documento.replace('_', ' ')}</p>
-                                <small>Modelo: ${doc.modelo_nombre} | Marca: ${doc.marca_nombre}</small>
-                            </div>
-                            <div class="doc-actions">
-                                <button class="btn-primary" onclick="verDocumento('${doc.ruta_archivo}')">
-                                    <i class="fas fa-eye"></i> Ver
-                                </button>
-                                <button class="btn-secondary" onclick="descargarDocumento('${doc.ruta_archivo}', '${doc.nombre_archivo}')">
-                                    <i class="fas fa-download"></i> Descargar
-                                </button>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    container.innerHTML = html;
-}
-
-// Función para resaltar texto en los resultados
-function resaltarTexto(texto, termino) {
-    if (!termino) return texto;
-    
-    const regex = new RegExp(`(${termino.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    return texto.replace(regex, '<mark class="search-highlight">$1</mark>');
-}
-
-// Función para ocultar resultados de búsqueda
-function ocultarResultadosBusqueda() {
-    document.getElementById('searchInput').value = '';
-    currentSearchTerm = '';
-    cargarMarcas();
 }
 
 // Cerrar modales al hacer click fuera

@@ -1,4 +1,19 @@
 <?php
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+
+// Manejar preflight requests
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    exit(0);
+}
+
+// Configuración de errores para desarrollo
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // Incluir conexión - usar tu archivo existente
 require_once 'conexion.php';
 
@@ -30,6 +45,9 @@ try {
             break;
         case 'add_modelo':
             addModelo($conn);
+            break;
+        case 'buscar':
+            buscarContenido($conn);
             break;
         default:
             echo json_encode(['success' => false, 'message' => 'Acción no válida: ' . $action]);
@@ -176,11 +194,16 @@ function addMarca($conn) {
 
 function addModelo($conn) {
     try {
+        // Debug: mostrar datos recibidos
+        error_log("Datos POST recibidos: " . print_r($_POST, true));
+        error_log("Archivos recibidos: " . print_r($_FILES, true));
+        
         $marca_id = $_POST['marca_id'] ?? '';
         $nombre = trim($_POST['nombre'] ?? '');
         $tipo_equipo = trim($_POST['tipo_equipo'] ?? '');
 
         if (empty($marca_id) || empty($nombre) || empty($tipo_equipo)) {
+            error_log("Campos faltantes - marca_id: $marca_id, nombre: $nombre, tipo_equipo: $tipo_equipo");
             echo json_encode(['success' => false, 'message' => 'Todos los campos son requeridos']);
             return;
         }
@@ -248,6 +271,63 @@ function addModelo($conn) {
         ]);
     } catch(PDOException $e) {
         throw new Exception("Error al agregar modelo: " . $e->getMessage());
+    }
+}
+
+// Función de búsqueda simplificada (solo marcas y modelos)
+function buscarContenido($conn) {
+    try {
+        $termino = $_GET['q'] ?? '';
+        $termino = trim($termino);
+        
+        if (empty($termino)) {
+            echo json_encode(['success' => false, 'message' => 'Término de búsqueda vacío']);
+            return;
+        }
+
+        // Preparar término para búsqueda con LIKE
+        $terminoBusqueda = '%' . $termino . '%';
+        
+        // Buscar en marcas
+        $stmtMarcas = $conn->prepare("
+            SELECT id, nombre, 'marca' as tipo 
+            FROM marcas 
+            WHERE nombre LIKE ? AND activo = 1
+            ORDER BY nombre
+        ");
+        $stmtMarcas->execute([$terminoBusqueda]);
+        $marcas = $stmtMarcas->fetchAll();
+
+        // Buscar en modelos
+        $stmtModelos = $conn->prepare("
+            SELECT m.id, m.nombre, m.tipo_equipo, ma.nombre as marca_nombre, ma.id as marca_id, 'modelo' as tipo
+            FROM modelos m 
+            INNER JOIN marcas ma ON m.marca_id = ma.id 
+            WHERE (m.nombre LIKE ? OR m.tipo_equipo LIKE ?) AND m.activo = 1
+            ORDER BY ma.nombre, m.nombre
+        ");
+        $stmtModelos->execute([$terminoBusqueda, $terminoBusqueda]);
+        $modelos = $stmtModelos->fetchAll();
+
+        // Combinar resultados
+        $resultados = [
+            'marcas' => $marcas,
+            'modelos' => $modelos,
+            'total' => count($marcas) + count($modelos)
+        ];
+
+        echo json_encode([
+            'success' => true,
+            'resultados' => $resultados,
+            'termino' => $termino,
+            'counts' => [
+                'marcas' => count($marcas),
+                'modelos' => count($modelos)
+            ]
+        ]);
+
+    } catch(PDOException $e) {
+        throw new Exception("Error en búsqueda: " . $e->getMessage());
     }
 }
 
