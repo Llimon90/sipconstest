@@ -16,9 +16,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('cancelAddModel').addEventListener('click', cerrarModalAgregarModelo);
     document.getElementById('modelForm').addEventListener('submit', guardarModelo);
     document.getElementById('searchBtn').addEventListener('input', buscarContenido);
-    // document.getElementById('searchInput').addEventListener('keypress', function(e) {
-    //     if (e.key === 'Enter') buscarContenido();
-    // });
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') buscarContenido();
+    });
     
     // Modales
     document.querySelectorAll('.close-modal').forEach(closeBtn => {
