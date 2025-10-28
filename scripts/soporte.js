@@ -306,7 +306,7 @@ async function agregarMarca(nombre) {
     }
 }
 
-// Modal para agregar modelo
+// Modal para agregar modelo - MEJORADA
 async function mostrarModalAgregarModelo() {
     console.log('Mostrando modal para agregar modelo');
     
@@ -314,10 +314,17 @@ async function mostrarModalAgregarModelo() {
         const response = await fetch('../backend/soporte_backend.php?action=get_marcas');
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`Error HTTP: ${response.status}`);
         }
+
+        const text = await response.text();
+        let data;
         
-        const data = await response.json();
+        try {
+            data = JSON.parse(text);
+        } catch (parseError) {
+            throw new Error('Respuesta no es JSON válido');
+        }
         
         if (data.success) {
             const selectMarca = document.getElementById('marca');
@@ -342,8 +349,11 @@ async function mostrarModalAgregarModelo() {
             if (currentMarcaId) {
                 selectMarca.value = currentMarcaId;
             }
-            
+
+            // Limpiar y mostrar el modal
+            document.getElementById('modelForm').reset();
             document.getElementById('addModelModal').style.display = 'block';
+            
         } else {
             throw new Error(data.message || 'Error al cargar marcas');
         }
@@ -353,33 +363,78 @@ async function mostrarModalAgregarModelo() {
     }
 }
 
-// Guardar nuevo modelo
+// Función para guardar nuevo modelo - CORREGIDA
 async function guardarModelo(e) {
     e.preventDefault();
     console.log('Guardando nuevo modelo...');
     
-    const formData = new FormData(document.getElementById('modelForm'));
-    
+    // Obtener los valores del formulario
+    const marca_id = document.getElementById('marca').value;
+    const modelo_nombre = document.getElementById('modelo_nombre').value.trim();
+    const modelo_tipo = document.getElementById('modelo_tipo').value.trim();
+    const manual_file = document.getElementById('manual_file').files[0];
+    const partes_file = document.getElementById('partes_file').files[0];
+
+    console.log('Datos del formulario:', {
+        marca_id,
+        modelo_nombre,
+        modelo_tipo,
+        manual_file: manual_file ? manual_file.name : 'No seleccionado',
+        partes_file: partes_file ? partes_file.name : 'No seleccionado'
+    });
+
+    // Validar campos requeridos
+    if (!marca_id || !modelo_nombre || !modelo_tipo) {
+        alert('Por favor complete todos los campos requeridos: Marca, Nombre del Modelo y Tipo de Equipo');
+        return;
+    }
+
+    // Crear FormData
+    const formData = new FormData();
+    formData.append('marca_id', marca_id);
+    formData.append('nombre', modelo_nombre);
+    formData.append('tipo_equipo', modelo_tipo);
+
+    // Agregar archivos si están seleccionados
+    if (manual_file) {
+        formData.append('manual_file', manual_file);
+    }
+    if (partes_file) {
+        formData.append('partes_file', partes_file);
+    }
+
     // Mostrar loading
     const submitBtn = document.querySelector('#modelForm button[type="submit"]');
     const originalText = submitBtn.innerHTML;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
     submitBtn.disabled = true;
-    
+
     try {
+        console.log('Enviando datos al servidor...');
         const response = await fetch('../backend/soporte_backend.php?action=add_modelo', {
             method: 'POST',
             body: formData
         });
+
+        console.log('Respuesta del servidor recibida, status:', response.status);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const text = await response.text();
+        console.log('Respuesta del servidor:', text);
+
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (parseError) {
+            console.error('Error parseando JSON:', parseError);
+            throw new Error('Respuesta del servidor no es JSON válido: ' + text);
         }
         
-        const data = await response.json();
-        
         if (data.success) {
-            alert('Modelo agregado correctamente');
+            alert('✅ Modelo agregado correctamente');
             cerrarModalAgregarModelo();
             
             // Recargar la vista actual
@@ -394,14 +449,13 @@ async function guardarModelo(e) {
         }
     } catch (error) {
         console.error('Error al agregar modelo:', error);
-        alert('Error al agregar el modelo: ' + error.message);
+        alert('❌ Error al agregar el modelo: ' + error.message);
     } finally {
         // Restaurar botón
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
     }
 }
-
 // Funciones de navegación
 function volverAMarcas() {
     console.log('Volviendo a marcas');
