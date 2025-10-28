@@ -1,28 +1,19 @@
 <?php
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-
-// Manejar preflight requests
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    exit(0);
-}
-
-// Configuración de errores para desarrollo
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-// Incluir conexión
+// Incluir conexión - usar tu archivo existente
 require_once 'conexion.php';
 
 try {
+    // Usar la clase Database que ahora está en conexion.php
     $db = new Database();
     $conn = $db->getConnection();
     
     // Obtener la acción desde GET o POST
     $action = $_GET['action'] ?? ($_POST['action'] ?? '');
+    
+    if (empty($action)) {
+        echo json_encode(['success' => false, 'message' => 'No se especificó acción']);
+        exit;
+    }
     
     switch($action) {
         case 'get_marcas':
