@@ -1,309 +1,376 @@
-// scripts/soporte.js - Versión actualizada con mejor manejo de errores
-class DocumentacionManager {
-    constructor() {
-        this.marcas = [];
-        this.modelos = {};
-        this.documentos = {};
-        this.currentMarca = null;
-        this.currentModelo = null;
+// Variables globales
+let currentMarcaId = null;
+let currentModeloId = null;
+
+// Inicialización
+document.addEventListener('DOMContentLoaded', function() {
+    cargarMarcas();
+    
+    // Event listeners
+    document.getElementById('addModelBtn').addEventListener('click', mostrarModalAgregarModelo);
+    document.getElementById('cancelAddModel').addEventListener('click', cerrarModalAgregarModelo);
+    document.getElementById('modelForm').addEventListener('submit', guardarModelo);
+    document.getElementById('searchBtn').addEventListener('click', buscarContenido);
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') buscarContenido();
+    });
+    
+    // Modales
+    document.querySelectorAll('.close-modal').forEach(closeBtn => {
+        closeBtn.addEventListener('click', function() {
+            this.closest('.modal').style.display = 'none';
+        });
+    });
+});
+
+// Cargar marcas desde la BD
+async function cargarMarcas() {
+    try {
+        const response = await fetch('soporte_backend.php?action=get_marcas');
+        const data = await response.json();
         
-        this.initializeElements();
-        this.bindEvents();
-        this.cargarDatos();
-    }
-
-    initializeElements() {
-        this.marcasContainer = document.getElementById('marcas-container');
-        this.modelosContainer = document.getElementById('modelos-container');
-        this.documentosContainer = document.getElementById('documentos-container');
-        this.breadcrumb = document.getElementById('breadcrumb');
-        this.modeloTitle = document.getElementById('modelo-title');
-        this.docList = document.getElementById('doc-list');
-        this.addModelModal = document.getElementById('addModelModal');
-        this.modelForm = document.getElementById('modelForm');
-        this.marcaSelect = document.getElementById('marca');
-    }
-
-    bindEvents() {
-        // Navegación
-        document.getElementById('back-to-models').addEventListener('click', () => {
-            this.showModelos(this.currentMarca);
-        });
-
-        // Modal
-        document.getElementById('addModelBtn').addEventListener('click', () => {
-            this.addModelModal.style.display = 'block';
-        });
-
-        document.querySelectorAll('.close-modal').forEach(closeBtn => {
-            closeBtn.addEventListener('click', () => {
-                document.querySelectorAll('.modal').forEach(modal => {
-                    modal.style.display = 'none';
-                });
-            });
-        });
-
-        document.getElementById('cancelAddModel').addEventListener('click', () => {
-            this.addModelModal.style.display = 'none';
-        });
-
-        // Formulario
-        this.modelForm.addEventListener('submit', (e) => this.agregarModelo(e));
-    }
-
-    async cargarDatos() {
-        try {
-            this.showLoading(this.marcasContainer, 'Cargando datos...');
-            
-            const response = await fetch('../backend/obtener_datos.php');
-            
-            if (!response.ok) {
-                throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
-            }
-            
-            const text = await response.text();
-            
-            if (!text) {
-                throw new Error('Respuesta vacía del servidor');
-            }
-            
-            const data = JSON.parse(text);
-            
-            if (data.success) {
-                this.marcas = data.marcas || [];
-                this.modelos = data.modelos || {};
-                this.documentos = data.documentos || {};
-                this.loadMarcas();
-                this.llenarSelectMarcas();
-            } else {
-                throw new Error(data.error || 'Error desconocido del servidor');
-            }
-        } catch (error) {
-            console.error('Error cargando datos:', error);
-            this.showError(this.marcasContainer, `Error cargando los datos: ${error.message}`);
-        }
-    }
-
-    showLoading(container, message = 'Cargando...') {
-        container.innerHTML = `<div class="loading">${message}</div>`;
-    }
-
-    showError(container, message) {
-        container.innerHTML = `
-            <div class="error">
-                <p>${message}</p>
-                <button onclick="location.reload()" class="btn-primary" style="margin-top: 10px;">
-                    Reintentar
-                </button>
-                <button onclick="window.open('../backend/test_conexion.php', '_blank')" class="btn-secondary" style="margin-top: 10px;">
-                    Probar Conexión
-                </button>
-            </div>
-        `;
-    }
-
-    llenarSelectMarcas() {
-        this.marcaSelect.innerHTML = '<option value="">Seleccionar marca</option>';
-        this.marcas.forEach(marca => {
-            const option = document.createElement('option');
-            option.value = marca.id;
-            option.textContent = marca.nombre;
-            this.marcaSelect.appendChild(option);
-        });
-    }
-
-    loadMarcas() {
-        this.marcasContainer.innerHTML = '';
-        
-        if (this.marcas.length === 0) {
-            this.marcasContainer.innerHTML = '<p>No hay marcas registradas.</p>';
-            return;
-        }
-        
-        this.marcas.forEach(marca => {
-            const card = this.crearMarcaCard(marca);
-            this.marcasContainer.appendChild(card);
-        });
-        
-        this.updateBreadcrumb('Marcas');
-        this.showView('marcas');
-    }
-
-    crearMarcaCard(marca) {
-        const card = document.createElement('div');
-        card.className = 'model-card';
-        card.innerHTML = `
-            <div class="model-icon"><i class="fas fa-industry"></i></div>
-            <h3>${marca.nombre}</h3>
-        `;
-        card.addEventListener('click', () => this.showModelos(marca));
-        return card;
-    }
-
-    showModelos(marca) {
-        this.currentMarca = marca;
-        this.modelosContainer.innerHTML = '';
-        
-        if(this.modelos[marca.id] && this.modelos[marca.id].length > 0) {
-            this.modelos[marca.id].forEach(modelo => {
-                const card = this.crearModeloCard(modelo);
-                this.modelosContainer.appendChild(card);
-            });
+        if (data.success) {
+            mostrarMarcas(data.marcas);
         } else {
-            this.modelosContainer.innerHTML = '<p>No hay modelos registrados para esta marca.</p>';
+            throw new Error(data.message);
         }
-        
-        this.updateBreadcrumb('Modelos', marca.nombre);
-        this.showView('modelos');
-    }
-
-    crearModeloCard(modelo) {
-        const card = document.createElement('div');
-        card.className = 'model-card';
-        card.innerHTML = `
-            <div class="model-icon"><i class="fas fa-cube"></i></div>
-            <h3>${modelo.nombre}</h3>
-            <p>${modelo.tipo}</p>
-        `;
-        card.addEventListener('click', () => this.showDocumentos(modelo));
-        return card;
-    }
-
-    showDocumentos(modelo) {
-        this.currentModelo = modelo;
-        this.modeloTitle.textContent = `${this.currentMarca.nombre} ${modelo.nombre}`;
-        this.docList.innerHTML = '';
-        
-        if(this.documentos[modelo.id] && this.documentos[modelo.id].length > 0) {
-            this.documentos[modelo.id].forEach(doc => {
-                const docEl = this.crearDocumentoElement(doc);
-                this.docList.appendChild(docEl);
-            });
-        } else {
-            this.docList.innerHTML = '<p>No hay documentos registrados para este modelo.</p>';
-        }
-        
-        this.updateBreadcrumb('Documentos', this.currentMarca.nombre, modelo.nombre);
-        this.showView('documentos');
-    }
-
-    crearDocumentoElement(doc) {
-        const docEl = document.createElement('div');
-        docEl.className = 'doc-type';
-        
-        let icon = 'fa-file';
-        if(doc.tipo === 'manual') icon = 'fa-book';
-        else if(doc.tipo === 'partes') icon = 'fa-list-ol';
-        else if(doc.tipo === 'tutorial') icon = 'fa-video';
-        
-        docEl.innerHTML = `
-            <i class="fas ${icon}"></i>
-            <span>${doc.nombre}</span>
-            <div style="flex-grow:1"></div>
-            <button class="btn-download"><i class="fas fa-download"></i></button>
-            ${doc.tipo !== 'tutorial' ? '<button class="btn-preview"><i class="far fa-eye"></i></button>' : ''}
-        `;
-        
-        // Funcionalidad de botones
-        if(doc.tipo !== 'tutorial') {
-            docEl.querySelector('.btn-preview').addEventListener('click', () => {
-                this.mostrarVistaPrevia(doc);
-            });
-        }
-        
-        docEl.querySelector('.btn-download').addEventListener('click', () => {
-            this.descargarDocumento(doc);
-        });
-        
-        return docEl;
-    }
-
-    mostrarVistaPrevia(doc) {
-        const ruta = `../manuales/${doc.marca_nombre}/${doc.modelo_nombre}/${doc.archivo}`;
-        document.getElementById('pdfViewer').src = ruta;
-        document.getElementById('previewModal').style.display = 'block';
-    }
-
-    descargarDocumento(doc) {
-        const ruta = `../manuales/${doc.marca_nombre}/${doc.modelo_nombre}/${doc.archivo}`;
-        window.open(ruta, '_blank');
-    }
-
-    updateBreadcrumb(vista, marcaNombre = '', modeloNombre = '') {
-        let breadcrumbHTML = '<a href="soporte.html">Inicio</a>';
-        
-        if (vista === 'Marcas') {
-            breadcrumbHTML += ' > <span>Marcas</span>';
-        } else if (vista === 'Modelos') {
-            breadcrumbHTML += ` > <a href="#" id="back-to-marcas">Marcas</a> > <span>${marcaNombre}</span>`;
-            
-            document.getElementById('back-to-marcas').addEventListener('click', (e) => {
-                e.preventDefault();
-                this.loadMarcas();
-            });
-        } else if (vista === 'Documentos') {
-            breadcrumbHTML += ` > <a href="#" id="back-to-marcas">Marcas</a> > <a href="#" id="back-to-modelos">${marcaNombre}</a> > <span>${modeloNombre}</span>`;
-            
-            document.getElementById('back-to-marcas').addEventListener('click', (e) => {
-                e.preventDefault();
-                this.loadMarcas();
-            });
-            
-            document.getElementById('back-to-modelos').addEventListener('click', (e) => {
-                e.preventDefault();
-                this.showModelos(this.currentMarca);
-            });
-        }
-        
-        this.breadcrumb.innerHTML = breadcrumbHTML;
-    }
-
-    showView(viewName) {
-        this.marcasContainer.style.display = viewName === 'marcas' ? 'grid' : 'none';
-        this.modelosContainer.style.display = viewName === 'modelos' ? 'grid' : 'none';
-        this.documentosContainer.style.display = viewName === 'documentos' ? 'block' : 'none';
-    }
-
-    async agregarModelo(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this.modelForm);
-        
-        try {
-            const response = await fetch('../backend/agregar_modelo.php', {
-                method: 'POST',
-                body: formData
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                this.mostrarMensaje(result.message, 'success');
-                this.addModelModal.style.display = 'none';
-                this.modelForm.reset();
-                await this.cargarDatos(); // Recargar datos
-            } else {
-                throw new Error(result.message);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            this.mostrarMensaje('Error al agregar el modelo: ' + error.message, 'error');
-        }
-    }
-
-    mostrarMensaje(mensaje, tipo) {
-        const message = document.createElement('div');
-        message.className = `message ${tipo}`;
-        message.textContent = mensaje;
-        document.querySelector('.encabezado').appendChild(message);
-        
-        setTimeout(() => {
-            message.remove();
-        }, 3000);
+    } catch (error) {
+        console.error('Error al cargar marcas:', error);
+        document.getElementById('marcas-container').innerHTML = '<div class="error">Error al cargar las marcas</div>';
     }
 }
 
-// Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', () => {
-    new DocumentacionManager();
-});
+// Mostrar marcas en el grid
+function mostrarMarcas(marcas) {
+    const container = document.getElementById('marcas-container');
+    
+    if (marcas.length === 0) {
+        container.innerHTML = `
+            <div class="no-data">
+                <i class="fas fa-industry fa-3x"></i>
+                <p>No hay marcas registradas</p>
+                <button class="btn-primary" onclick="mostrarModalAgregarMarca()">
+                    <i class="fas fa-plus"></i> Agregar Primera Marca
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = marcas.map(marca => `
+        <div class="model-card" onclick="cargarModelos(${marca.id}, '${marca.nombre}')">
+            <div class="model-icon">
+                <i class="fas fa-industry"></i>
+            </div>
+            <h3>${marca.nombre}</h3>
+            <p>Ver modelos</p>
+        </div>
+    `).join('');
+}
+
+// Cargar modelos de una marca
+async function cargarModelos(marcaId, marcaNombre) {
+    currentMarcaId = marcaId;
+    
+    try {
+        const response = await fetch(`soporte_backend.php?action=get_modelos&marca_id=${marcaId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            mostrarModelos(data.modelos, marcaNombre);
+            actualizarBreadcrumb(marcaNombre);
+        } else {
+            throw new Error(data.message);
+        }
+    } catch (error) {
+        console.error('Error al cargar modelos:', error);
+        alert('Error al cargar los modelos');
+    }
+}
+
+// Mostrar modelos en el grid
+function mostrarModelos(modelos, marcaNombre) {
+    const marcasContainer = document.getElementById('marcas-container');
+    const modelosContainer = document.getElementById('modelos-container');
+    
+    marcasContainer.style.display = 'none';
+    modelosContainer.style.display = 'block';
+    
+    if (modelos.length === 0) {
+        modelosContainer.innerHTML = `
+            <div class="no-data">
+                <i class="fas fa-tools fa-3x"></i>
+                <p>No hay modelos registrados para ${marcaNombre}</p>
+                <button class="btn-primary" onclick="mostrarModalAgregarModelo()">
+                    <i class="fas fa-plus"></i> Agregar Primer Modelo
+                </button>
+                <button class="btn-secondary" onclick="volverAMarcas()">
+                    <i class="fas fa-arrow-left"></i> Volver a Marcas
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    modelosContainer.innerHTML = `
+        <div class="section-header">
+            <button class="back-button" onclick="volverAMarcas()">
+                <i class="fas fa-arrow-left"></i> Volver a Marcas
+            </button>
+            <h3>Modelos de ${marcaNombre}</h3>
+        </div>
+        <div class="model-grid-content">
+            ${modelos.map(modelo => `
+                <div class="model-card" onclick="cargarDocumentos(${modelo.id}, '${modelo.nombre}')">
+                    <div class="model-icon">
+                        <i class="fas fa-laptop"></i>
+                    </div>
+                    <h3>${modelo.nombre}</h3>
+                    <p>${modelo.tipo_equipo}</p>
+                    <div class="model-actions">
+                        <button class="btn-small" onclick="event.stopPropagation(); editarModelo(${modelo.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+// Cargar documentos de un modelo
+async function cargarDocumentos(modeloId, modeloNombre) {
+    currentModeloId = modeloId;
+    
+    try {
+        const response = await fetch(`soporte_backend.php?action=get_documentos&modelo_id=${modeloId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            mostrarDocumentos(data.documentos, modeloNombre);
+            actualizarBreadcrumbDocumentos(modeloNombre);
+        } else {
+            throw new Error(data.message);
+        }
+    } catch (error) {
+        console.error('Error al cargar documentos:', error);
+        alert('Error al cargar los documentos');
+    }
+}
+
+// Mostrar documentos
+function mostrarDocumentos(documentos, modeloNombre) {
+    const modelosContainer = document.getElementById('modelos-container');
+    const documentosContainer = document.getElementById('documentos-container');
+    
+    modelosContainer.style.display = 'none';
+    documentosContainer.style.display = 'block';
+    
+    const docList = document.getElementById('doc-list');
+    const modeloTitle = document.getElementById('modelo-title');
+    
+    modeloTitle.textContent = `Documentos - ${modeloNombre}`;
+    
+    if (documentos.length === 0) {
+        docList.innerHTML = `
+            <div class="no-data">
+                <i class="fas fa-file-pdf fa-3x"></i>
+                <p>No hay documentos para este modelo</p>
+            </div>
+        `;
+    } else {
+        docList.innerHTML = documentos.map(doc => `
+            <div class="doc-item">
+                <div class="doc-icon">
+                    <i class="fas fa-file-pdf"></i>
+                </div>
+                <div class="doc-info">
+                    <h4>${doc.nombre_archivo}</h4>
+                    <p>Tipo: ${doc.tipo_documento.replace('_', ' ')}</p>
+                </div>
+                <div class="doc-actions">
+                    <button class="btn-primary" onclick="verDocumento('${doc.ruta_archivo}')">
+                        <i class="fas fa-eye"></i> Ver
+                    </button>
+                    <button class="btn-secondary" onclick="descargarDocumento('${doc.ruta_archivo}', '${doc.nombre_archivo}')">
+                        <i class="fas fa-download"></i> Descargar
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    // Configurar botón volver
+    document.getElementById('back-to-models').onclick = volverAModelos;
+}
+
+// Modal para agregar marca
+function mostrarModalAgregarMarca() {
+    const marcaNombre = prompt('Ingrese el nombre de la nueva marca:');
+    if (marcaNombre && marcaNombre.trim()) {
+        agregarMarca(marcaNombre.trim());
+    }
+}
+
+// Agregar nueva marca
+async function agregarMarca(nombre) {
+    try {
+        const response = await fetch('soporte_backend.php?action=add_marca', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ nombre: nombre })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('Marca agregada correctamente');
+            cargarMarcas();
+        } else {
+            throw new Error(data.message);
+        }
+    } catch (error) {
+        console.error('Error al agregar marca:', error);
+        alert('Error al agregar la marca: ' + error.message);
+    }
+}
+
+// Modal para agregar modelo
+async function mostrarModalAgregarModelo() {
+    // Cargar marcas para el select
+    try {
+        const response = await fetch('soporte_backend.php?action=get_marcas');
+        const data = await response.json();
+        
+        if (data.success) {
+            const selectMarca = document.getElementById('marca');
+            selectMarca.innerHTML = '<option value="">Seleccionar marca</option>' +
+                data.marcas.map(marca => `<option value="${marca.id}">${marca.nombre}</option>`).join('');
+            
+            // Agregar opción para nueva marca
+            const optionNuevaMarca = document.createElement('option');
+            optionNuevaMarca.value = 'new';
+            optionNuevaMarca.textContent = '+ Agregar nueva marca';
+            selectMarca.appendChild(optionNuevaMarca);
+            
+            // Si estamos en una marca específica, seleccionarla
+            if (currentMarcaId) {
+                selectMarca.value = currentMarcaId;
+            }
+            
+            document.getElementById('addModelModal').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error al cargar marcas:', error);
+        alert('Error al cargar las marcas');
+    }
+}
+
+// Guardar nuevo modelo
+async function guardarModelo(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(document.getElementById('modelForm'));
+    
+    try {
+        const response = await fetch('soporte_backend.php?action=add_modelo', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('Modelo agregado correctamente');
+            cerrarModalAgregarModelo();
+            
+            // Recargar la vista actual
+            if (currentMarcaId) {
+                const marcaNombre = document.querySelector('#marca option:checked').textContent;
+                cargarModelos(currentMarcaId, marcaNombre);
+            } else {
+                cargarMarcas();
+            }
+        } else {
+            throw new Error(data.message);
+        }
+    } catch (error) {
+        console.error('Error al agregar modelo:', error);
+        alert('Error al agregar el modelo: ' + error.message);
+    }
+}
+
+// Funciones de navegación
+function volverAMarcas() {
+    document.getElementById('modelos-container').style.display = 'none';
+    document.getElementById('documentos-container').style.display = 'none';
+    document.getElementById('marcas-container').style.display = 'block';
+    actualizarBreadcrumb();
+    currentMarcaId = null;
+}
+
+function volverAModelos() {
+    document.getElementById('documentos-container').style.display = 'none';
+    document.getElementById('modelos-container').style.display = 'block';
+    actualizarBreadcrumb(document.querySelector('#marcas-container .model-card h3')?.textContent || '');
+    currentModeloId = null;
+}
+
+function cerrarModalAgregarModelo() {
+    document.getElementById('addModelModal').style.display = 'none';
+    document.getElementById('modelForm').reset();
+}
+
+// Actualizar breadcrumb
+function actualizarBreadcrumb(marcaNombre = '') {
+    const breadcrumb = document.getElementById('breadcrumb');
+    if (marcaNombre) {
+        breadcrumb.innerHTML = `<a href="javascript:volverAMarcas()">Inicio</a> > <span>${marcaNombre}</span>`;
+    } else {
+        breadcrumb.innerHTML = `<a href="soporte.html">Inicio</a> > <span>Marcas</span>`;
+    }
+}
+
+function actualizarBreadcrumbDocumentos(modeloNombre) {
+    const breadcrumb = document.getElementById('breadcrumb');
+    breadcrumb.innerHTML = `
+        <a href="javascript:volverAMarcas()">Inicio</a> > 
+        <a href="javascript:volverAModelos()">Marcas</a> > 
+        <span>${modeloNombre}</span>
+    `;
+}
+
+// Funciones para documentos
+function verDocumento(ruta) {
+    const modal = document.getElementById('previewModal');
+    const pdfViewer = document.getElementById('pdfViewer');
+    
+    pdfViewer.src = ruta.replace('../', '');
+    modal.style.display = 'block';
+}
+
+function descargarDocumento(ruta, nombre) {
+    const link = document.createElement('a');
+    link.href = ruta.replace('../', '');
+    link.download = nombre;
+    link.click();
+}
+
+// Buscar contenido
+function buscarContenido() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    // Implementar búsqueda según sea necesario
+    alert('Funcionalidad de búsqueda en desarrollo');
+}
+
+// Cerrar modales al hacer click fuera
+window.onclick = function(event) {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+}
