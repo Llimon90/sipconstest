@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Cargar marcas desde la BD
 async function cargarMarcas() {
     try {
-        const response = await fetch('soporte_backend.php?action=get_marcas');
+        const response = await fetch('../backend/soporte_backend.php?action=get_marcas');
         const data = await response.json();
         
         if (data.success) {
