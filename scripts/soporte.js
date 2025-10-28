@@ -4,6 +4,7 @@ let currentModeloId = null;
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Inicializando sistema de soporte...');
     cargarMarcas();
     
     // Event listeners
@@ -21,22 +22,45 @@ document.addEventListener('DOMContentLoaded', function() {
             this.closest('.modal').style.display = 'none';
         });
     });
+    
+    console.log('Sistema de soporte inicializado');
 });
 
 // Cargar marcas desde la BD
 async function cargarMarcas() {
+    console.log('Cargando marcas...');
+    const container = document.getElementById('marcas-container');
+    
     try {
         const response = await fetch('../backend/soporte_backend.php?action=get_marcas');
-        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const text = await response.text();
+        console.log('Respuesta del servidor:', text);
+        
+        const data = JSON.parse(text);
         
         if (data.success) {
+            console.log(`Marcas cargadas: ${data.count}`);
             mostrarMarcas(data.marcas);
         } else {
-            throw new Error(data.message);
+            throw new Error(data.message || 'Error desconocido al cargar marcas');
         }
     } catch (error) {
         console.error('Error al cargar marcas:', error);
-        document.getElementById('marcas-container').innerHTML = '<div class="error">Error al cargar las marcas</div>';
+        container.innerHTML = `
+            <div class="error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Error al cargar las marcas</p>
+                <small>${error.message}</small>
+                <button class="btn-primary" onclick="cargarMarcas()">
+                    <i class="fas fa-redo"></i> Reintentar
+                </button>
+            </div>
+        `;
     }
 }
 
@@ -44,7 +68,7 @@ async function cargarMarcas() {
 function mostrarMarcas(marcas) {
     const container = document.getElementById('marcas-container');
     
-    if (marcas.length === 0) {
+    if (!marcas || marcas.length === 0) {
         container.innerHTML = `
             <div class="no-data">
                 <i class="fas fa-industry fa-3x"></i>
@@ -58,7 +82,7 @@ function mostrarMarcas(marcas) {
     }
     
     container.innerHTML = marcas.map(marca => `
-        <div class="model-card" onclick="cargarModelos(${marca.id}, '${marca.nombre}')">
+        <div class="model-card" onclick="cargarModelos(${marca.id}, '${marca.nombre.replace(/'/g, "\\'")}')">
             <div class="model-icon">
                 <i class="fas fa-industry"></i>
             </div>
@@ -66,25 +90,46 @@ function mostrarMarcas(marcas) {
             <p>Ver modelos</p>
         </div>
     `).join('');
+    
+    console.log(`Mostrando ${marcas.length} marcas`);
 }
 
 // Cargar modelos de una marca
 async function cargarModelos(marcaId, marcaNombre) {
+    console.log(`Cargando modelos para marca ${marcaId}: ${marcaNombre}`);
     currentMarcaId = marcaId;
     
+    const modelosContainer = document.getElementById('modelos-container');
+    modelosContainer.innerHTML = '<div class="loading">Cargando modelos...</div>';
+    
     try {
-        const response = await fetch(`soporte_backend.php?action=get_modelos&marca_id=${marcaId}`);
+        const response = await fetch(`../backend/soporte_backend.php?action=get_modelos&marca_id=${marcaId}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         if (data.success) {
+            console.log(`Modelos cargados: ${data.count}`);
             mostrarModelos(data.modelos, marcaNombre);
             actualizarBreadcrumb(marcaNombre);
         } else {
-            throw new Error(data.message);
+            throw new Error(data.message || 'Error desconocido al cargar modelos');
         }
     } catch (error) {
         console.error('Error al cargar modelos:', error);
-        alert('Error al cargar los modelos');
+        modelosContainer.innerHTML = `
+            <div class="error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Error al cargar los modelos</p>
+                <small>${error.message}</small>
+                <button class="btn-secondary" onclick="volverAMarcas()">
+                    <i class="fas fa-arrow-left"></i> Volver a Marcas
+                </button>
+            </div>
+        `;
     }
 }
 
@@ -96,7 +141,7 @@ function mostrarModelos(modelos, marcaNombre) {
     marcasContainer.style.display = 'none';
     modelosContainer.style.display = 'block';
     
-    if (modelos.length === 0) {
+    if (!modelos || modelos.length === 0) {
         modelosContainer.innerHTML = `
             <div class="no-data">
                 <i class="fas fa-tools fa-3x"></i>
@@ -117,11 +162,11 @@ function mostrarModelos(modelos, marcaNombre) {
             <button class="back-button" onclick="volverAMarcas()">
                 <i class="fas fa-arrow-left"></i> Volver a Marcas
             </button>
-            <h3>Modelos de ${marcaNombre}</h3>
+            <h3>Modelos de ${marcaNombre} (${modelos.length})</h3>
         </div>
         <div class="model-grid-content">
             ${modelos.map(modelo => `
-                <div class="model-card" onclick="cargarDocumentos(${modelo.id}, '${modelo.nombre}')">
+                <div class="model-card" onclick="cargarDocumentos(${modelo.id}, '${modelo.nombre.replace(/'/g, "\\'")}')">
                     <div class="model-icon">
                         <i class="fas fa-laptop"></i>
                     </div>
@@ -140,21 +185,37 @@ function mostrarModelos(modelos, marcaNombre) {
 
 // Cargar documentos de un modelo
 async function cargarDocumentos(modeloId, modeloNombre) {
+    console.log(`Cargando documentos para modelo ${modeloId}: ${modeloNombre}`);
     currentModeloId = modeloId;
     
+    const docList = document.getElementById('doc-list');
+    docList.innerHTML = '<div class="loading">Cargando documentos...</div>';
+    
     try {
-        const response = await fetch(`soporte_backend.php?action=get_documentos&modelo_id=${modeloId}`);
+        const response = await fetch(`../backend/soporte_backend.php?action=get_documentos&modelo_id=${modeloId}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         if (data.success) {
+            console.log(`Documentos cargados: ${data.count}`);
             mostrarDocumentos(data.documentos, modeloNombre);
             actualizarBreadcrumbDocumentos(modeloNombre);
         } else {
-            throw new Error(data.message);
+            throw new Error(data.message || 'Error desconocido al cargar documentos');
         }
     } catch (error) {
         console.error('Error al cargar documentos:', error);
-        alert('Error al cargar los documentos');
+        docList.innerHTML = `
+            <div class="error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Error al cargar los documentos</p>
+                <small>${error.message}</small>
+            </div>
+        `;
     }
 }
 
@@ -171,11 +232,12 @@ function mostrarDocumentos(documentos, modeloNombre) {
     
     modeloTitle.textContent = `Documentos - ${modeloNombre}`;
     
-    if (documentos.length === 0) {
+    if (!documentos || documentos.length === 0) {
         docList.innerHTML = `
             <div class="no-data">
                 <i class="fas fa-file-pdf fa-3x"></i>
                 <p>No hay documentos para este modelo</p>
+                <small>Puedes agregar documentos al editar el modelo</small>
             </div>
         `;
     } else {
@@ -187,6 +249,7 @@ function mostrarDocumentos(documentos, modeloNombre) {
                 <div class="doc-info">
                     <h4>${doc.nombre_archivo}</h4>
                     <p>Tipo: ${doc.tipo_documento.replace('_', ' ')}</p>
+                    <small>Subido: ${new Date(doc.fecha_subida).toLocaleDateString()}</small>
                 </div>
                 <div class="doc-actions">
                     <button class="btn-primary" onclick="verDocumento('${doc.ruta_archivo}')">
@@ -215,7 +278,9 @@ function mostrarModalAgregarMarca() {
 // Agregar nueva marca
 async function agregarMarca(nombre) {
     try {
-        const response = await fetch('soporte_backend.php?action=add_marca', {
+        console.log('Agregando nueva marca:', nombre);
+        
+        const response = await fetch('../backend/soporte_backend.php?action=add_marca', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -223,13 +288,17 @@ async function agregarMarca(nombre) {
             body: JSON.stringify({ nombre: nombre })
         });
         
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         if (data.success) {
             alert('Marca agregada correctamente');
             cargarMarcas();
         } else {
-            throw new Error(data.message);
+            throw new Error(data.message || 'Error desconocido al agregar marca');
         }
     } catch (error) {
         console.error('Error al agregar marca:', error);
@@ -239,9 +308,15 @@ async function agregarMarca(nombre) {
 
 // Modal para agregar modelo
 async function mostrarModalAgregarModelo() {
-    // Cargar marcas para el select
+    console.log('Mostrando modal para agregar modelo');
+    
     try {
-        const response = await fetch('soporte_backend.php?action=get_marcas');
+        const response = await fetch('../backend/soporte_backend.php?action=get_marcas');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         if (data.success) {
@@ -255,30 +330,45 @@ async function mostrarModalAgregarModelo() {
             optionNuevaMarca.textContent = '+ Agregar nueva marca';
             selectMarca.appendChild(optionNuevaMarca);
             
+            // Manejar selección de nueva marca
+            selectMarca.addEventListener('change', function() {
+                if (this.value === 'new') {
+                    mostrarModalAgregarMarca();
+                    this.value = '';
+                }
+            });
+            
             // Si estamos en una marca específica, seleccionarla
             if (currentMarcaId) {
                 selectMarca.value = currentMarcaId;
             }
             
             document.getElementById('addModelModal').style.display = 'block';
+        } else {
+            throw new Error(data.message || 'Error al cargar marcas');
         }
     } catch (error) {
-        console.error('Error al cargar marcas:', error);
-        alert('Error al cargar las marcas');
+        console.error('Error al cargar marcas para el modal:', error);
+        alert('Error al cargar las marcas: ' + error.message);
     }
 }
 
 // Guardar nuevo modelo
 async function guardarModelo(e) {
     e.preventDefault();
+    console.log('Guardando nuevo modelo...');
     
     const formData = new FormData(document.getElementById('modelForm'));
     
     try {
-        const response = await fetch('soporte_backend.php?action=add_modelo', {
+        const response = await fetch('../backend/soporte_backend.php?action=add_modelo', {
             method: 'POST',
             body: formData
         });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         
         const data = await response.json();
         
@@ -294,7 +384,7 @@ async function guardarModelo(e) {
                 cargarMarcas();
             }
         } else {
-            throw new Error(data.message);
+            throw new Error(data.message || 'Error desconocido al agregar modelo');
         }
     } catch (error) {
         console.error('Error al agregar modelo:', error);
@@ -304,14 +394,17 @@ async function guardarModelo(e) {
 
 // Funciones de navegación
 function volverAMarcas() {
+    console.log('Volviendo a marcas');
     document.getElementById('modelos-container').style.display = 'none';
     document.getElementById('documentos-container').style.display = 'none';
     document.getElementById('marcas-container').style.display = 'block';
     actualizarBreadcrumb();
     currentMarcaId = null;
+    currentModeloId = null;
 }
 
 function volverAModelos() {
+    console.log('Volviendo a modelos');
     document.getElementById('documentos-container').style.display = 'none';
     document.getElementById('modelos-container').style.display = 'block';
     actualizarBreadcrumb(document.querySelector('#marcas-container .model-card h3')?.textContent || '');
@@ -319,6 +412,7 @@ function volverAModelos() {
 }
 
 function cerrarModalAgregarModelo() {
+    console.log('Cerrando modal de agregar modelo');
     document.getElementById('addModelModal').style.display = 'none';
     document.getElementById('modelForm').reset();
 }
@@ -344,25 +438,35 @@ function actualizarBreadcrumbDocumentos(modeloNombre) {
 
 // Funciones para documentos
 function verDocumento(ruta) {
+    console.log('Viendo documento:', ruta);
     const modal = document.getElementById('previewModal');
     const pdfViewer = document.getElementById('pdfViewer');
     
-    pdfViewer.src = ruta.replace('../', '');
+    // Ajustar la ruta para que sea accesible desde el frontend
+    const rutaPublica = ruta.replace('../', '/');
+    pdfViewer.src = rutaPublica;
     modal.style.display = 'block';
 }
 
 function descargarDocumento(ruta, nombre) {
+    console.log('Descargando documento:', nombre);
     const link = document.createElement('a');
-    link.href = ruta.replace('../', '');
+    link.href = ruta.replace('../', '/');
     link.download = nombre;
     link.click();
+}
+
+// Función placeholder para editar modelo
+function editarModelo(modeloId) {
+    console.log('Editando modelo:', modeloId);
+    alert('Funcionalidad de edición en desarrollo para el modelo ID: ' + modeloId);
 }
 
 // Buscar contenido
 function buscarContenido() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    // Implementar búsqueda según sea necesario
-    alert('Funcionalidad de búsqueda en desarrollo');
+    console.log('Buscando:', searchTerm);
+    alert('Funcionalidad de búsqueda en desarrollo. Término: ' + searchTerm);
 }
 
 // Cerrar modales al hacer click fuera
@@ -374,3 +478,12 @@ window.onclick = function(event) {
         }
     });
 }
+
+// Exportar funciones para debugging
+window.soporteApp = {
+    cargarMarcas,
+    cargarModelos,
+    cargarDocumentos,
+    mostrarModalAgregarMarca,
+    mostrarModalAgregarModelo
+};
