@@ -315,7 +315,7 @@ function buscarContenido() {
     }, 500);
 }
 
-// Función para ejecutar la búsqueda
+// Función para ejecutar la búsqueda - CORREGIDA
 async function ejecutarBusqueda(termino) {
     console.log('Buscando:', termino);
     
@@ -330,9 +330,15 @@ async function ejecutarBusqueda(termino) {
         }
 
         const data = await response.json();
+        console.log('Respuesta de búsqueda:', data);
         
         if (data.success) {
-            mostrarResultadosBusqueda(data.resultados, termino);
+            // Verificar que resultados existe
+            if (data.resultados) {
+                mostrarResultadosBusqueda(data.resultados, termino);
+            } else {
+                throw new Error('Estructura de respuesta inválida: resultados no encontrado');
+            }
         } else {
             throw new Error(data.message || 'Error en la búsqueda');
         }
@@ -348,10 +354,27 @@ async function ejecutarBusqueda(termino) {
     }
 }
 
-// Función para mostrar resultados de búsqueda
+// Función para mostrar resultados de búsqueda - CORREGIDA
 function mostrarResultadosBusqueda(resultados, termino) {
     const container = document.getElementById('marcas-container');
-    const { marcas, modelos, total } = resultados;
+    
+    // Verificar que resultados tenga la estructura esperada
+    if (!resultados || typeof resultados !== 'object') {
+        container.innerHTML = `
+            <div class="error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Error en los resultados de búsqueda</p>
+                <small>Estructura de datos inválida</small>
+            </div>
+        `;
+        return;
+    }
+
+    const marcas = resultados.marcas || [];
+    const modelos = resultados.modelos || [];
+    const total = resultados.total || (marcas.length + modelos.length);
+
+    console.log('Resultados procesados:', { marcas, modelos, total });
 
     if (total === 0) {
         container.innerHTML = `
@@ -383,11 +406,11 @@ function mostrarResultadosBusqueda(resultados, termino) {
                 <h4><i class="fas fa-industry"></i> Marcas (${marcas.length})</h4>
                 <div class="model-grid-content">
                     ${marcas.map(marca => `
-                        <div class="model-card" onclick="cargarModelos(${marca.id}, '${marca.nombre.replace(/'/g, "\\'")}')">
+                        <div class="model-card" onclick="cargarModelos(${marca.id}, '${(marca.nombre || '').replace(/'/g, "\\'")}')">
                             <div class="model-icon">
                                 <i class="fas fa-industry"></i>
                             </div>
-                            <h3>${resaltarTexto(marca.nombre, termino)}</h3>
+                            <h3>${resaltarTexto(marca.nombre || '', termino)}</h3>
                             <p>Ver modelos de la marca</p>
                             <div class="search-badge">Marca</div>
                         </div>
@@ -404,13 +427,13 @@ function mostrarResultadosBusqueda(resultados, termino) {
                 <h4><i class="fas fa-laptop"></i> Modelos (${modelos.length})</h4>
                 <div class="model-grid-content">
                     ${modelos.map(modelo => `
-                        <div class="model-card" onclick="cargarModelos(${modelo.marca_id}, '${modelo.marca_nombre.replace(/'/g, "\\'")}')">
+                        <div class="model-card" onclick="cargarModelos(${modelo.marca_id || modelo.id}, '${(modelo.marca_nombre || '').replace(/'/g, "\\'")}')">
                             <div class="model-icon">
                                 <i class="fas fa-laptop"></i>
                             </div>
-                            <h3>${resaltarTexto(modelo.nombre, termino)}</h3>
-                            <p>${resaltarTexto(modelo.tipo_equipo, termino)}</p>
-                            <small>Marca: ${modelo.marca_nombre}</small>
+                            <h3>${resaltarTexto(modelo.nombre || '', termino)}</h3>
+                            <p>${resaltarTexto(modelo.tipo_equipo || '', termino)}</p>
+                            <small>Marca: ${modelo.marca_nombre || 'N/A'}</small>
                             <div class="search-badge">Modelo</div>
                         </div>
                     `).join('')}
@@ -421,7 +444,6 @@ function mostrarResultadosBusqueda(resultados, termino) {
 
     container.innerHTML = html;
 }
-
 // Función para resaltar texto en los resultados
 function resaltarTexto(texto, termino) {
     if (!termino) return texto;
