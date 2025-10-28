@@ -2,6 +2,10 @@
 let currentMarcaId = null;
 let currentModeloId = null;
 
+// Variables globales para búsqueda
+let searchTimeout = null;
+let currentSearchTerm = '';
+
 // Inicialización
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Inicializando sistema de soporte...');
@@ -11,10 +15,10 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('addModelBtn').addEventListener('click', mostrarModalAgregarModelo);
     document.getElementById('cancelAddModel').addEventListener('click', cerrarModalAgregarModelo);
     document.getElementById('modelForm').addEventListener('submit', guardarModelo);
-    document.getElementById('searchBtn').addEventListener('click', buscarContenido);
-    document.getElementById('searchInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') buscarContenido();
-    });
+    document.getElementById('searchBtn').addEventListener('input', buscarContenido);
+    // document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    //     if (e.key === 'Enter') buscarContenido();
+    // });
     
     // Modales
     document.querySelectorAll('.close-modal').forEach(closeBtn => {
@@ -524,11 +528,186 @@ function descargarDocumento(ruta, nombre) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-}// Buscar contenido
+}
+
+// Reemplazar la función buscarContenido existente
 function buscarContenido() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    console.log('Buscando:', searchTerm);
-    alert('Funcionalidad de búsqueda en desarrollo. Término: ' + searchTerm);
+    const searchTerm = document.getElementById('searchInput').value.trim();
+    
+    if (searchTerm.length === 0) {
+        // Si está vacío, volver a mostrar marcas
+        ocultarResultadosBusqueda();
+        return;
+    }
+
+    if (searchTerm.length < 2) {
+        return; // No buscar con menos de 2 caracteres
+    }
+
+    currentSearchTerm = searchTerm;
+    
+    // Limpiar timeout anterior
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
+
+    // Esperar 500ms después de que el usuario deje de escribir
+    searchTimeout = setTimeout(() => {
+        ejecutarBusqueda(searchTerm);
+    }, 500);
+}
+
+// Función para ejecutar la búsqueda
+async function ejecutarBusqueda(termino) {
+    console.log('Buscando:', termino);
+    
+    const container = document.getElementById('marcas-container');
+    container.innerHTML = '<div class="loading">Buscando...</div>';
+
+    try {
+        const response = await fetch(`../backend/soporte_backend.php?action=buscar&q=${encodeURIComponent(termino)}`);
+        
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        if (data.success) {
+            mostrarResultadosBusqueda(data.resultados, termino);
+        } else {
+            throw new Error(data.message || 'Error en la búsqueda');
+        }
+    } catch (error) {
+        console.error('Error en búsqueda:', error);
+        container.innerHTML = `
+            <div class="error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Error en la búsqueda</p>
+                <small>${error.message}</small>
+            </div>
+        `;
+    }
+}
+
+// Función para mostrar resultados de búsqueda
+function mostrarResultadosBusqueda(resultados, termino) {
+    const container = document.getElementById('marcas-container');
+    const { marcas, modelos, documentos, total } = resultados;
+
+    if (total === 0) {
+        container.innerHTML = `
+            <div class="no-data">
+                <i class="fas fa-search fa-3x"></i>
+                <p>No se encontraron resultados para: "${termino}"</p>
+                <small>Intenta con otros términos de búsqueda</small>
+            </div>
+        `;
+        return;
+    }
+
+    let html = `
+        <div class="search-results-header">
+            <h3>Resultados de búsqueda: "${termino}"</h3>
+            <div class="search-stats">
+                ${marcas.length} marcas, ${modelos.length} modelos, ${documentos.length} documentos
+            </div>
+            <button class="btn-secondary" onclick="ocultarResultadosBusqueda()">
+                <i class="fas fa-arrow-left"></i> Volver a todas las marcas
+            </button>
+        </div>
+    `;
+
+    // Mostrar marcas encontradas
+    if (marcas.length > 0) {
+        html += `
+            <div class="search-section">
+                <h4><i class="fas fa-industry"></i> Marcas (${marcas.length})</h4>
+                <div class="model-grid-content">
+                    ${marcas.map(marca => `
+                        <div class="model-card" onclick="cargarModelos(${marca.id}, '${marca.nombre.replace(/'/g, "\\'")}')">
+                            <div class="model-icon">
+                                <i class="fas fa-industry"></i>
+                            </div>
+                            <h3>${resaltarTexto(marca.nombre, termino)}</h3>
+                            <p>Ver modelos de la marca</p>
+                            <div class="search-badge">Marca</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    // Mostrar modelos encontrados
+    if (modelos.length > 0) {
+        html += `
+            <div class="search-section">
+                <h4><i class="fas fa-laptop"></i> Modelos (${modelos.length})</h4>
+                <div class="model-grid-content">
+                    ${modelos.map(modelo => `
+                        <div class="model-card" onclick="cargarModelos(${modelo.id}, '${modelo.marca_nombre.replace(/'/g, "\\'")}')">
+                            <div class="model-icon">
+                                <i class="fas fa-laptop"></i>
+                            </div>
+                            <h3>${resaltarTexto(modelo.nombre, termino)}</h3>
+                            <p>${resaltarTexto(modelo.tipo_equipo, termino)}</p>
+                            <small>Marca: ${modelo.marca_nombre}</small>
+                            <div class="search-badge">Modelo</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    // Mostrar documentos encontrados
+    if (documentos.length > 0) {
+        html += `
+            <div class="search-section">
+                <h4><i class="fas fa-file-pdf"></i> Documentos (${documentos.length})</h4>
+                <div class="doc-list">
+                    ${documentos.map(doc => `
+                        <div class="doc-item">
+                            <div class="doc-icon">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <div class="doc-info">
+                                <h4>${resaltarTexto(doc.nombre_archivo, termino)}</h4>
+                                <p>Tipo: ${doc.tipo_documento.replace('_', ' ')}</p>
+                                <small>Modelo: ${doc.modelo_nombre} | Marca: ${doc.marca_nombre}</small>
+                            </div>
+                            <div class="doc-actions">
+                                <button class="btn-primary" onclick="verDocumento('${doc.ruta_archivo}')">
+                                    <i class="fas fa-eye"></i> Ver
+                                </button>
+                                <button class="btn-secondary" onclick="descargarDocumento('${doc.ruta_archivo}', '${doc.nombre_archivo}')">
+                                    <i class="fas fa-download"></i> Descargar
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    container.innerHTML = html;
+}
+
+// Función para resaltar texto en los resultados
+function resaltarTexto(texto, termino) {
+    if (!termino) return texto;
+    
+    const regex = new RegExp(`(${termino.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    return texto.replace(regex, '<mark class="search-highlight">$1</mark>');
+}
+
+// Función para ocultar resultados de búsqueda
+function ocultarResultadosBusqueda() {
+    document.getElementById('searchInput').value = '';
+    currentSearchTerm = '';
+    cargarMarcas();
 }
 
 // Cerrar modales al hacer click fuera
