@@ -338,6 +338,7 @@ async function eliminarModelo(modeloId, modeloNombre) {
     }
 
     try {
+        console.log('Eliminando modelo:', modeloId);
         const response = await fetch('../backend/soporte_backend.php?action=delete_modelo', {
             method: 'POST',
             headers: {
@@ -347,6 +348,7 @@ async function eliminarModelo(modeloId, modeloNombre) {
         });
         
         const data = await response.json();
+        console.log('Respuesta eliminación modelo:', data);
         
         if (data.success) {
             alert('Modelo eliminado correctamente');
@@ -366,15 +368,17 @@ async function eliminarMarca(marcaId, marcaNombre) {
     }
 
     try {
+        console.log('Eliminando marca:', marcaId);
         const response = await fetch('../backend/soporte_backend.php?action=delete_marca', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json', // CORREGIDO
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify({ marca_id: marcaId })
         });
         
         const data = await response.json();
+        console.log('Respuesta eliminación marca:', data);
         
         if (data.success) {
             alert('Marca eliminada correctamente');
@@ -394,6 +398,7 @@ async function eliminarDocumento(documentoId, nombreArchivo) {
     }
 
     try {
+        console.log('Eliminando documento:', documentoId);
         const response = await fetch('../backend/soporte_backend.php?action=delete_documento', {
             method: 'POST',
             headers: {
@@ -403,6 +408,7 @@ async function eliminarDocumento(documentoId, nombreArchivo) {
         });
         
         const data = await response.json();
+        console.log('Respuesta eliminación documento:', data);
         
         if (data.success) {
             // Eliminar del DOM
@@ -416,7 +422,6 @@ async function eliminarDocumento(documentoId, nombreArchivo) {
         alert('Error al eliminar el documento: ' + error.message);
     }
 }
-
 // Funciones de búsqueda
 function buscarContenido() {
     const searchTerm = document.getElementById('searchInput').value.trim();

@@ -79,7 +79,8 @@ try {
 
 function getMarcas($conn) {
     try {
-        $stmt = $conn->prepare("SELECT id, nombre FROM marcas WHERE activo = 1 ORDER BY nombre");
+        // QUITADO: WHERE activo = 1
+        $stmt = $conn->prepare("SELECT id, nombre FROM marcas ORDER BY nombre");
         $stmt->execute();
         $marcas = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
@@ -102,11 +103,12 @@ function getModelos($conn) {
             return;
         }
 
+        // QUITADO: AND m.activo = 1
         $stmt = $conn->prepare("
             SELECT m.id, m.nombre, m.tipo_equipo, ma.nombre as marca_nombre 
             FROM modelos m 
             INNER JOIN marcas ma ON m.marca_id = ma.id 
-            WHERE m.marca_id = ? AND m.activo = 1 
+            WHERE m.marca_id = ? 
             ORDER BY m.nombre
         ");
         $stmt->execute([$marca_id]);
@@ -120,9 +122,7 @@ function getModelos($conn) {
     } catch(PDOException $e) {
         throw new Exception("Error al obtener modelos: " . $e->getMessage());
     }
-}
-
-function getModeloInfo($conn) {
+}function getModeloInfo($conn) {
     try {
         $modelo_id = $_GET['modelo_id'] ?? null;
         
@@ -206,8 +206,8 @@ function addMarca($conn) {
             return;
         }
 
-        // Verificar si la marca ya existe
-        $stmt = $conn->prepare("SELECT id FROM marcas WHERE nombre = ? AND activo = 1");
+        // Verificar si la marca ya existe (QUITADO: AND activo = 1)
+        $stmt = $conn->prepare("SELECT id FROM marcas WHERE nombre = ?");
         $stmt->execute([$nombre]);
         
         if ($stmt->fetch()) {
@@ -240,20 +240,24 @@ function addMarca($conn) {
         throw new Exception("Error al agregar marca: " . $e->getMessage());
     }
 }
-
 function addModelo($conn) {
     try {
+        // Debug: mostrar datos recibidos
+        error_log("Datos POST recibidos: " . print_r($_POST, true));
+        error_log("Archivos recibidos: " . print_r($_FILES, true));
+        
         $marca_id = $_POST['marca_id'] ?? '';
         $nombre = trim($_POST['nombre'] ?? '');
         $tipo_equipo = trim($_POST['tipo_equipo'] ?? '');
 
         if (empty($marca_id) || empty($nombre) || empty($tipo_equipo)) {
+            error_log("Campos faltantes - marca_id: $marca_id, nombre: $nombre, tipo_equipo: $tipo_equipo");
             echo json_encode(['success' => false, 'message' => 'Todos los campos son requeridos']);
             return;
         }
 
         // Obtener información de la marca
-        $stmt = $conn->prepare("SELECT nombre FROM marcas WHERE id = ? AND activo = 1");
+        $stmt = $conn->prepare("SELECT nombre FROM marcas WHERE id = ?");
         $stmt->execute([$marca_id]);
         $marca = $stmt->fetch();
         
@@ -262,8 +266,8 @@ function addModelo($conn) {
             return;
         }
 
-        // Verificar si el modelo ya existe para esta marca
-        $stmt = $conn->prepare("SELECT id FROM modelos WHERE marca_id = ? AND nombre = ? AND activo = 1");
+        // Verificar si el modelo ya existe para esta marca (QUITADO: AND activo = 1)
+        $stmt = $conn->prepare("SELECT id FROM modelos WHERE marca_id = ? AND nombre = ?");
         $stmt->execute([$marca_id, $nombre]);
         
         if ($stmt->fetch()) {
@@ -278,16 +282,33 @@ function addModelo($conn) {
 
         // Crear estructura de carpetas
         $base_dir = '../manuales/';
+        
+        // Sanitizar nombres para usar en carpetas
         $marca_folder = sanitizeFolderName($marca['nombre']);
         $modelo_folder = sanitizeFolderName($nombre);
+        
+        // Ruta completa para el modelo
         $modelo_dir = $base_dir . $marca_folder . '/' . $modelo_folder . '/';
         
+        // Crear directorios si no existen
         if (!crearEstructuraDirectorios($modelo_dir)) {
             throw new Exception("No se pudo crear la estructura de directorios");
         }
 
         // Procesar archivos subidos
-        $documentos_subidos = procesarArchivosSubidos($conn, $modelo_id, $modelo_dir);
+        $documentos_subidos = [];
+
+        // Procesar manual
+        if (isset($_FILES['manual_file']) && $_FILES['manual_file']['error'] === UPLOAD_ERR_OK) {
+            $manual_file = guardarDocumento($conn, $modelo_id, 'manual', $_FILES['manual_file'], $modelo_dir);
+            if ($manual_file) $documentos_subidos[] = $manual_file;
+        }
+
+        // Procesar lista de partes
+        if (isset($_FILES['partes_file']) && $_FILES['partes_file']['error'] === UPLOAD_ERR_OK) {
+            $partes_file = guardarDocumento($conn, $modelo_id, 'lista_partes', $_FILES['partes_file'], $modelo_dir);
+            if ($partes_file) $documentos_subidos[] = $partes_file;
+        }
 
         echo json_encode([
             'success' => true, 
@@ -300,7 +321,6 @@ function addModelo($conn) {
         throw new Exception("Error al agregar modelo: " . $e->getMessage());
     }
 }
-
 function updateModelo($conn) {
     try {
         $modelo_id = $_POST['modelo_id'] ?? '';
@@ -351,6 +371,7 @@ function updateModelo($conn) {
     }
 }
 
+// Función para eliminar modelo - ELIMINACIÓN FÍSICA
 function deleteModelo($conn) {
     try {
         $input = file_get_contents('php://input');
@@ -363,9 +384,9 @@ function deleteModelo($conn) {
             return;
         }
 
-        // Obtener información del modelo para eliminar archivos
+        // Obtener información del modelo para eliminar archivos y carpeta
         $stmt = $conn->prepare("
-            SELECT m.nombre, ma.nombre as marca_nombre, d.ruta_archivo 
+            SELECT m.nombre as modelo_nombre, ma.nombre as marca_nombre, d.ruta_archivo 
             FROM modelos m 
             INNER JOIN marcas ma ON m.marca_id = ma.id 
             LEFT JOIN documentos d ON m.id = d.modelo_id 
@@ -379,33 +400,45 @@ function deleteModelo($conn) {
             return;
         }
 
+        $marca_nombre = $resultados[0]['marca_nombre'];
+        $modelo_nombre = $resultados[0]['modelo_nombre'];
+
         // Eliminar archivos físicos
         foreach ($resultados as $doc) {
             if (!empty($doc['ruta_archivo'])) {
                 $ruta_completa = '../' . $doc['ruta_archivo'];
                 if (file_exists($ruta_completa)) {
                     unlink($ruta_completa);
+                    error_log("Archivo eliminado: " . $ruta_completa);
                 }
             }
+        }
+
+        // Eliminar carpeta del modelo
+        $carpeta_modelo = '../manuales/' . sanitizeFolderName($marca_nombre) . '/' . sanitizeFolderName($modelo_nombre) . '/';
+        if (is_dir($carpeta_modelo)) {
+            eliminarCarpetaRecursivamente($carpeta_modelo);
+            error_log("Carpeta eliminada: " . $carpeta_modelo);
         }
 
         // Eliminar documentos de la BD
         $stmt = $conn->prepare("DELETE FROM documentos WHERE modelo_id = ?");
         $stmt->execute([$modelo_id]);
 
-        // Eliminar modelo (eliminación lógica)
-        $stmt = $conn->prepare("UPDATE modelos SET activo = 0, fecha_eliminacion = NOW() WHERE id = ?");
+        // Eliminar modelo de la BD (ELIMINACIÓN FÍSICA)
+        $stmt = $conn->prepare("DELETE FROM modelos WHERE id = ?");
         $stmt->execute([$modelo_id]);
 
         echo json_encode([
             'success' => true, 
-            'message' => 'Modelo eliminado correctamente'
+            'message' => 'Modelo y todos sus documentos eliminados correctamente'
         ]);
     } catch(PDOException $e) {
         throw new Exception("Error al eliminar modelo: " . $e->getMessage());
     }
 }
 
+// Función para eliminar marca - ELIMINACIÓN FÍSICA
 function deleteMarca($conn) {
     try {
         $input = file_get_contents('php://input');
@@ -419,17 +452,37 @@ function deleteMarca($conn) {
         }
 
         // Verificar si hay modelos activos en esta marca
-        $stmt = $conn->prepare("SELECT COUNT(*) as count FROM modelos WHERE marca_id = ? AND activo = 1");
+        $stmt = $conn->prepare("SELECT COUNT(*) as count FROM modelos WHERE marca_id = ?");
         $stmt->execute([$marca_id]);
         $result = $stmt->fetch();
         
         if ($result['count'] > 0) {
-            echo json_encode(['success' => false, 'message' => 'No se puede eliminar la marca porque tiene modelos activos']);
+            echo json_encode(['success' => false, 'message' => 'No se puede eliminar la marca porque tiene modelos activos. Elimine primero los modelos.']);
             return;
         }
 
-        // Eliminar marca (eliminación lógica)
-        $stmt = $conn->prepare("UPDATE marcas SET activo = 0, fecha_eliminacion = NOW() WHERE id = ?");
+        // Obtener nombre de la marca para eliminar carpeta
+        $stmt = $conn->prepare("SELECT nombre FROM marcas WHERE id = ?");
+        $stmt->execute([$marca_id]);
+        $marca = $stmt->fetch();
+        
+        if (!$marca) {
+            echo json_encode(['success' => false, 'message' => 'Marca no encontrada']);
+            return;
+        }
+
+        // Eliminar carpeta de la marca (si está vacía)
+        $carpeta_marca = '../manuales/' . sanitizeFolderName($marca['nombre']) . '/';
+        if (is_dir($carpeta_marca)) {
+            // Verificar si la carpeta está vacía
+            if (count(glob($carpeta_marca . "/*")) === 0) {
+                rmdir($carpeta_marca);
+                error_log("Carpeta de marca eliminada: " . $carpeta_marca);
+            }
+        }
+
+        // Eliminar marca de la BD (ELIMINACIÓN FÍSICA)
+        $stmt = $conn->prepare("DELETE FROM marcas WHERE id = ?");
         $stmt->execute([$marca_id]);
 
         echo json_encode([
@@ -441,6 +494,7 @@ function deleteMarca($conn) {
     }
 }
 
+// Función para eliminar documento - ELIMINACIÓN FÍSICA
 function deleteDocumento($conn) {
     try {
         $input = file_get_contents('php://input');
@@ -466,10 +520,16 @@ function deleteDocumento($conn) {
         // Eliminar archivo físico
         $ruta_completa = '../' . $documento['ruta_archivo'];
         if (file_exists($ruta_completa)) {
-            unlink($ruta_completa);
+            if (unlink($ruta_completa)) {
+                error_log("Archivo eliminado: " . $ruta_completa);
+            } else {
+                error_log("Error al eliminar archivo: " . $ruta_completa);
+            }
+        } else {
+            error_log("Archivo no encontrado: " . $ruta_completa);
         }
 
-        // Eliminar documento de la BD
+        // Eliminar documento de la BD (ELIMINACIÓN FÍSICA)
         $stmt = $conn->prepare("DELETE FROM documentos WHERE id = ?");
         $stmt->execute([$documento_id]);
 
@@ -482,6 +542,25 @@ function deleteDocumento($conn) {
     }
 }
 
+// Función auxiliar para eliminar carpetas recursivamente
+function eliminarCarpetaRecursivamente($carpeta) {
+    if (!is_dir($carpeta)) {
+        return false;
+    }
+    
+    $archivos = array_diff(scandir($carpeta), array('.', '..'));
+    
+    foreach ($archivos as $archivo) {
+        $ruta = $carpeta . '/' . $archivo;
+        if (is_dir($ruta)) {
+            eliminarCarpetaRecursivamente($ruta);
+        } else {
+            unlink($ruta);
+        }
+    }
+    
+    return rmdir($carpeta);
+}
 function uploadDocumentos($conn) {
     try {
         $modelo_id = $_POST['modelo_id'] ?? '';
