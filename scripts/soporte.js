@@ -369,7 +369,7 @@ async function eliminarMarca(marcaId, marcaNombre) {
         const response = await fetch('../backend/soporte_backend.php?action=delete_marca', {
             method: 'POST',
             headers: {
-                'Content-Type: 'application/json',
+                'Content-Type': 'application/json', // CORREGIDO
             },
             body: JSON.stringify({ marca_id: marcaId })
         });
@@ -417,7 +417,7 @@ async function eliminarDocumento(documentoId, nombreArchivo) {
     }
 }
 
-// Funciones de búsqueda (se mantienen igual)
+// Funciones de búsqueda
 function buscarContenido() {
     const searchTerm = document.getElementById('searchInput').value.trim();
     
@@ -574,8 +574,6 @@ function obtenerIconoTipoDocumento(tipo) {
     return `<i class="${iconos[tipo] || 'fas fa-file'}"></i>`;
 }
 
-// ... (el resto de las funciones se mantienen igual: Modal para agregar marca, agregarMarca, Modal para agregar modelo, guardarModelo, etc.)
-
 // Funciones de navegación
 function volverAMarcas() {
     console.log('Volviendo a marcas');
@@ -593,6 +591,186 @@ function volverAModelos() {
     document.getElementById('modelos-container').style.display = 'block';
     actualizarBreadcrumb(document.querySelector('#marcas-container .model-card h3')?.textContent || '');
     currentModeloId = null;
+}
+
+// Modal para agregar marca
+function mostrarModalAgregarMarca() {
+    const marcaNombre = prompt('Ingrese el nombre de la nueva marca:');
+    if (marcaNombre && marcaNombre.trim()) {
+        agregarMarca(marcaNombre.trim());
+    }
+}
+
+// Agregar nueva marca
+async function agregarMarca(nombre) {
+    try {
+        console.log('Agregando nueva marca:', nombre);
+        
+        const response = await fetch('../backend/soporte_backend.php?action=add_marca', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ nombre: nombre })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('Marca agregada correctamente');
+            cargarMarcas();
+        } else {
+            throw new Error(data.message || 'Error desconocido al agregar marca');
+        }
+    } catch (error) {
+        console.error('Error al agregar marca:', error);
+        alert('Error al agregar la marca: ' + error.message);
+    }
+}
+
+// Modal para agregar modelo
+async function mostrarModalAgregarModelo() {
+    console.log('Mostrando modal para agregar modelo');
+    
+    try {
+        const response = await fetch('../backend/soporte_backend.php?action=get_marcas');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            const selectMarca = document.getElementById('marca');
+            selectMarca.innerHTML = '<option value="">Seleccionar marca</option>' +
+                data.marcas.map(marca => `<option value="${marca.id}">${marca.nombre}</option>`).join('');
+            
+            // Agregar opción para nueva marca
+            const optionNuevaMarca = document.createElement('option');
+            optionNuevaMarca.value = 'new';
+            optionNuevaMarca.textContent = '+ Agregar nueva marca';
+            selectMarca.appendChild(optionNuevaMarca);
+            
+            // Manejar selección de nueva marca
+            selectMarca.addEventListener('change', function() {
+                if (this.value === 'new') {
+                    mostrarModalAgregarMarca();
+                    this.value = '';
+                }
+            });
+            
+            // Si estamos en una marca específica, seleccionarla
+            if (currentMarcaId) {
+                selectMarca.value = currentMarcaId;
+            }
+            
+            document.getElementById('addModelModal').style.display = 'block';
+        } else {
+            throw new Error(data.message || 'Error al cargar marcas');
+        }
+    } catch (error) {
+        console.error('Error al cargar marcas para el modal:', error);
+        alert('Error al cargar las marcas: ' + error.message);
+    }
+}
+
+// Guardar nuevo modelo
+async function guardarModelo(e) {
+    e.preventDefault();
+    console.log('Guardando nuevo modelo...');
+    
+    // Obtener los valores del formulario
+    const marca_id = document.getElementById('marca').value;
+    const modelo_nombre = document.getElementById('modelo_nombre').value.trim();
+    const modelo_tipo = document.getElementById('modelo_tipo').value.trim();
+    const manual_file = document.getElementById('manual_file').files[0];
+    const partes_file = document.getElementById('partes_file').files[0];
+
+    console.log('Datos del formulario:', {
+        marca_id,
+        modelo_nombre,
+        modelo_tipo,
+        manual_file: manual_file ? manual_file.name : 'No seleccionado',
+        partes_file: partes_file ? partes_file.name : 'No seleccionado'
+    });
+
+    // Validar campos requeridos
+    if (!marca_id || !modelo_nombre || !modelo_tipo) {
+        alert('Por favor complete todos los campos requeridos: Marca, Nombre del Modelo y Tipo de Equipo');
+        return;
+    }
+
+    // Crear FormData
+    const formData = new FormData();
+    formData.append('marca_id', marca_id);
+    formData.append('nombre', modelo_nombre);
+    formData.append('tipo_equipo', modelo_tipo);
+
+    // Agregar archivos si están seleccionados
+    if (manual_file) {
+        formData.append('manual_file', manual_file);
+    }
+    if (partes_file) {
+        formData.append('partes_file', partes_file);
+    }
+
+    // Mostrar loading
+    const submitBtn = document.querySelector('#modelForm button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+    submitBtn.disabled = true;
+
+    try {
+        console.log('Enviando datos al servidor...');
+        const response = await fetch('../backend/soporte_backend.php?action=add_modelo', {
+            method: 'POST',
+            body: formData
+        });
+
+        console.log('Respuesta del servidor recibida, status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const text = await response.text();
+        console.log('Respuesta del servidor:', text);
+
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (parseError) {
+            console.error('Error parseando JSON:', parseError);
+            throw new Error('Respuesta del servidor no es JSON válido: ' + text);
+        }
+        
+        if (data.success) {
+            alert('✅ Modelo agregado correctamente');
+            cerrarModalAgregarModelo();
+            
+            // Recargar la vista actual
+            if (currentMarcaId) {
+                const marcaNombre = document.querySelector('#marca option:checked').textContent;
+                cargarModelos(currentMarcaId, marcaNombre);
+            } else {
+                cargarMarcas();
+            }
+        } else {
+            throw new Error(data.message || 'Error desconocido al agregar modelo');
+        }
+    } catch (error) {
+        console.error('Error al agregar modelo:', error);
+        alert('❌ Error al agregar el modelo: ' + error.message);
+    } finally {
+        // Restaurar botón
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }
 }
 
 function cerrarModalAgregarModelo() {
@@ -648,6 +826,17 @@ window.onclick = function(event) {
             modal.style.display = 'none';
         }
     });
+}
+
+// Funciones placeholder para futuras implementaciones
+function mostrarModalEditarModelo(modelo) {
+    alert('Funcionalidad de edición en desarrollo para el modelo: ' + modelo.nombre);
+    // Aquí iría el código para mostrar un modal de edición
+}
+
+function mostrarModalSubirDocumentos(modeloId) {
+    alert('Funcionalidad para subir documentos en desarrollo para el modelo ID: ' + modeloId);
+    // Aquí iría el código para mostrar un modal de subida de documentos
 }
 
 // Exportar funciones para debugging
