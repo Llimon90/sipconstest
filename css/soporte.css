@@ -667,3 +667,19 @@ main {
     transform: translateY(-5px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+#marcas-container {
+    display: grid;
+    /* Esto crea 4 columnas flexibles, pero permite que se ajusten a la pantalla (responsive) */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+    gap: 20px; 
+    padding: 20px;
+}
+/* Asegura que el contenido del grid de modelos también use el mismo estilo de grid si lo deseas */
+.model-grid-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+    gap: 20px; 
+}
+#marcas-container .model-card {
+    cursor: pointer; /* Indica visualmente que se puede hacer clic */
+}
