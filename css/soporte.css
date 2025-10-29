@@ -12,7 +12,6 @@ body {
     line-height: 1.6;
 }
 
-/* Enlaces de retorno (se asume que es un header o similar) */
 .retorna {
     background: #34495e;
     padding: 10px 20px;
@@ -35,6 +34,10 @@ body {
 
 .sidebar ul {
     list-style: none;
+}
+
+.sidebar li {
+    margin: 5px 0;
 }
 
 .sidebar a {
@@ -83,7 +86,6 @@ main {
     color: #7f8c8d;
 }
 
-/* Formularios y Búsqueda */
 .form-row {
     display: flex;
     gap: 15px;
@@ -92,82 +94,31 @@ main {
 }
 
 .search-container {
-    /* Se consolida la definición del contenedor de búsqueda */
-    position: relative;
     display: flex;
     flex: 1;
     max-width: 400px;
 }
 
 .search-container input {
-    /* Se consolida la definición del input de búsqueda */
     flex: 1;
-    padding: 12px 15px; /* Ajustado a los estilos de 'input mejorado' */
-    border: 2px solid #ddd; /* Ajustado a los estilos de 'input mejorado' */
-    border-radius: 25px; /* Ajustado a los estilos de 'input mejorado' */
-    font-size: 14px;
-    transition: all 0.3s ease;
-}
-
-.search-container input:focus {
-    outline: none;
-    border-color: #3498db;
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px 0 0 4px;
+    border-right: none;
 }
 
 .search-container button {
-    /* Se consolida la definición del botón de búsqueda */
     background: #3498db;
     color: white;
     border: none;
-    padding: 12px 20px; /* Ajustado a los estilos de 'input mejorado' */
-    border-radius: 25px; /* Ajustado a los estilos de 'input mejorado' */
+    padding: 10px 15px;
+    border-radius: 0 4px 4px 0;
     cursor: pointer;
-    margin-left: 10px;
-    transition: background 0.3s ease;
 }
 
-.search-container button:hover {
-    background: #2980b9;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #2c3e50;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: #3498db;
-}
-
-.form-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin-top: 20px;
-}
-
-/* Botones */
-.btn-base {
+.btn-primary {
+    background: #27ae60;
+    color: white;
     border: none;
     padding: 10px 20px;
     border-radius: 4px;
@@ -176,65 +127,45 @@ main {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    transition: background 0.3s, opacity 0.3s;
-}
-
-.btn-primary {
-    background: #27ae60;
-    color: white;
-    /* Herencia de .btn-base y .btn-primary:hover se mantiene */
+    transition: background 0.3s;
 }
 
 .btn-primary:hover {
     background: #219a52;
 }
 
-.btn-secondary, .back-button {
+.btn-secondary {
     background: #95a5a6;
     color: white;
-    padding: 8px 15px; /* Padding específico para secundarios y back */
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
 }
 
-.btn-secondary:hover, .back-button:hover {
+.btn-secondary:hover {
     background: #7f8c8d;
 }
 
-.btn-danger {
-    background: #e74c3c;
-    color: white;
-    padding: 8px 12px;
+/* Model Grid */
+.model-grid {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-.btn-danger:hover {
-    background: #c0392b;
-}
-
-.btn-warning {
-    background: #f39c12;
-    color: white;
-    padding: 8px 12px;
-}
-
-.btn-warning:hover {
-    background: #d35400;
-}
-
-.btn-small {
-    padding: 5px 8px; /* Ajustado para ser más consistente */
-    font-size: 0.7em; /* Se mantiene para acciones pequeñas */
-}
-
-/* Contenedores de Marcas y Modelos (Grid) */
-/* Se consolidan los estilos de grid de las marcas y los modelos */
-#marcas-container,
 .model-grid-content {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-    gap: 20px; 
-    padding: 20px; /* Esto se aplica dos veces si se usa #marcas-container en el main, pero se deja para ser explícito */
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 20px 0;
 }
 
-/* Tarjetas (model-card) */
 .model-card {
     background: white;
     border-radius: 8px;
@@ -270,19 +201,24 @@ main {
     font-size: 0.9em;
 }
 
-.model-card small {
-    display: block;
-    margin-top: 5px;
-    color: #7f8c8d;
-    font-size: 0.8em;
-}
-
 .model-actions {
     position: absolute;
     top: 10px;
     right: 10px;
-    display: flex;
-    gap: 5px;
+}
+
+.btn-small {
+    background: #95a5a6;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8em;
+}
+
+.btn-small:hover {
+    background: #7f8c8d;
 }
 
 .section-header {
@@ -292,6 +228,23 @@ main {
     margin-bottom: 20px;
     padding-bottom: 15px;
     border-bottom: 1px solid #ecf0f1;
+}
+
+.back-button {
+    background: #95a5a6;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.back-button:hover {
+    background: #7f8c8d;
 }
 
 /* Documentos */
@@ -344,29 +297,10 @@ main {
     gap: 5px;
 }
 
-.documentos-header {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #ecf0f1;
-}
-
-/* Colores de Iconos de Documento */
-.doc-icon .fa-book { color: #3498db; }
-.doc-icon .fa-list { color: #27ae60; }
-.doc-icon .fa-video { color: #e74c3c; }
-.doc-icon .fa-image { color: #9b59b6; }
-.doc-icon .fa-project-diagram { color: #f39c12; }
-.doc-icon .fa-sitemap { color: #1abc9c; }
-.doc-icon .fa-microchip { color: #34495e; }
-.doc-icon .fa-desktop { color: #2980b9; }
-.doc-icon .fa-file { color: #7f8c8d; }
-
 /* Estados */
-.loading, .search-loading {
+.loading {
     text-align: center;
-    padding: 40px; /* Consolidado para ambos */
+    padding: 40px;
     color: #7f8c8d;
 }
 
@@ -432,6 +366,42 @@ main {
     color: #000;
 }
 
+/* Formularios */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
 /* PDF Viewer */
 #pdfViewer {
     width: 100%;
@@ -440,7 +410,49 @@ main {
     border-radius: 4px;
 }
 
-/* Búsqueda */
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+    
+    main {
+        margin-left: 0;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .search-container {
+        max-width: none;
+    }
+    
+    .model-grid-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .doc-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .doc-actions {
+        flex-direction: row;
+        justify-content: center;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+    }
+}
+
+/* Estilos para búsqueda */
 .search-results-header {
     background: #f8f9fa;
     padding: 20px;
@@ -497,41 +509,177 @@ main {
     font-weight: bold;
 }
 
+/* Mejoras para las tarjetas en resultados de búsqueda */
+.model-card {
+    position: relative;
+}
 
-/* Responsive */
-@media (max-width: 768px) {
-    .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-    }
-    
-    main {
-        margin-left: 0;
-    }
-    
-    .form-row {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .search-container {
-        max-width: none;
-    }
-    
-    .doc-item {
-        flex-direction: column;
-        text-align: center;
-        gap: 10px;
-    }
-    
-    .doc-actions {
-        flex-direction: row;
-        justify-content: center;
-    }
-    
-    .modal-content {
-        width: 95%;
-        margin: 10% auto;
-    }
+.model-card small {
+    display: block;
+    margin-top: 5px;
+    color: #7f8c8d;
+    font-size: 0.8em;
+}
+
+/* Estilos para el input de búsqueda mejorado */
+.search-container {
+    position: relative;
+    display: flex;
+    flex: 1;
+    max-width: 400px;
+}
+
+.search-container input {
+    flex: 1;
+    padding: 12px 15px;
+    border: 2px solid #ddd;
+    border-radius: 25px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.search-container input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.search-container button {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: background 0.3s ease;
+}
+
+.search-container button:hover {
+    background: #2980b9;
+}
+
+/* Loading para búsqueda */
+.search-loading {
+    text-align: center;
+    padding: 20px;
+    color: #7f8c8d;
+}
+
+.search-loading .fas {
+    margin-bottom: 10px;
+}
+
+/* Estilos para botones de acción */
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+}
+
+.btn-warning {
+    background: #f39c12;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-warning:hover {
+    background: #d35400;
+}
+
+/* Mejoras para las acciones de modelo */
+.model-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 5px;
+}
+
+.model-actions .btn-small {
+    padding: 5px 8px;
+    font-size: 0.7em;
+}
+
+/* Header para documentos */
+.documentos-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+/* Mejoras para items de documento */
+.doc-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.doc-actions .btn-danger {
+    padding: 8px 12px;
+    font-size: 0.8em;
+}
+
+/* Iconos para tipos de documento */
+.doc-icon i {
+    font-size: 1.5em;
+}
+
+.fa-book { color: #3498db; }
+.fa-list { color: #27ae60; }
+.fa-video { color: #e74c3c; }
+.fa-image { color: #9b59b6; }
+.fa-project-diagram { color: #f39c12; }
+.fa-sitemap { color: #1abc9c; }
+.fa-microchip { color: #34495e; }
+.fa-desktop { color: #2980b9; }
+.fa-file { color: #7f8c8d; }
+
+/* Estilo para el contenedor de las marcas para mostrar 4 por fila */
+#marcas-container,
+.model-grid-content {
+    display: grid;
+    /* 4 columnas con tamaño flexible */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+    gap: 20px; /* Espacio entre las tarjetas */
+    padding: 20px;
+}
+
+/* Es importante asegurar que el cursor indique que es cliqueable */
+#marcas-container .model-card {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+#marcas-container .model-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+#marcas-container {
+    display: grid;
+    /* Esto crea 4 columnas flexibles, pero permite que se ajusten a la pantalla (responsive) */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+    gap: 20px; 
+    padding: 20px;
+}
+/* Asegura que el contenido del grid de modelos también use el mismo estilo de grid si lo deseas */
+.model-grid-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+    gap: 20px; 
+}
+#marcas-container .model-card {
+    cursor: pointer; /* Indica visualmente que se puede hacer clic */
 }
