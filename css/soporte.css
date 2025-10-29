@@ -569,3 +569,80 @@ main {
 .search-loading .fas {
     margin-bottom: 10px;
 }
+
+/* Estilos para botones de acción */
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+}
+
+.btn-warning {
+    background: #f39c12;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-warning:hover {
+    background: #d35400;
+}
+
+/* Mejoras para las acciones de modelo */
+.model-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 5px;
+}
+
+.model-actions .btn-small {
+    padding: 5px 8px;
+    font-size: 0.7em;
+}
+
+/* Header para documentos */
+.documentos-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+/* Mejoras para items de documento */
+.doc-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.doc-actions .btn-danger {
+    padding: 8px 12px;
+    font-size: 0.8em;
+}
+
+/* Iconos para tipos de documento */
+.doc-icon i {
+    font-size: 1.5em;
+}
+
+.fa-book { color: #3498db; }
+.fa-list { color: #27ae60; }
+.fa-video { color: #e74c3c; }
+.fa-image { color: #9b59b6; }
+.fa-project-diagram { color: #f39c12; }
+.fa-sitemap { color: #1abc9c; }
+.fa-microchip { color: #34495e; }
+.fa-desktop { color: #2980b9; }
+.fa-file { color: #7f8c8d; }
