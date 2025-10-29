@@ -646,3 +646,24 @@ main {
 .fa-microchip { color: #34495e; }
 .fa-desktop { color: #2980b9; }
 .fa-file { color: #7f8c8d; }
+
+/* Estilo para el contenedor de las marcas para mostrar 4 por fila */
+#marcas-container,
+.model-grid-content {
+    display: grid;
+    /* 4 columnas con tamaño flexible */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+    gap: 20px; /* Espacio entre las tarjetas */
+    padding: 20px;
+}
+
+/* Es importante asegurar que el cursor indique que es cliqueable */
+#marcas-container .model-card {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+#marcas-container .model-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
