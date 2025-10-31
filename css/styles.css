@@ -1238,348 +1238,9 @@ main.expanded {
   margin-left: 70px;
 }
 
-/* ===== MODO OSCURO ===== */
-body.modo-oscuro {
-  background-color: #1a1a1a;
-  color: #e0e0e0;
-}
+/* ===== TABLAS EN MODO OSCURO - 2 TONOS SIMPLES ===== */
 
-body.modo-oscuro .encabezado {
-  background-color: #2d2d2d;
-  color: #e0e0e0;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-}
-
-body.modo-oscuro .lista-incidencias {
-  background-color: #2d2d2d;
-  color: #e0e0e0;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-}
-
-body.modo-oscuro .lista-incidencias table {
-  background: #2d2d2d;
-  color: #e0e0e0;
-}
-
-body.modo-oscuro .lista-incidencias thead {
-  background-color: #404040;
-  color: #ffffff;
-}
-
-body.modo-oscuro .lista-incidencias th,
-body.modo-oscuro .lista-incidencias td {
-  border-color: #404040;
-  color: #e0e0e0;
-}
-
-body.modo-oscuro .lista-incidencias tbody tr:nth-child(even) {
-  background-color: #363636;
-}
-
-body.modo-oscuro .lista-incidencias tbody tr:hover {
-  background-color: #404040;
-}
-
-body.modo-oscuro .lista-incidencias tbody tr:hover {
-  background-color: #404040;
-}
-
-body.modo-oscuro input[type="text"],
-body.modo-oscuro input[type="date"],
-body.modo-oscuro input[type="password"],
-body.modo-oscuro input[type="email"],
-body.modo-oscuro input[type="tel"],
-body.modo-oscuro input[type="number"],
-body.modo-oscuro select,
-body.modo-oscuro textarea {
-  background-color: #363636;
-  color: #e0e0e0;
-  border-color: #555;
-}
-
-body.modo-oscuro input[type="text"]:focus,
-body.modo-oscuro input[type="date"]:focus,
-body.modo-oscuro input[type="password"]:focus,
-body.modo-oscuro input[type="email"]:focus,
-body.modo-oscuro input[type="tel"]:focus,
-body.modo-oscuro input[type="number"]:focus,
-body.modo-oscuro select:focus,
-body.modo-oscuro textarea:focus {
-  border-color: #3498db;
-  background-color: #404040;
-}
-
-body.modo-oscuro label {
-  color: #e0e0e0;
-}
-
-body.modo-oscuro .option-box {
-  background-color: #2d2d2d;
-  color: #e0e0e0;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-}
-
-body.modo-oscuro .option-box:hover {
-  box-shadow: 0 2px 10px rgba(52, 152, 219, 0.5);
-}
-
-body.modo-oscuro .option-box p {
-  color: #b0b0b0;
-}
-
-body.modo-oscuro .mensaje {
-  background-color: #2d2d2d;
-  color: #e0e0e0;
-  border-left: 4px solid #3498db;
-}
-
-body.modo-oscuro .mensaje.error {
-  background-color: #442222;
-  color: #ff9999;
-  border-left-color: #e74c3c;
-}
-
-body.modo-oscuro .mensaje.success {
-  background-color: #224422;
-  color: #99ff99;
-  border-left-color: #2ecc71;
-}
-
-body.modo-oscuro .mensaje.info {
-  background-color: #223344;
-  color: #99ccff;
-  border-left-color: #3498db;
-}
-
-/* Tablas Bootstrap en modo oscuro */
-body.modo-oscuro .table {
-  color: #e0e0e0;
-  background-color: #2d2d2d;
-}
-
-body.modo-oscuro .table-striped tbody tr:nth-of-type(odd) {
-  background-color: #363636;
-}
-
-body.modo-oscuro .table-hover tbody tr:hover {
-  background-color: #404040;
-  color: #ffffff;
-}
-
-body.modo-oscuro .table-light {
-  background-color: #404040;
-  color: #ffffff;
-}
-
-body.modo-oscuro .table-light th {
-  background-color: #404040;
-  color: #ffffff;
-}
-
-/* Botones en modo oscuro */
-body.modo-oscuro .btn-primary {
-  background-color: #2980b9;
-  border-color: #2980b9;
-}
-
-body.modo-oscuro .btn-primary:hover {
-  background-color: #3498db;
-  border-color: #3498db;
-}
-
-body.modo-oscuro .btn-secondary {
-  background-color: #555;
-  border-color: #555;
-  color: #e0e0e0;
-}
-
-body.modo-oscuro .btn-secondary:hover {
-  background-color: #666;
-  border-color: #666;
-  color: #ffffff;
-}
-
-body.modo-oscuro .btn-outline-secondary {
-  color: #b0b0b0;
-  border-color: #666;
-}
-
-body.modo-oscuro .btn-outline-secondary:hover {
-  background-color: #666;
-  border-color: #666;
-  color: #ffffff;
-}
-
-/* Filtros y detalles en modo oscuro */
-body.modo-oscuro .filtros-avanzados {
-  background-color: #2d2d2d;
-  border-left-color: #3498db;
-}
-
-body.modo-oscuro .filtros-avanzados summary {
-  color: #e0e0e0;
-}
-
-body.modo-oscuro .form-control {
-  background-color: #363636;
-  color: #e0e0e0;
-  border-color: #555;
-}
-
-body.modo-oscuro .form-control:focus {
-  background-color: #404040;
-  color: #ffffff;
-  border-color: #3498db;
-}
-
-body.modo-oscuro .form-select {
-  background-color: #363636;
-  color: #e0e0e0;
-  border-color: #555;
-}
-
-body.modo-oscuro .form-select:focus {
-  background-color: #404040;
-  color: #ffffff;
-  border-color: #3498db;
-}
-
-body.modo-oscuro .form-check-label {
-  color: #e0e0e0;
-}
-
-/* Paginación en modo oscuro */
-body.modo-oscuro .pagination .page-link {
-  background-color: #363636;
-  color: #e0e0e0;
-  border-color: #555;
-}
-
-body.modo-oscuro .pagination .page-link:hover {
-  background-color: #404040;
-  color: #ffffff;
-}
-
-body.modo-oscuro .pagination .page-item.disabled .page-link {
-  background-color: #2d2d2d;
-  color: #888;
-  border-color: #555;
-}
-
-/* ===== INTERRUPTOR MODO OSCURO ===== */
-.modo-oscuro-toggle {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1001;
-  background: #f8f9fa;
-  border: 2px solid #dee2e6;
-  border-radius: 25px;
-  padding: 5px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-body.modo-oscuro .modo-oscuro-toggle {
-  background: #2d2d2d;
-  border-color: #555;
-}
-
-.modo-oscuro-toggle:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-
-.modo-oscuro-switch {
-  width: 50px;
-  height: 25px;
-  background: #ccc;
-  border-radius: 25px;
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-body.modo-oscuro .modo-oscuro-switch {
-  background: #3498db;
-}
-
-.modo-oscuro-switch::before {
-  content: '';
-  position: absolute;
-  width: 21px;
-  height: 21px;
-  border-radius: 50%;
-  background: white;
-  top: 2px;
-  left: 2px;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-body.modo-oscuro .modo-oscuro-switch::before {
-  transform: translateX(25px);
-}
-
-.modo-oscuro-icon {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 12px;
-  color: #666;
-  transition: all 0.3s ease;
-}
-
-.modo-oscuro-icon.sun {
-  left: 8px;
-}
-
-.modo-oscuro-icon.moon {
-  right: 8px;
-}
-
-body.modo-oscuro .modo-oscuro-icon.sun {
-  color: #ffd700;
-}
-
-body.modo-oscuro .modo-oscuro-icon.moon {
-  color: #e0e0e0;
-}
-
-body:not(.modo-oscuro) .modo-oscuro-icon.moon {
-  color: #999;
-}
-
-body:not(.modo-oscuro) .modo-oscuro-icon.sun {
-  color: #ffa500;
-}
-
-/* Tooltip para el interruptor */
-.modo-oscuro-tooltip {
-  position: absolute;
-  top: -35px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #333;
-  color: white;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 12px;
-  white-space: nowrap;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
-}
-
-.modo-oscuro-toggle:hover .modo-oscuro-tooltip {
-  opacity: 1;
-  visibility: visible;
-}
-
-body.modo-oscuro .modo-oscuro-tooltip {
-  background: #555;
-}
-/* ===== TABLAS EN MODO OSCURO MEJORADAS ===== */
+/* TABLAS REGULARES (lista-incidencias) */
 body.modo-oscuro .lista-incidencias table {
   background: #2d2d2d;
   color: #e0e0e0;
@@ -1587,12 +1248,12 @@ body.modo-oscuro .lista-incidencias table {
 }
 
 body.modo-oscuro .lista-incidencias thead {
-  background: linear-gradient(135deg, #404040 0%, #505050 100%) !important;
+  background-color: #404040 !important;
   color: #ffffff;
 }
 
 body.modo-oscuro .lista-incidencias th {
-  background: transparent !important;
+  background-color: #404040 !important;
   color: #ffffff !important;
   border-color: #555 !important;
   font-weight: 600;
@@ -1603,101 +1264,204 @@ body.modo-oscuro .lista-incidencias td {
   color: #e0e0e0;
 }
 
-/* Escala de grises progresiva para filas */
-body.modo-oscuro .lista-incidencias tbody tr:nth-child(4n+1) {
-  background-color: #363636; /* Gris más claro */
+/* 2 TONOS DE GRIS PARA FILAS */
+body.modo-oscuro .lista-incidencias tbody tr:nth-child(odd) {
+  background-color: #363636; /* Gris claro - filas impares */
 }
 
-body.modo-oscuro .lista-incidencias tbody tr:nth-child(4n+2) {
-  background-color: #323232; /* Gris medio */
-}
-
-body.modo-oscuro .lista-incidencias tbody tr:nth-child(4n+3) {
-  background-color: #2e2e2e; /* Gris oscuro */
-}
-
-body.modo-oscuro .lista-incidencias tbody tr:nth-child(4n+4) {
-  background-color: #2a2a2a; /* Gris más oscuro */
+body.modo-oscuro .lista-incidencias tbody tr:nth-child(even) {
+  background-color: #2e2e2e; /* Gris oscuro - filas pares */
 }
 
 body.modo-oscuro .lista-incidencias tbody tr:hover {
-  background-color: #3a3a3a !important; /* Gris destacado al hover */
+  background-color: #404040 !important; /* Gris destacado al hover */
   color: #ffffff;
-  transition: all 0.2s ease;
 }
 
-/* Tablas Bootstrap en modo oscuro mejoradas */
+/* TABLAS BOOTSTRAP */
 body.modo-oscuro .table {
-  color: #e0e0e0;
-  background-color: #2d2d2d;
-  border-color: #404040;
+  color: #e0e0e0 !important;
+  background-color: #2d2d2d !important;
+  border-color: #404040 !important;
 }
 
-body.modo-oscuro .table-striped tbody tr:nth-of-type(4n+1) {
-  background-color: #363636;
+body.modo-oscuro .table thead {
+  background-color: #404040 !important;
 }
 
-body.modo-oscuro .table-striped tbody tr:nth-of-type(4n+2) {
-  background-color: #323232;
+body.modo-oscuro .table th {
+  background-color: #404040 !important;
+  color: #ffffff !important;
+  border-color: #555 !important;
 }
 
-body.modo-oscuro .table-striped tbody tr:nth-of-type(4n+3) {
-  background-color: #2e2e2e;
+body.modo-oscuro .table td {
+  border-color: #404040 !important;
+  color: #e0e0e0 !important;
 }
 
-body.modo-oscuro .table-striped tbody tr:nth-of-type(4n+4) {
-  background-color: #2a2a2a;
+/* 2 TONOS PARA TABLAS BOOTSTRAP */
+body.modo-oscuro .table-striped tbody tr:nth-of-type(odd) {
+  background-color: #363636 !important; /* Gris claro */
+}
+
+body.modo-oscuro .table-striped tbody tr:nth-of-type(even) {
+  background-color: #2e2e2e !important; /* Gris oscuro */
 }
 
 body.modo-oscuro .table-hover tbody tr:hover {
-  background-color: #3a3a3a !important;
-  color: #ffffff;
+  background-color: #404040 !important;
+  color: #ffffff !important;
 }
 
 body.modo-oscuro .table-light {
-  background: linear-gradient(135deg, #404040 0%, #505050 100%);
-  color: #ffffff;
+  background-color: #404040 !important;
+  color: #ffffff !important;
 }
 
 body.modo-oscuro .table-light th {
-  background: transparent;
-  color: #ffffff;
-  border-color: #555;
-  font-weight: 600;
+  background-color: #404040 !important;
+  color: #ffffff !important;
 }
 
-/* Colores específicos para estados o tipos de datos */
-body.modo-oscuro .estado-activo {
-  background-color: #1e3a1e !important;
-  color: #90ee90 !important;
-}
-
-body.modo-oscuro .estado-pendiente {
-  background-color: #3a2e1e !important;
-  color: #ffd700 !important;
-}
-
-body.modo-oscuro .estado-inactivo {
-  background-color: #3a1e1e !important;
-  color: #ff9999 !important;
-}
-
-/* Mejoras para tablas de ventas específicas */
+/* TABLAS DE VENTAS */
 body.modo-oscuro .lista-ventas table {
-  background: #2d2d2d;
-  border: 1px solid #404040;
+  background: #2d2d2d !important;
+  border: 1px solid #404040 !important;
 }
 
 body.modo-oscuro .lista-ventas thead {
-  background: linear-gradient(135deg, #404040 0%, #505050 100%);
+  background-color: #404040 !important;
 }
 
 body.modo-oscuro .lista-ventas th {
-  color: #ffffff;
-  border-color: #555;
+  background-color: #404040 !important;
+  color: #ffffff !important;
+  border-color: #555 !important;
 }
 
-/* Colores para acciones en tablas */
+body.modo-oscuro .lista-ventas td {
+  border-color: #404040 !important;
+  color: #e0e0e0 !important;
+}
+
+/* 2 TONOS PARA TABLAS DE VENTAS */
+body.modo-oscuro .lista-ventas tbody tr:nth-child(odd) {
+  background-color: #363636 !important;
+}
+
+body.modo-oscuro .lista-ventas tbody tr:nth-child(even) {
+  background-color: #2e2e2e !important;
+}
+
+body.modo-oscuro .lista-ventas tbody tr:hover {
+  background-color: #404040 !important;
+}
+
+/* TABLAS DE USUARIOS */
+body.modo-oscuro #tabla-usuarios {
+  background: #2d2d2d !important;
+  border: 1px solid #404040 !important;
+}
+
+body.modo-oscuro #tabla-usuarios thead {
+  background-color: #404040 !important;
+}
+
+body.modo-oscuro #tabla-usuarios th {
+  background-color: #404040 !important;
+  color: #ffffff !important;
+  border-color: #555 !important;
+}
+
+body.modo-oscuro #tabla-usuarios td {
+  border-color: #404040 !important;
+  color: #e0e0e0 !important;
+}
+
+/* 2 TONOS PARA TABLAS DE USUARIOS */
+body.modo-oscuro #tabla-usuarios tbody tr:nth-child(odd) {
+  background-color: #363636 !important;
+}
+
+body.modo-oscuro #tabla-usuarios tbody tr:nth-child(even) {
+  background-color: #2e2e2e !important;
+}
+
+body.modo-oscuro #tabla-usuarios tbody tr:hover {
+  background-color: #404040 !important;
+}
+
+/* TABLAS DE CLIENTES */
+body.modo-oscuro table[border="1"] {
+  background: #2d2d2d !important;
+  border: 1px solid #404040 !important;
+}
+
+body.modo-oscuro table[border="1"] thead {
+  background-color: #404040 !important;
+}
+
+body.modo-oscuro table[border="1"] th {
+  background-color: #404040 !important;
+  color: #ffffff !important;
+  border-color: #555 !important;
+}
+
+body.modo-oscuro table[border="1"] td {
+  border-color: #404040 !important;
+  color: #e0e0e0 !important;
+}
+
+/* 2 TONOS PARA TABLAS CON BORDER="1" */
+body.modo-oscuro table[border="1"] tbody tr:nth-child(odd) {
+  background-color: #363636 !important;
+}
+
+body.modo-oscuro table[border="1"] tbody tr:nth-child(even) {
+  background-color: #2e2e2e !important;
+}
+
+body.modo-oscuro table[border="1"] tbody tr:hover {
+  background-color: #404040 !important;
+}
+
+/* TABLAS GENÉRICAS - CAPTURA TODAS LAS DEMÁS */
+body.modo-oscuro table:not(.modo-oscuro-toggle):not(.modal-content table) {
+  background: #2d2d2d !important;
+  color: #e0e0e0 !important;
+  border: 1px solid #404040 !important;
+}
+
+body.modo-oscuro table:not(.modo-oscuro-toggle):not(.modal-content table) thead {
+  background-color: #404040 !important;
+}
+
+body.modo-oscuro table:not(.modo-oscuro-toggle):not(.modal-content table) th {
+  background-color: #404040 !important;
+  color: #ffffff !important;
+  border-color: #555 !important;
+}
+
+body.modo-oscuro table:not(.modo-oscuro-toggle):not(.modal-content table) td {
+  border-color: #404040 !important;
+  color: #e0e0e0 !important;
+}
+
+/* 2 TONOS PARA TODAS LAS TABLAS GENÉRICAS */
+body.modo-oscuro table:not(.modo-oscuro-toggle):not(.modal-content table) tbody tr:nth-child(odd) {
+  background-color: #363636 !important;
+}
+
+body.modo-oscuro table:not(.modo-oscuro-toggle):not(.modal-content table) tbody tr:nth-child(even) {
+  background-color: #2e2e2e !important;
+}
+
+body.modo-oscuro table:not(.modo-oscuro-toggle):not(.modal-content table) tbody tr:hover {
+  background-color: #404040 !important;
+}
+
+/* BOTONES EN TABLAS */
 body.modo-oscuro .btn-editar {
   color: #64b5f6 !important;
 }
@@ -1714,43 +1478,58 @@ body.modo-oscuro .btn-eliminar:hover {
   color: #ef9a9a !important;
 }
 
-/* Mejora para tablas con bordes visibles */
-body.modo-oscuro table {
-  border-collapse: collapse;
+/* PAGINACIÓN EN TABLAS */
+body.modo-oscuro .pagination .page-link {
+  background-color: #363636 !important;
+  color: #e0e0e0 !important;
+  border-color: #555 !important;
 }
 
-body.modo-oscuro th, 
-body.modo-oscuro td {
-  border: 1px solid #404040;
+body.modo-oscuro .pagination .page-link:hover {
+  background-color: #404040 !important;
+  color: #ffffff !important;
 }
 
-/* Estilos para encabezados de columnas específicas */
-body.modo-oscuro th[scope="col"] {
-  background: linear-gradient(135deg, #404040 0%, #484848 100%);
-  position: relative;
+body.modo-oscuro .pagination .page-item.disabled .page-link {
+  background-color: #2d2d2d !important;
+  color: #888 !important;
+  border-color: #555 !important;
 }
 
-body.modo-oscuro th[scope="col"]::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #3498db, #2980b9);
+/* CONTENEDORES DE TABLAS */
+body.modo-oscuro #tabla-ventas-container {
+  background: #2d2d2d !important;
 }
 
-/* Efectos sutiles para mejor legibilidad */
-body.modo-oscuro .lista-incidencias tbody tr {
-  transition: all 0.2s ease;
+body.modo-oscuro #report-data {
+  background: #2d2d2d !important;
 }
 
-body.modo-oscuro .lista-incidencias tbody tr:not(:hover) {
-  opacity: 0.95;
+/* MODALES CON TABLAS */
+body.modo-oscuro .modal-content table {
+  background: #2d2d2d !important;
+  color: #e0e0e0 !important;
 }
 
-body.modo-oscuro .lista-incidencias tbody tr:hover {
-  opacity: 1;
-  transform: translateX(2px);
-  box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+body.modo-oscuro .modal-content table thead {
+  background-color: #404040 !important;
+}
+
+body.modo-oscuro .modal-content table th {
+  background-color: #404040 !important;
+  color: #ffffff !important;
+}
+
+/* TABLAS EN SECCIONES ESPECÍFICAS */
+body.modo-oscuro .support-results table,
+body.modo-oscuro .doc-list table,
+body.modo-oscuro .model-grid table {
+  background: #2d2d2d !important;
+  color: #e0e0e0 !important;
+}
+
+body.modo-oscuro .support-results table thead,
+body.modo-oscuro .doc-list table thead,
+body.modo-oscuro .model-grid table thead {
+  background-color: #404040 !important;
 }
