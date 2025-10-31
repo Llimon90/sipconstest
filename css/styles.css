@@ -13,83 +13,7 @@ body {
 
 
 /* ===== ESTILOS MEJORADOS DE LA BARRA LATERAL ===== */
-/* Prevenir flash de la sidebar - Estado inicial oculto */
-.sidebar {
-  width: 70px !important;
-  transition: all 0.3s ease !important;
-}
-
-.sidebar-header {
-  padding: 25px 15px 20px !important;
-  justify-content: center !important;
-}
-
-.sidebar-header h2,
-.nav-text,
-.user-name {
-  display: none !important;
-}
-
-.nav-link {
-  padding: 18px 20px !important;
-  justify-content: center !important;
-  border-left: none !important;
-  border-radius: 8px !important;
-  margin: 0 10px 5px !important;
-}
-
-.user-info {
-  justify-content: center !important;
-}
-
-.user-info i {
-  font-size: 1.8rem !important;
-}
-
-main {
-  margin-left: 70px !important;
-  transition: margin-left 0.3s ease !important;
-}
-
-/* Estado expandido - se aplicará via JavaScript */
-.sidebar.expandida {
-  width: 280px !important;
-}
-
-.sidebar.expandida .sidebar-header {
-  padding: 25px 20px 20px !important;
-  justify-content: space-between !important;
-}
-
-.sidebar.expandida .sidebar-header h2,
-.sidebar.expandida .nav-text,
-.sidebar.expandida .user-name {
-  display: flex !important;
-}
-
-.sidebar.expandida .nav-link {
-  padding: 15px 25px !important;
-  justify-content: flex-start !important;
-  border-left: 4px solid transparent !important;
-  margin: 8px 0 !important;
-}
-
-.sidebar.expandida .user-info {
-  justify-content: flex-start !important;
-}
-
-.sidebar.expandida .user-info i {
-  font-size: 2rem !important;
-}
-
-main.contraido {
-  margin-left: 70px !important;
-}
-
-main.expandido {
-  margin-left: 280px !important;
-}
-/* Panel lateral mejorado */
+/* Estado base - se controlará completamente por JavaScript */
 .sidebar {
   width: 280px;
   background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
@@ -105,6 +29,57 @@ main.expandido {
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
+}
+
+/* Estado contraído */
+.sidebar.contraida {
+  width: 70px;
+}
+
+.sidebar.contraida .sidebar-header {
+  padding: 25px 15px 20px;
+  justify-content: center;
+}
+
+.sidebar.contraida .sidebar-header h2,
+.sidebar.contraida .nav-text,
+.sidebar.contraida .user-name {
+  display: none;
+}
+
+.sidebar.contraida .nav-link {
+  padding: 18px 20px;
+  justify-content: center;
+  border-left: none;
+  border-radius: 8px;
+  margin: 0 10px 5px;
+}
+
+.sidebar.contraida .nav-link:hover {
+  padding: 18px 20px;
+  background: rgba(52, 152, 219, 0.3);
+  border-left: none;
+}
+
+.sidebar.contraida .user-info {
+  justify-content: center;
+}
+
+.sidebar.contraida .user-info i {
+  font-size: 1.8rem;
+}
+
+/* Contenido principal */
+main {
+  margin-left: 280px;
+  padding: 20px;
+  flex: 1;
+  min-width: 0;
+  transition: margin-left 0.3s ease;
+}
+
+main.contraido {
+  margin-left: 70px;
 }
 
 /* Header de la sidebar */
@@ -126,6 +101,7 @@ main.expandido {
   color: #ecf0f1;
 }
 
+/* Resto de tus estilos existentes... */
 .sidebar-header h2 i {
   color: #3498db;
 }
