@@ -134,3 +134,42 @@ class SidebarStateManager {
 document.addEventListener('DOMContentLoaded', () => {
     new SidebarStateManager();
 });
+
+// En sidebar-state.js - Agregar esta función
+function actualizarContenidoPrincipal() {
+    const sidebar = document.querySelector('.sidebar');
+    const main = document.querySelector('main');
+    
+    if (sidebar.classList.contains('contraida')) {
+        main.classList.add('contraido');
+    } else {
+        main.classList.remove('contraido');
+    }
+}
+
+// Llamar esta función cuando se toggle la sidebar
+document.getElementById('toggleSidebar').addEventListener('click', function() {
+    const sidebar = document.querySelector('.sidebar');
+    sidebar.classList.toggle('contraida');
+    
+    // Actualizar el estado en localStorage
+    localStorage.setItem('sidebarContraida', sidebar.classList.contains('contraida'));
+    
+    // Actualizar el contenido principal
+    actualizarContenidoPrincipal();
+});
+
+// Inicializar al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebarContraida = localStorage.getItem('sidebarContraida') === 'true';
+    const sidebar = document.querySelector('.sidebar');
+    const main = document.querySelector('main');
+    
+    if (sidebarContraida) {
+        sidebar.classList.add('contraida');
+        main.classList.add('contraido');
+    } else {
+        sidebar.classList.remove('contraida');
+        main.classList.remove('contraido');
+    }
+});
