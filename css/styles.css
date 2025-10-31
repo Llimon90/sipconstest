@@ -10,8 +10,85 @@ body {
   transition: margin-left 0.3s ease;
 }
 
-/* ===== ESTILOS MEJORADOS DE LA BARRA LATERAL ===== */
 
+
+/* ===== ESTILOS MEJORADOS DE LA BARRA LATERAL ===== */
+/* Prevenir flash de la sidebar - Estado inicial oculto */
+.sidebar {
+  width: 70px !important;
+  transition: all 0.3s ease !important;
+}
+
+.sidebar-header {
+  padding: 25px 15px 20px !important;
+  justify-content: center !important;
+}
+
+.sidebar-header h2,
+.nav-text,
+.user-name {
+  display: none !important;
+}
+
+.nav-link {
+  padding: 18px 20px !important;
+  justify-content: center !important;
+  border-left: none !important;
+  border-radius: 8px !important;
+  margin: 0 10px 5px !important;
+}
+
+.user-info {
+  justify-content: center !important;
+}
+
+.user-info i {
+  font-size: 1.8rem !important;
+}
+
+main {
+  margin-left: 70px !important;
+  transition: margin-left 0.3s ease !important;
+}
+
+/* Estado expandido - se aplicará via JavaScript */
+.sidebar.expandida {
+  width: 280px !important;
+}
+
+.sidebar.expandida .sidebar-header {
+  padding: 25px 20px 20px !important;
+  justify-content: space-between !important;
+}
+
+.sidebar.expandida .sidebar-header h2,
+.sidebar.expandida .nav-text,
+.sidebar.expandida .user-name {
+  display: flex !important;
+}
+
+.sidebar.expandida .nav-link {
+  padding: 15px 25px !important;
+  justify-content: flex-start !important;
+  border-left: 4px solid transparent !important;
+  margin: 8px 0 !important;
+}
+
+.sidebar.expandida .user-info {
+  justify-content: flex-start !important;
+}
+
+.sidebar.expandida .user-info i {
+  font-size: 2rem !important;
+}
+
+main.contraido {
+  margin-left: 70px !important;
+}
+
+main.expandido {
+  margin-left: 280px !important;
+}
 /* Panel lateral mejorado */
 .sidebar {
   width: 280px;
