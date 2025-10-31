@@ -2,6 +2,7 @@
 class SidebarStateManager {
     constructor() {
         this.storageKey = 'sidebarState';
+        this.currentPage = this.getCurrentPage();
         this.init();
     }
 
@@ -11,13 +12,19 @@ class SidebarStateManager {
         
         // Configurar event listeners
         this.setupEventListeners();
+        
+        // Marcar página activa
+        this.setActivePage();
+    }
+
+    getCurrentPage() {
+        const path = window.location.pathname;
+        const page = path.split('/').pop() || 'index.html';
+        return page.toLowerCase();
     }
 
     getState() {
         const savedState = localStorage.getItem(this.storageKey);
-        // Respetar EXACTAMENTE lo que esté guardado
-        // Si no hay nada guardado, null = expandida (280px)
-        // 'contraida' = 70px, cualquier otro valor = 280px
         return savedState === 'contraida';
     }
 
@@ -93,13 +100,31 @@ class SidebarStateManager {
         }
     }
 
+    setActivePage() {
+        const links = document.querySelectorAll('.sidebar a');
+        links.forEach(link => {
+            const href = link.getAttribute('href');
+            if (href) {
+                const linkPage = href.split('/').pop().toLowerCase();
+                if (linkPage === this.currentPage || 
+                    (this.currentPage === 'index.html' && href === '../index.html') ||
+                    (this.currentPage.includes('incidencia') && linkPage.includes('incidencia'))) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            }
+        });
+    }
+
     setupNavigationLinks() {
-        // Los enlaces navegarán normalmente, el estado se mantiene en localStorage
         const navLinks = document.querySelectorAll('a[href]');
         navLinks.forEach(link => {
             link.addEventListener('click', (e) => {
-                // No prevenir el comportamiento por defecto
-                // El estado se mantendrá automáticamente por localStorage
+                // Guardar el estado actual antes de navegar
+                const sidebar = document.querySelector('.sidebar');
+                const isContraida = sidebar.classList.contains('contraida');
+                this.saveState(isContraida);
             });
         });
     }

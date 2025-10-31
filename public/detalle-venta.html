@@ -4,84 +4,77 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalle de Venta</title>
-    <link rel="stylesheet" href="../css/styles.css?v=2">
-    <script src="../scripts/dark-mode.js?v=1"></script>  
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/styles.css?v=2.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="../scripts/dark-mode.js?v=1"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 </head>
 <body>
 
-  <!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Clientes</title>
-    <link rel="stylesheet" href="../css/styles.css?v=1.16">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
+  <!-- Botón Inicio Móvil -->
+  <button class="mobile-home-btn" onclick="window.location.href='../index.html'">
+    <i class="fas fa-home"></i>
+    <span>Volver al Inicio</span>
+  </button>
 
-<body>
-  <div class="retorna">
-    <a href="../index.html"><i class="fas fa-arrow-left"></i> Inicio</a>
-  </div>
-
-  <!-- Panel lateral mejorado -->
+  <!-- Panel lateral (solo visible en escritorio) -->
   <aside class="sidebar">
     <div class="sidebar-header">
-      <h2><i class="fas fa-tools"></i> Panel</h2>
-      <button class="toggle-sidebar" id="toggleSidebar">
+      <h2 class="sidebar-title">
+        <i class="fas fa-tools"></i>
+        Panel
+      </h2>
+      <button id="toggleSidebar" class="toggle-sidebar">
         <i class="fas fa-chevron-left"></i>
       </button>
     </div>
     
-    <nav class="sidebar-nav">
-      <ul>
-        <li>
-          <a href="../index.html" class="nav-link">
-            <i class="fas fa-home"></i>
-            <span class="nav-text">Inicio</span>
-          </a>
-        </li>
-        <li>
-          <a href="incidencias.html" class="nav-link">
-            <i class="fas fa-exclamation-circle"></i>
-            <span class="nav-text">Incidencias</span>
-          </a>
-        </li>
-        <li>
-          <a href="reportes.html" class="nav-link">
-            <i class="fas fa-search"></i>
-            <span class="nav-text">Buscar incidencias</span>
-          </a>
-        </li>
-        <li>
-          <a href="clientes.html" class="nav-link">
-            <i class="fas fa-users"></i>
-            <span class="nav-text">Clientes</span>
-          </a>
-        </li>
-        <li>
-          <a href="usuarios.html" class="nav-link">
-            <i class="fas fa-user-cog"></i>
-            <span class="nav-text">Usuarios</span>
-          </a>
-        </li>
-        <li>
-          <a href="soporte.html" class="nav-link active">
-            <i class="fas fa-headset"></i>
-            <span class="nav-text">Soporte Técnico</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="nav-link">
-            <i class="fas fa-cog"></i>
-            <span class="nav-text">Configuración</span>
-          </a>
-        </li>
-      </ul>
-    </nav>
+    <ul>
+      <li>
+        <a href="../index.html" title="Inicio">
+          <i class="fas fa-home"></i>
+          <span class="sidebar-link-text">Inicio</span>
+        </a>
+      </li>
+      <li>
+        <a href="incidencias.html" title="Incidencias">
+          <i class="fas fa-exclamation-circle"></i>
+          <span class="sidebar-link-text">Incidencias</span>
+        </a>
+      </li>
+      <li>
+        <a href="reportes.html" title="Buscar Incidencias">
+          <i class="fas fa-search"></i>
+          <span class="sidebar-link-text">Buscar Incidencias</span>
+        </a>
+      </li>
+      <li>
+        <a href="clientes.html" title="Clientes">
+          <i class="fas fa-users"></i>
+          <span class="sidebar-link-text">Clientes</span>
+        </a>
+      </li>
+      <li>
+        <a href="usuarios.html" title="Usuarios">
+          <i class="fas fa-user-cog"></i>
+          <span class="sidebar-link-text">Usuarios</span>
+        </a>
+      </li>
+      <li>
+        <a href="soporte.html" title="Soporte Técnico" class="active">
+          <i class="fas fa-headset"></i>
+          <span class="sidebar-link-text">Soporte Técnico</span>
+        </a>
+      </li>
+      <li>
+        <a href="ajustes.html" title="Ajustes">
+          <i class="fas fa-cog"></i>
+          <span class="sidebar-link-text">Ajustes</span>
+        </a>
+      </li>
+    </ul>
 
+    <!-- Footer del sidebar con información del usuario -->
     <div class="sidebar-footer">
       <div class="user-info">
         <i class="fas fa-user-circle"></i>
@@ -89,13 +82,14 @@
       </div>
     </div>
   </aside>
+
   <main id="mainContent">  
     <section class="encabezado">
       <h1><i class="fas fa-receipt"></i> Detalle de Venta <span id="folio"></span></h1>
       
       <div id="mensaje" class="mensaje"></div>
       
-      <form id="form-venta">
+      <form id="form-venta" class="new-incidencia-form">
         <div class="form-row">
           <div class="form-group">
             <label for="cliente"><i class="fas fa-building"></i> Cliente:</label>
@@ -169,7 +163,7 @@
     </section>
   </main>
 
-  <script src="../scripts/sidebar-state.js?v=1"></script>
+  <script src="../scripts/sidebar-state.js"></script>
   <script src="../scripts/actualiza-venta.js?v=4"></script>
 </body>
 </html>

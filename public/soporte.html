@@ -1,121 +1,181 @@
-<!-- public/soporte.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Soporte Técnico - Documentación</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="../css/soporte.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soporte Técnico - Documentación</title>
+    <link rel="stylesheet" href="../css/styles.css?v=2.0">
+    <link rel="stylesheet" href="../css/soporte.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-  
-  <div class="retorna">
-    <a href="../index.html"><<- Inicio</a>
-  </div>
 
-  <!-- Panel lateral -->
-  <aside class="sidebar">
-    <ul>
-      <li><a href="../index.html">Inicio</a></li>
-      <li><a href="incidencias.html">Incidencias</a></li>
-      <li><a href="reportes.html">Buscar incidencias</a></li>
-      <li><a href="clientes.html">Clientes</a></li>
-      <li><a href="usuarios.html">Usuarios</a></li>
-      <li><a href="soporte.html" class="active">Soporte Técnico</a></li>
-      <li><a href="#">Configuración</a></li>
-    </ul>
-  </aside>
+    <!-- Botón Inicio Móvil -->
+    <button class="mobile-home-btn" onclick="window.location.href='../index.html'">
+        <i class="fas fa-home"></i>
+        <span>Volver al Inicio</span>
+    </button>
 
-  <!-- Contenido principal -->
-  <main>  
-    <!-- Encabezado y buscador -->
-    <section class="encabezado">
-      <h2><i class="fas fa-folder-open"></i> Documentación Técnica</h2>
-      
-      <div class="breadcrumb" id="breadcrumb">
-        <a href="soporte.html">Inicio</a> > <span>Marcas</span>
-      </div>
-      
-      <div class="form-row">
-        <div class="search-container">
-          <input type="text" id="searchInput" placeholder="Buscar modelo, número de parte...">
-          <button id="searchBtn"><i class="fas fa-search"></i></button>
+    <!-- Panel lateral (solo visible en escritorio) -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2 class="sidebar-title">
+                <i class="fas fa-tools"></i>
+                Panel
+            </h2>
+            <button id="toggleSidebar" class="toggle-sidebar">
+                <i class="fas fa-chevron-left"></i>
+            </button>
         </div>
         
-        <!-- Botón para agregar nuevo modelo -->
-        <button id="addModelBtn" class="btn-primary">
-          <i class="fas fa-plus"></i> Agregar Nuevo Modelo
-        </button>
-      </div>
-    </section>
+        <ul>
+            <li>
+                <a href="../index.html" title="Inicio">
+                    <i class="fas fa-home"></i>
+                    <span class="sidebar-link-text">Inicio</span>
+                </a>
+            </li>
+            <li>
+                <a href="incidencias.html" title="Incidencias">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span class="sidebar-link-text">Incidencias</span>
+                </a>
+            </li>
+            <li>
+                <a href="reportes.html" title="Buscar Incidencias">
+                    <i class="fas fa-search"></i>
+                    <span class="sidebar-link-text">Buscar Incidencias</span>
+                </a>
+            </li>
+            <li>
+                <a href="clientes.html" title="Clientes">
+                    <i class="fas fa-users"></i>
+                    <span class="sidebar-link-text">Clientes</span>
+                </a>
+            </li>
+            <li>
+                <a href="usuarios.html" title="Usuarios">
+                    <i class="fas fa-user-cog"></i>
+                    <span class="sidebar-link-text">Usuarios</span>
+                </a>
+            </li>
+            <li>
+                <a href="soporte.html" title="Soporte Técnico" class="active">
+                    <i class="fas fa-headset"></i>
+                    <span class="sidebar-link-text">Soporte Técnico</span>
+                </a>
+            </li>
+            <li>
+                <a href="ajustes.html" title="Ajustes">
+                    <i class="fas fa-cog"></i>
+                    <span class="sidebar-link-text">Ajustes</span>
+                </a>
+            </li>
+        </ul>
 
-    <!-- Contenedor de marcas/modelos/documentos -->
-    <section class="lista-incidencias">
-      <div id="content-container">
-        <!-- Vista de Marcas (inicial) -->
-        <div class="model-grid" id="marcas-container">
-          <div class="loading">Cargando marcas...</div>
+        <!-- Footer del sidebar con información del usuario -->
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span class="user-name">Técnico</span>
+            </div>
         </div>
-        
-        <!-- Vista de Modelos -->
-        <div class="model-grid" id="modelos-container" style="display:none;"></div>
-        
-        <!-- Vista de Documentos -->
-        <div id="documentos-container" style="display:none;">
-          <button class="back-button" id="back-to-models"><i class="fas fa-arrow-left"></i> Volver a modelos</button>
-          <h3 id="modelo-title"></h3>
-          <div class="doc-list" id="doc-list"></div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main id="mainContent">  
+        <!-- Encabezado y buscador -->
+        <section class="encabezado">
+            <h2><i class="fas fa-folder-open"></i> Documentación Técnica</h2>
+            
+            <div class="breadcrumb" id="breadcrumb">
+                <a href="soporte.html">Inicio</a> > <span>Marcas</span>
+            </div>
+            
+            <div class="form-row">
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Buscar modelo, número de parte...">
+                    <button id="searchBtn" class="btn-primary">
+                        <i class="fas fa-search"></i> Buscar
+                    </button>
+                </div>
+                
+                <!-- Botón para agregar nuevo modelo -->
+                <button id="addModelBtn" class="btn-primary">
+                    <i class="fas fa-plus"></i> Agregar Nuevo Modelo
+                </button>
+            </div>
+        </section>
+
+        <!-- Contenedor de marcas/modelos/documentos -->
+        <section class="lista-incidencias">
+            <div id="content-container">
+                <!-- Vista de Marcas (inicial) -->
+                <div class="model-grid" id="marcas-container">
+                    <div class="loading">Cargando marcas...</div>
+                </div>
+                
+                <!-- Vista de Modelos -->
+                <div class="model-grid" id="modelos-container" style="display:none;"></div>
+                
+                <!-- Vista de Documentos -->
+                <div id="documentos-container" style="display:none;">
+                    <button class="back-button" id="back-to-models">
+                        <i class="fas fa-arrow-left"></i> Volver a modelos
+                    </button>
+                    <h3 id="modelo-title"></h3>
+                    <div class="doc-list" id="doc-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Modal para vista previa -->
+        <div id="previewModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h3>Vista Previa del Documento</h3>
+                <iframe id="pdfViewer" src="" frameborder="0"></iframe>
+            </div>
         </div>
-      </div>
-    </section>
 
-    <!-- Modal para vista previa -->
-    <div id="previewModal" class="modal">
-      <div class="modal-content">
-        <span class="close-modal">&times;</span>
-        <h3>Vista Previa del Documento</h3>
-        <iframe id="pdfViewer" src="" frameborder="0"></iframe>
-      </div>
-    </div>
+        <!-- Modal para agregar nuevo modelo -->
+        <div id="addModelModal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h3>Agregar Nuevo Modelo</h3>
+                <form id="modelForm" enctype="multipart/form-data" class="new-incidencia-form">
+                    <div class="form-group">
+                        <label for="marca">Marca:</label>
+                        <select id="marca" name="marca" required>
+                            <option value="">Seleccionar marca</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="modelo_nombre">Nombre del Modelo:</label>
+                        <input type="text" id="modelo_nombre" name="modelo_nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="modelo_tipo">Tipo de Equipo:</label>
+                        <input type="text" id="modelo_tipo" name="modelo_tipo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="manual_file">Manual (PDF):</label>
+                        <input type="file" id="manual_file" name="manual_file" accept=".pdf">
+                    </div>
+                    <div class="form-group">
+                        <label for="partes_file">Lista de Partes (PDF):</label>
+                        <input type="file" id="partes_file" name="partes_file" accept=".pdf">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Guardar Modelo</button>
+                        <button type="button" class="btn-secondary" id="cancelAddModel">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
 
-    <!-- Modal para agregar nuevo modelo -->
-    <div id="addModelModal" class="modal" style="display:none;">
-      <div class="modal-content">
-        <span class="close-modal">&times;</span>
-        <h3>Agregar Nuevo Modelo</h3>
-        <form id="modelForm" enctype="multipart/form-data">
-          <div class="form-group">
-            <label for="marca">Marca:</label>
-            <select id="marca" name="marca" required>
-              <option value="">Seleccionar marca</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="modelo_nombre">Nombre del Modelo:</label>
-            <input type="text" id="modelo_nombre" name="modelo_nombre" required>
-          </div>
-          <div class="form-group">
-            <label for="modelo_tipo">Tipo de Equipo:</label>
-            <input type="text" id="modelo_tipo" name="modelo_tipo" required>
-          </div>
-          <div class="form-group">
-            <label for="manual_file">Manual (PDF):</label>
-            <input type="file" id="manual_file" name="manual_file" accept=".pdf">
-          </div>
-          <div class="form-group">
-            <label for="partes_file">Lista de Partes (PDF):</label>
-            <input type="file" id="partes_file" name="partes_file" accept=".pdf">
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn-primary">Guardar Modelo</button>
-            <button type="button" class="btn-secondary" id="cancelAddModel">Cancelar</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </main>
-
-  <script src="../scripts/soporte.js?v=4"></script>
+    <script src="../scripts/sidebar-state.js"></script>
+    <script src="../scripts/soporte.js?v=4"></script>
 </body>
 </html>

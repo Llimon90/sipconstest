@@ -1,37 +1,218 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Estadísticas</title>
-    <link rel="stylesheet" href="../css/styles.css?v=1.9">
-
-
+    <link rel="stylesheet" href="../css/styles.css?v=2.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
-  <div class="retorna" >
-    <a href="../index.html">  <<- Inicio</a>    </div>
-    
-    <!-- Panel lateral -->
-  <aside class="sidebar">
-    <ul>
-      <li><a href="../index.html">Inicio</a></li>
-      <li><a href="incidencias.html">Incidencias</a></li>
-      <li><a href="reportes.html">Buscar incidencias</a></li>
-      <li><a href="clientes.html">Clientes</a></li>
-      <li><a href="usuarios.html">Usuarios</a></li>
-      <li><a href="soporte.html" class="active">Soporte Técnico</a></li>
-      <li><a href="#">Configuración</a></li>
-    </ul>
-  </aside>
-    
-<main>
-  <section class="encabezado">
-    
-  <h1> EN DESARROLLO...</h1>
-  </section>
-</main>
+    <!-- Botón Inicio Móvil -->
+    <button class="mobile-home-btn" onclick="window.location.href='../index.html'">
+        <i class="fas fa-home"></i>
+        <span>Volver al Inicio</span>
+    </button>
 
+    <!-- Panel lateral (solo visible en escritorio) -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2 class="sidebar-title">
+                <i class="fas fa-tools"></i>
+                Panel
+            </h2>
+            <button id="toggleSidebar" class="toggle-sidebar">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+        
+        <ul>
+            <li>
+                <a href="../index.html" title="Inicio">
+                    <i class="fas fa-home"></i>
+                    <span class="sidebar-link-text">Inicio</span>
+                </a>
+            </li>
+            <li>
+                <a href="incidencias.html" title="Incidencias">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span class="sidebar-link-text">Incidencias</span>
+                </a>
+            </li>
+            <li>
+                <a href="reportes.html" title="Buscar Incidencias">
+                    <i class="fas fa-search"></i>
+                    <span class="sidebar-link-text">Buscar Incidencias</span>
+                </a>
+            </li>
+            <li>
+                <a href="clientes.html" title="Clientes">
+                    <i class="fas fa-users"></i>
+                    <span class="sidebar-link-text">Clientes</span>
+                </a>
+            </li>
+            <li>
+                <a href="usuarios.html" title="Usuarios">
+                    <i class="fas fa-user-cog"></i>
+                    <span class="sidebar-link-text">Usuarios</span>
+                </a>
+            </li>
+            <li>
+                <a href="soporte.html" title="Soporte Técnico">
+                    <i class="fas fa-headset"></i>
+                    <span class="sidebar-link-text">Soporte Técnico</span>
+                </a>
+            </li>
+            <li>
+                <a href="estadisticas.html" title="Estadísticas" class="active">
+                    <i class="fas fa-chart-bar"></i>
+                    <span class="sidebar-link-text">Estadísticas</span>
+                </a>
+            </li>
+            <li>
+                <a href="ajustes.html" title="Ajustes">
+                    <i class="fas fa-cog"></i>
+                    <span class="sidebar-link-text">Ajustes</span>
+                </a>
+            </li>
+        </ul>
+
+        <!-- Footer del sidebar con información del usuario -->
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span class="user-name">Técnico</span>
+            </div>
+        </div>
+    </aside>
+
+    <main id="mainContent">
+        <section class="encabezado">
+            <h1><i class="fas fa-chart-bar"></i> Estadísticas</h1>
+            
+            <!-- Tarjetas de estadísticas rápidas -->
+            <div class="estadisticas-container">
+                <div class="estadistica-card">
+                    <div class="estadistica-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="estadistica-numero" id="total-incidencias">0</div>
+                    <div class="estadistica-titulo">Total Incidencias</div>
+                </div>
+                
+                <div class="estadistica-card">
+                    <div class="estadistica-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="estadistica-numero" id="incidencias-completadas">0</div>
+                    <div class="estadistica-titulo">Completadas</div>
+                </div>
+                
+                <div class="estadistica-card">
+                    <div class="estadistica-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="estadistica-numero" id="incidencias-pendientes">0</div>
+                    <div class="estadistica-titulo">Pendientes</div>
+                </div>
+                
+                <div class="estadistica-card">
+                    <div class="estadistica-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="estadistica-numero" id="total-clientes">0</div>
+                    <div class="estadistica-titulo">Clientes Activos</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección de gráficos -->
+        <section class="graficos-container">
+            <div class="grafico-card">
+                <h3><i class="fas fa-chart-pie"></i> Incidencias por Estatus</h3>
+                <div id="grafico-estatus" class="grafico-placeholder">
+                    <!-- Gráfico se cargará aquí -->
+                    <p>Gráfico de distribución por estatus</p>
+                </div>
+            </div>
+            
+            <div class="grafico-card">
+                <h3><i class="fas fa-chart-line"></i> Incidencias por Mes</h3>
+                <div id="grafico-mensual" class="grafico-placeholder">
+                    <!-- Gráfico se cargará aquí -->
+                    <p>Gráfico de tendencia mensual</p>
+                </div>
+            </div>
+            
+            <div class="grafico-card">
+                <h3><i class="fas fa-user-tie"></i> Incidencias por Técnico</h3>
+                <div id="grafico-tecnicos" class="grafico-placeholder">
+                    <!-- Gráfico se cargará aquí -->
+                    <p>Gráfico de distribución por técnico</p>
+                </div>
+            </div>
+            
+            <div class="grafico-card">
+                <h3><i class="fas fa-building"></i> Incidencias por Cliente</h3>
+                <div id="grafico-clientes" class="grafico-placeholder">
+                    <!-- Gráfico se cargará aquí -->
+                    <p>Gráfico de distribución por cliente</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filtros -->
+        <section class="filtros-estadisticas">
+            <h3><i class="fas fa-filter"></i> Filtros</h3>
+            <div class="form-row">
+                <div>
+                    <label for="fecha-desde">Desde:</label>
+                    <input type="date" id="fecha-desde" name="fecha-desde">
+                </div>
+                <div>
+                    <label for="fecha-hasta">Hasta:</label>
+                    <input type="date" id="fecha-hasta" name="fecha-hasta">
+                </div>
+                <div>
+                    <label for="tecnico-filtro">Técnico:</label>
+                    <select id="tecnico-filtro" name="tecnico-filtro">
+                        <option value="">Todos los técnicos</option>
+                        <!-- Opciones se cargarán dinámicamente -->
+                    </select>
+                </div>
+                <div>
+                    <label for="cliente-filtro">Cliente:</label>
+                    <select id="cliente-filtro" name="cliente-filtro">
+                        <option value="">Todos los clientes</option>
+                        <!-- Opciones se cargarán dinámicamente -->
+                    </select>
+                </div>
+            </div>
+            <button id="aplicar-filtros" class="btn">
+                <i class="fas fa-sync-alt"></i> Aplicar Filtros
+            </button>
+        </section>
+    </main>
+
+    <script src="../scripts/sidebar-state.js"></script>
+    <script>
+        // Script básico para las estadísticas (puedes expandirlo)
+        document.addEventListener('DOMContentLoaded', function() {
+            // Establecer fechas por defecto (últimos 30 días)
+            const hoy = new Date();
+            const hace30Dias = new Date();
+            hace30Dias.setDate(hoy.getDate() - 30);
+            
+            document.getElementById('fecha-desde').value = hace30Dias.toISOString().split('T')[0];
+            document.getElementById('fecha-hasta').value = hoy.toISOString().split('T')[0];
+            
+            // Simular datos de estadísticas (reemplazar con datos reales)
+            document.getElementById('total-incidencias').textContent = '156';
+            document.getElementById('incidencias-completadas').textContent = '89';
+            document.getElementById('incidencias-pendientes').textContent = '67';
+            document.getElementById('total-clientes').textContent = '42';
+        });
+    </script>
 </body>
 </html>
