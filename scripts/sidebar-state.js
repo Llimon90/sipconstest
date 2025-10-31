@@ -2,56 +2,41 @@
 class SidebarStateManager {
     constructor() {
         this.storageKey = 'sidebarState';
-        // Inicializar inmediatamente, no esperar DOMContentLoaded
         this.init();
     }
 
     init() {
-        // Aplicar estado inmediatamente
-        this.applySavedStateImmediately();
+        // Aplicar estado guardado al cargar la página
+        this.applySavedState();
         
-        // Configurar event listeners cuando el DOM esté listo
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                this.setupEventListeners();
-            });
-        } else {
-            this.setupEventListeners();
-        }
+        // Configurar event listeners para el toggle
+        this.setupEventListeners();
     }
 
     getState() {
         const savedState = localStorage.getItem(this.storageKey);
-        // Por defecto, empezar contraída (true = contraída)
-        return savedState !== 'expandida'; // Si no está guardado o es 'contraida', retorna true
+        // Por defecto, empezar contraída
+        if (savedState === null) {
+            return true; // Contraída por defecto
+        }
+        return savedState === 'contraida';
     }
 
     saveState(isContraida) {
         localStorage.setItem(this.storageKey, isContraida ? 'contraida' : 'expandida');
     }
 
-    applySavedStateImmediately() {
+    applySavedState() {
         const isContraida = this.getState();
         const sidebar = document.querySelector('.sidebar');
-        const mainContent = document.querySelector('main');
+        const mainContent = document.getElementById('mainContent');
 
-        if (sidebar) {
-            if (!isContraida) {
-                // Si debe estar expandida, agregar la clase
-                sidebar.classList.add('expandida');
-                if (mainContent) {
-                    mainContent.classList.add('expandido');
-                    mainContent.classList.remove('contraido');
-                }
-                this.updateToggleIcon(false);
-            } else {
-                // Ya está contraída por el CSS inicial
-                if (mainContent) {
-                    mainContent.classList.add('contraido');
-                    mainContent.classList.remove('expandido');
-                }
-                this.updateToggleIcon(true);
+        if (sidebar && isContraida) {
+            sidebar.classList.add('contraida');
+            if (mainContent) {
+                mainContent.classList.add('expanded');
             }
+            this.updateToggleIcon(true);
         }
     }
 
@@ -63,34 +48,27 @@ class SidebarStateManager {
                 this.toggleSidebar();
             });
         }
-
-        // Prevenir el comportamiento por defecto de los enlaces
-        this.preventLinkFlash();
     }
 
     toggleSidebar() {
         const sidebar = document.querySelector('.sidebar');
-        const mainContent = document.querySelector('main');
-        const isContraida = !sidebar.classList.contains('expandida');
+        const mainContent = document.getElementById('mainContent');
+        const isContraida = sidebar.classList.contains('contraida');
 
         if (isContraida) {
-            // Expandir
-            sidebar.classList.add('expandida');
+            sidebar.classList.remove('contraida');
             if (mainContent) {
-                mainContent.classList.add('expandido');
-                mainContent.classList.remove('contraido');
+                mainContent.classList.remove('expanded');
             }
         } else {
-            // Contraer
-            sidebar.classList.remove('expandida');
+            sidebar.classList.add('contraida');
             if (mainContent) {
-                mainContent.classList.add('contraido');
-                mainContent.classList.remove('expandido');
+                mainContent.classList.add('expanded');
             }
         }
 
-        this.updateToggleIcon(isContraida);
-        this.saveState(isContraida);
+        this.updateToggleIcon(!isContraida);
+        this.saveState(!isContraida);
     }
 
     updateToggleIcon(isContraida) {
@@ -102,20 +80,9 @@ class SidebarStateManager {
             }
         }
     }
-
-    preventLinkFlash() {
-        // Asegurar que los enlaces mantengan el estado
-        const links = document.querySelectorAll('a');
-        links.forEach(link => {
-            if (link.href && !link.href.startsWith('javascript:')) {
-                link.addEventListener('click', (e) => {
-                    // El estado ya está guardado en localStorage
-                    // No hacer nada, dejar que la navegación ocurra normalmente
-                });
-            }
-        });
-    }
 }
 
-// Inicializar inmediatamente
-new SidebarStateManager();
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+    new SidebarStateManager();
+});
