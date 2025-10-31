@@ -1,63 +1,208 @@
-
-
 /* Estilos generales */
 body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #f4f4f4; /* Fondo general */
+  background-color: #f4f4f4;
+  display: flex;
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: margin-left 0.3s ease;
 }
 
-/* Panel lateral */
+/* ===== ESTILOS MEJORADOS DE LA BARRA LATERAL ===== */
+
+/* Panel lateral mejorado */
 .sidebar {
-  width: 250px;
-  background-color: #2c3e50;
+  width: 280px;
+  background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
   color: #ecf0f1;
-  padding: 15px;
+  padding: 0;
   height: 100vh;
   position: fixed;
+  left: 0;
+  top: 0;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 3px 0 15px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
 
-.sidebar h2 {
-  margin-top: 0;
+/* Header de la sidebar */
+.sidebar-header {
+  padding: 25px 20px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgba(0,0,0,0.2);
 }
 
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-}
-
-.sidebar li {
-  margin: 10px 0;
-}
-
-.sidebar a {
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   color: #ecf0f1;
-  text-decoration: none;
-  transition: color 0.3s;
 }
 
-.sidebar a:hover {
+.sidebar-header h2 i {
   color: #3498db;
 }
 
-/* Contenido principal */
-main {
-  margin-left: 260px; /* Espacio para el panel lateral */
+/* Botón para contraer/expandir */
+.toggle-sidebar {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: #ecf0f1;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.toggle-sidebar:hover {
+  background: rgba(255,255,255,0.2);
+  transform: scale(1.1);
+}
+
+/* Navegación */
+.sidebar-nav {
+  flex: 1;
+  padding: 20px 0;
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-nav li {
+  margin: 8px 0;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  color: #ecf0f1;
+  text-decoration: none;
+  padding: 15px 25px;
+  transition: all 0.3s ease;
+  border-left: 4px solid transparent;
+  font-size: 1rem;
+}
+
+.nav-link:hover {
+  background: rgba(52, 152, 219, 0.2);
+  border-left-color: #3498db;
+  color: #3498db;
+  padding-left: 30px;
+}
+
+.nav-link i {
+  width: 20px;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.nav-text {
+  flex: 1;
+  font-weight: 500;
+}
+
+/* Footer de la sidebar */
+.sidebar-footer {
   padding: 20px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  background-color: rgba(0,0,0,0.2);
 }
 
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #ecf0f1;
+}
 
+.user-info i {
+  font-size: 2rem;
+  color: #bdc3c7;
+}
+
+.user-name {
+  font-weight: 500;
+}
+
+/* ===== BARRA LATERAL CONTRAÍDA ===== */
+.sidebar.contraida {
+  width: 70px;
+}
+
+.sidebar.contraida .sidebar-header {
+  padding: 25px 15px 20px;
+  justify-content: center;
+}
+
+.sidebar.contraida .sidebar-header h2,
+.sidebar.contraida .nav-text,
+.sidebar.contraida .user-name {
+  display: none;
+}
+
+.sidebar.contraida .nav-link {
+  padding: 18px 20px;
+  justify-content: center;
+  border-left: none;
+  border-radius: 8px;
+  margin: 0 10px 5px;
+}
+
+.sidebar.contraida .nav-link:hover {
+  padding: 18px 20px;
+  background: rgba(52, 152, 219, 0.3);
+  border-left: none;
+}
+
+.sidebar.contraida .user-info {
+  justify-content: center;
+}
+
+.sidebar.contraida .user-info i {
+  font-size: 1.8rem;
+}
+
+/* ===== CONTENIDO PRINCIPAL ===== */
+main {
+  margin-left: 280px;
+  padding: 20px;
+  flex: 1;
+  min-width: 0;
+  transition: margin-left 0.3s ease;
+}
+
+main.expanded {
+  margin-left: 70px;
+}
+
+/* Contenido principal */
 main textarea {
-  width: 100%; /* O un valor específico en píxeles, como 300px */
-  height: 150px; /* Altura fija */
-  resize: none; /* Evita que el usuario cambie el tamaño del textarea */
-  padding: 8px; /* Espaciado interno */
-  border: 1px solid #ccc; /* Borde */
-  border-radius: 4px; /* Bordes redondeados */
-  box-sizing: border-box; /* Incluye el padding en el tamaño total del textarea */
+  width: 100%;
+  height: 150px;
+  resize: none;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
 }
-
 
 .encabezado {
   background-color: #ffffff;
@@ -134,13 +279,20 @@ button:hover {
   background-color: #2980b9;
 }
 
+.btn-rojo {
+  background-color: #e74c3c;
+}
+
+.btn-rojo:hover {
+  background-color: #c0392b;
+}
+
 /* Responsividad */
 @media (max-width: 600px) {
   .form-row {
     flex-direction: column;
   }
 }
-
 
 /* Estilo para TABLAS de incidencias */
 .lista-incidencias  {
@@ -149,8 +301,6 @@ button:hover {
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-
-
 }
 
 .lista-incidencias table {
@@ -169,8 +319,8 @@ button:hover {
 .lista-incidencias td {
   padding: 10px;
   border: 1px solid #ddd;
-  text-align: center; /* Centrar contenido horizontalmente */
-  vertical-align: middle; /* Centrar contenido verticalmente */
+  text-align: center;
+  vertical-align: middle;
 }
 
 .lista-incidencias tbody tr:nth-child(even) {
@@ -181,163 +331,165 @@ button:hover {
   background-color: #e0e0ff;
 }
 
-
-
 /* ESTILOS INDEX menu */
 
 /* Contenedor principal del contenido del administrador */
 #admin-content {
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* Alinea al inicio */
-  min-height: 85vh; /* Ocupa toda la altura de la ventana */
-  padding: 40px 20px; /* Espaciado en la parte superior e inferior */
+  align-items: flex-start;
+  min-height: 85vh;
+  padding: 40px 20px;
 }
 
 /* Contenedor de opciones */
 .options-container {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* Cuatro columnas */
-  gap: 20px; /* Espacio entre las tarjetas */
-  max-width: 1800px; /* Ancho máximo del contenedor */
-  width: 100%; /* Asegura que el contenedor ocupe el ancho completo */
-  margin: 0 auto; /* Centra el contenedor horizontalmente */
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  max-width: 1800px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 /* Estilo de cada opción */
 .option-box {
-  display: flex; /* Flexbox para alinear icono y texto */
-  flex-direction: column; /* Disposición vertical */
-  align-items: start; /* Centra horizontalmente el contenido */
-  justify-content: center; /* Centra verticalmente el contenido */
-  color: #333333; /* Texto oscuro */
-  border-radius: 8px; /* Bordes redondeados */
-  text-align: center; /* Centra el texto */
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: center;
+  color: #333333;
+  border-radius: 8px;
+  text-align: center;
   padding: 20px;
-  height: 200px; /* Ajusta la altura de las cajas */
-  transition: transform 0.3s, box-shadow 0.3s; /* Efecto de transición */
-  text-decoration: none; /* Elimina subrayado en enlaces */
-  background-color: rgba(255, 255, 255, 0.9); /* Color de fondo blanco con transparencia */
-  box-shadow: 0 2px 5px rgba(102, 102, 102, 0.5); /* Sombra gris oscuro */
+  height: 200px;
+  transition: transform 0.3s, box-shadow 0.3s;
+  text-decoration: none;
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 5px rgba(102, 102, 102, 0.5);
 }
 
 /* Efecto de hover */
 .option-box:hover {
-  transform: translateY(-5px); /* Eleva la tarjeta al pasar el mouse */
-  box-shadow: 0 2px 10px rgba(5, 97, 216, 0.8); /* Sombra azul oscuro al hacer hover */
+  transform: translateY(-5px);
+  box-shadow: 0 2px 10px rgba(5, 97, 216, 0.8);
 }
 
 /* Estilos de los iconos */
 .option-box i {
-  font-size: 40px; /* Tamaño del icono */
-  margin-bottom: 10px; /* Espacio entre el icono y el texto */
-  color: #2679a0; /* Color diferente para los íconos */
+  font-size: 40px;
+  margin-bottom: 10px;
+  color: #2679a0;
 }
 
 /* Estilo de texto */
 .option-box h3 {
-  margin: 0; /* Elimina margen */
-  font-size: 18px; /* Tamaño de fuente */
-  font-weight: bold; /* Negrita */
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
 }
 
 /* Descripción breve */
 .option-box p {
-  font-size: 14px; /* Tamaño de fuente para la descripción */
-  color: #666666; /* Color más claro para la descripción */
-  margin: 5px 0 0; /* Margen superior */
+  font-size: 14px;
+  color: #666666;
+  margin: 5px 0 0;
 }
 
-
 /*ESTILOS RESPONSIVE*/
-
 
 /* Responsive para dispositivos móviles */
 @media (max-width: 768px) {
   .sidebar {
-    width: 100%; /* Panel lateral ocupa el 100% */
-    height: auto; /* Altura automática para contenido */
-    position: relative; /* Cambia la posición para que no se superponga */
-    text-align: center; /* Centrar texto en la barra lateral */
+    transform: translateX(-100%);
+    width: 280px;
   }
-
+  
+  .sidebar.active {
+    transform: translateX(0);
+  }
+  
+  .sidebar.contraida {
+    transform: translateX(-100%);
+  }
+  
   main {
-    margin-left: 0; /* Sin margen para el contenido principal */
-    padding: 10px; /* Espaciado reducido */
-    text-align: center; /* Centrar contenido principal */
+    margin-left: 0;
+    width: 100%;
+    padding: 10px;
   }
-
+  
+  main.expanded {
+    margin-left: 0;
+  }
+  
   .options-container {
-    grid-template-columns: 1fr; /* Una columna en pantallas muy pequeñas */
-    justify-items: center; /* Centra cada opción en la grilla */
+    grid-template-columns: 1fr;
+    justify-items: center;
   }
 
   .option-box {
-    display: flex; /* Flexbox para centrar el contenido */
-    flex-direction: column; /* Disposición vertical */
-    align-items: center; /* Centra horizontalmente el contenido */
-    justify-content: center; /* Centra verticalmente el contenido */
-    height: auto; /* Altura automática para que se ajuste al contenido */
-    width: 100%; /* Ancho completo para las cajas de opción */
-    max-width: 300px; /* Ancho máximo para que no sea demasiado ancho */
-    margin: 10px 0; /* Margen entre las opciones */
-    text-align: center; /* Centrar texto en las cajas */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: auto;
+    width: 100%;
+    max-width: 300px;
+    margin: 10px 0;
+    text-align: center;
   }
 
-  /* Estilo de texto */
   .option-box h3, .option-box p {
-    margin: 0; /* Elimina margen para evitar desbordamiento */
+    margin: 0;
+  }
+
+  .form-row {
+    flex-direction: column;
   }
 }
 
 /* Asegúrate de que el icono de menú no se muestre en pantallas grandes */
 @media (min-width: 769px) {
   .retorna  {
-    display: none; /* Ocultar el icono en pantallas grandes */
+    display: none;
   }
 }
-
-
 
 /* Ocultar la barra lateral en pantallas pequeñas */
 @media (max-width: 768px) {
   .sidebar {
-    display: none; /* Ocultar la barra lateral */
-    transition: all 0.3s ease; /* Animación para la transición */
+    display: none;
+    transition: all 0.3s ease;
   }
 
   .retorna.active {
-    display: block; /* Mostrar la barra lateral */
-    position: absolute; /* Posicionarla respecto al icono */
-    top: 50px; /* Ajusta según la altura del icono */
-    left: 50%; /* Centrar horizontalmente */
-    transform: translateX(-50%); /* Ajuste para centrar */
-    z-index: 1000; /* Asegúrate de que esté por encima del contenido */
-    background-color: #2c3e50; /* Fondo del menú */
-    width: 250px; /* Ancho del menú */
-    padding: 15px; /* Espaciado interno */
-    border-radius: 8px; /* Bordes redondeados */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); /* Sombra para el menú */
-    max-height: 80vh; /* Altura máxima para el menú */
-    overflow-y: auto; /* Habilita el desplazamiento si el contenido es demasiado */
+    display: block;
+    position: absolute;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background-color: #2c3e50;
+    width: 250px;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    max-height: 80vh;
+    overflow-y: auto;
     text-align: center;
-   
   }
-
-
 }
 
 /* Asegúrate de que el icono de menú no se muestre en pantallas grandes */
 @media (min-width: 769px) {
   .menu-icon {
-    display: none; /* Ocultar el icono en pantallas grandes */
+    display: none;
   }
 }
 
-
 /*ESTILOS TABLA*/
-.lista-incidencias{
-table {
+.lista-incidencias table {
   width: 100%;
   border-collapse: collapse;
   font-family: Arial, sans-serif;
@@ -348,34 +500,34 @@ table {
   overflow: hidden;
 }
 
-th, td {
+.lista-incidencias th, 
+.lista-incidencias td {
   padding: 12px 15px;
   text-align: left;
 }
 
-th {
+.lista-incidencias th {
   background: #4A90E2;
   color: white;
   font-weight: bold;
   text-transform: uppercase;
 }
 
-tr {
+.lista-incidencias tr {
   border-bottom: 1px solid #ddd;
   transition: background 0.3s ease;
 }
 
-tr:hover {
+.lista-incidencias tr:hover {
   background: #f5f5f5;
 }
 
-tbody tr:last-child {
+.lista-incidencias tbody tr:last-child {
   border-bottom: none;
 }
 
-td {
+.lista-incidencias td {
   color: #333;
-}
 }
 
 /*ESTILOS PARA EDITAR CLIENTE DOM CLIENTES*/
@@ -439,7 +591,6 @@ td {
   cursor: not-allowed;
 }
 
-
 /*ESTILO TABLA VENTAS*/
 
 /* Estilos para la sección de ventas */
@@ -497,8 +648,6 @@ td {
   background-color: #45a049;
 }
 
-
-
 /* Estructura principal mejorada */
 body {
   font-family: Arial, sans-serif;
@@ -512,10 +661,10 @@ body {
 
 /* Panel lateral fijo mejorado */
 .sidebar {
-  width: 250px;
+  width: 280px;
   background-color: #2c3e50;
   color: #ecf0f1;
-  padding: 15px;
+  padding: 0;
   height: 100vh;
   position: fixed;
   left: 0;
@@ -523,16 +672,17 @@ body {
   overflow-y: auto;
   z-index: 1000;
   box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
 }
 
 /* Contenido principal optimizado */
 main {
-  margin-left: 250px;
+  margin-left: 280px;
   padding: 20px;
   flex: 1;
-  min-width: 0; /* Previene problemas de overflow */
-  width: calc(100% - 250px);
-  transition: margin-left 0.3s;
+  min-width: 0;
+  width: calc(100% - 280px);
+  transition: margin-left 0.3s ease;
 }
 
 /* Encabezado y formularios */
@@ -560,7 +710,7 @@ input[type="text"],
 input[type="date"],
 select,
 textarea {
-  min-width: 0; /* Permite que se reduzcan con el zoom */
+  min-width: 0;
 }
 
 /* Botón de retorno mejorado */
@@ -611,7 +761,6 @@ textarea {
     transform: translateX(0) !important;
   }
 }
-
 
 /*ESTILOS PARA SOPORTE*/
 /* Soporte Técnico */
@@ -949,4 +1098,46 @@ input, select, textarea {
     max-width: 150px;
     max-height: 150px;
     border: 1px solid #eee;
+}
+
+/* ===== SCROLLBAR PERSONALIZADO ===== */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.1);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.3);
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.5);
+}
+
+/* ===== TRANSICIONES SUAVES ===== */
+.sidebar,
+.sidebar *,
+main {
+  transition: all 0.3s ease;
+}
+
+/* ===== MEJORAS VISUALES ADICIONALES ===== */
+.nav-link.active {
+  background: rgba(52, 152, 219, 0.3);
+  border-left-color: #3498db;
+  color: #3498db;
+}
+
+/* Efecto de carga suave */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

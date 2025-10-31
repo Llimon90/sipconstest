@@ -4,28 +4,125 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Estadísticas</title>
-    <link rel="stylesheet" href="../css/styles.css?v=1.9">
-
-
+    <link rel="stylesheet" href="../css/styles.css?v=1.16">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-  <div class="retorna" >
-    <a href="../index.html">  <<- Inicio</a>    </div>
+  <div class="retorna">
+    <a href="../index.html"><i class="fas fa-arrow-left"></i> Inicio</a>
+  </div>
     
-  <!-- Panel lateral -->
+  <!-- Panel lateral mejorado -->
   <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2><i class="fas fa-tools"></i> Panel</h2>
+      <button class="toggle-sidebar" id="toggleSidebar">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+    </div>
     
-    <ul>
-      <li><a href="../index.html">Inicio</a></li>
-      <li><a href="incidencias.html">Incidencias</a></li>
-      <li><a href="reportes.html">Buscar incidencias</a></li>
-      <li><a href="clientes.html">Clientes</a></li>
-      <li><a href="usuarios.html">Usuarios</a></li>
-      <li><a href="#">Configuración</a></li>
-    </ul>
+    <nav class="sidebar-nav">
+      <ul>
+        <li>
+          <a href="../index.html" class="nav-link">
+            <i class="fas fa-home"></i>
+            <span class="nav-text">Inicio</span>
+          </a>
+        </li>
+        <li>
+          <a href="incidencias.html" class="nav-link">
+            <i class="fas fa-exclamation-circle"></i>
+            <span class="nav-text">Incidencias</span>
+          </a>
+        </li>
+        <li>
+          <a href="reportes.html" class="nav-link">
+            <i class="fas fa-search"></i>
+            <span class="nav-text">Buscar incidencias</span>
+          </a>
+        </li>
+        <li>
+          <a href="clientes.html" class="nav-link">
+            <i class="fas fa-users"></i>
+            <span class="nav-text">Clientes</span>
+          </a>
+        </li>
+        <li>
+          <a href="usuarios.html" class="nav-link">
+            <i class="fas fa-user-cog"></i>
+            <span class="nav-text">Usuarios</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link">
+            <i class="fas fa-cog"></i>
+            <span class="nav-text">Configuración</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
 
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <i class="fas fa-user-circle"></i>
+        <span class="user-name">Usuario</span>
+      </div>
+    </div>
   </aside>
+
+  <main id="mainContent">
+    <section class="encabezado">
+      <h2><i class="fas fa-chart-bar"></i> Estadísticas del Sistema</h2>
+      <div class="options-container">
+        <a href="#" class="option-box">
+          <i class="fas fa-chart-line"></i>
+          <h3>Estadísticas de Incidencias</h3>
+          <p>Ver reportes y métricas de incidencias</p>
+        </a>
+        <a href="#" class="option-box">
+          <i class="fas fa-user-chart"></i>
+          <h3>Estadísticas de Técnicos</h3>
+          <p>Rendimiento y productividad por técnico</p>
+        </a>
+        <a href="#" class="option-box">
+          <i class="fas fa-building"></i>
+          <h3>Estadísticas por Cliente</h3>
+          <p>Métricas y reportes por cliente</p>
+        </a>
+        <a href="#" class="option-box">
+          <i class="fas fa-calendar-alt"></i>
+          <h3>Reportes por Período</h3>
+          <p>Estadísticas mensuales y anuales</p>
+        </a>
+      </div>
+    </section>
+  </main>
     
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Toggle sidebar functionality
+      const toggleSidebar = document.getElementById('toggleSidebar');
+      const sidebar = document.querySelector('.sidebar');
+      const mainContent = document.getElementById('mainContent');
+      
+      if (toggleSidebar) {
+        toggleSidebar.addEventListener('click', function() {
+          sidebar.classList.toggle('contraida');
+          if (mainContent) {
+            mainContent.classList.toggle('expanded');
+          }
+          
+          // Cambiar icono
+          const icon = this.querySelector('i');
+          if (sidebar.classList.contains('contraida')) {
+            icon.className = 'fas fa-chevron-right';
+          } else {
+            icon.className = 'fas fa-chevron-left';
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>

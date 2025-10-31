@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Buscar Incidencias</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <!-- Agrega Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="../css/styles.css?v=1.18">
+  <link rel="stylesheet" href="../css/styles.css?v=1.16">
   <style>
     .filtros-avanzados {
       background-color: #f8f9fa;
@@ -87,48 +87,94 @@
 <body>
 
    <div class="retorna">
-    <a href="../index.html">  <<- Inicio</a>  
+    <a href="../index.html"><i class="fas fa-arrow-left"></i> Inicio</a>  
    </div>
 
-  <!-- Panel lateral -->
+  <!-- Panel lateral mejorado -->
   <aside class="sidebar">
-    <ul>
-      <li><a href="../index.html">Inicio</a></li>
-      <li><a href="incidencias.html">Incidencias</a></li>
-      <li><a href="reportes.html" class="active">Buscar incidencias</a></li>
-      <li><a href="clientes.html">Clientes</a></li>
-      <li><a href="usuarios.html">Usuarios</a></li>
-      <li><a href="#">Configuración</a></li>
-    </ul>
+    <div class="sidebar-header">
+      <h2><i class="fas fa-tools"></i> Panel</h2>
+      <button class="toggle-sidebar" id="toggleSidebar">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <ul>
+        <li>
+          <a href="../index.html" class="nav-link">
+            <i class="fas fa-home"></i>
+            <span class="nav-text">Inicio</span>
+          </a>
+        </li>
+        <li>
+          <a href="incidencias.html" class="nav-link">
+            <i class="fas fa-exclamation-circle"></i>
+            <span class="nav-text">Incidencias</span>
+          </a>
+        </li>
+        <li>
+          <a href="reportes.html" class="nav-link active">
+            <i class="fas fa-search"></i>
+            <span class="nav-text">Buscar incidencias</span>
+          </a>
+        </li>
+        <li>
+          <a href="clientes.html" class="nav-link">
+            <i class="fas fa-users"></i>
+            <span class="nav-text">Clientes</span>
+          </a>
+        </li>
+        <li>
+          <a href="usuarios.html" class="nav-link">
+            <i class="fas fa-user-cog"></i>
+            <span class="nav-text">Usuarios</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link">
+            <i class="fas fa-cog"></i>
+            <span class="nav-text">Configuración</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <i class="fas fa-user-circle"></i>
+        <span class="user-name">Usuario</span>
+      </div>
+    </div>
   </aside>
 
   <!-- Contenido principal -->
-  <main>
+  <main id="mainContent">
     <section class="encabezado">
-      <h2>Filtrar incidencias</h2>
+      <h2><i class="fas fa-filter"></i> Filtrar incidencias</h2>
       
       <!-- Filtros rápidos -->
       <div class="d-flex flex-wrap gap-2 mb-3">
         <button type="button" class="btn btn-outline-success btn-sm btn-filtro-rapido" data-filtro="Mr. Tienda/Mr. Chef" 
                 data-bs-toggle="tooltip" data-bs-placement="top">
-          <i class="bi bi-cash-register"></i> Mr. Tienda/Mr. Chef
+          <i class="fas fa-cash-register"></i> Mr. Tienda/Mr. Chef
         </button>
         <button type="button" class="btn btn-outline-info btn-sm btn-filtro-rapido" data-filtro="Otros" 
                 data-bs-toggle="tooltip" data-bs-placement="top">
-          <i class="bi bi-speedometer2"></i> Otros
+          <i class="fas fa-tachometer-alt"></i> Otros
         </button>
         <button type="button" class="btn btn-outline-secondary btn-sm btn-filtro-rapido" data-filtro="todos">
-          <i class="bi bi-list-ul"></i> Mostrar Todos
+          <i class="fas fa-list-ul"></i> Mostrar Todos
         </button>
       </div>
       
       <form id="report-form">
         <details class="filtros-avanzados" open>
-          <summary>Filtros avanzados</summary>
+          <summary><i class="fas fa-sliders-h"></i> Filtros avanzados</summary>
           
           <div class="form-row mt-3">
             <div class="col-md-6">
-              <label for="cliente">Cliente:</label>
+              <label for="cliente"><i class="fas fa-building"></i> Cliente:</label>
               <select id="cliente" name="cliente" class="form-select">
                 <option value="">Seleccionar Cliente</option>
                 <option value="todos">Todos los clientes</option>
@@ -136,7 +182,7 @@
             </div>
             
             <div class="col-md-6">
-              <label for="tipo-equipo">Tipo de Equipo:</label>
+              <label for="tipo-equipo"><i class="fas fa-desktop"></i> Tipo de Equipo:</label>
               <select id="tipo-equipo" name="tipo_equipo" class="form-select">
                 <option value="">Seleccionar Tipo</option>
                 <option value="Mr. Tienda/Mr. Chef">Mr. Tienda/Mr. Chef</option>
@@ -147,17 +193,17 @@
 
           <div class="form-row mt-3">
             <div class="col-md-4">
-              <label for="fecha-inicio">Fecha de Inicio:</label>
+              <label for="fecha-inicio"><i class="fas fa-calendar-alt"></i> Fecha de Inicio:</label>
               <input type="date" id="fecha-inicio" name="fecha_inicio" class="form-control">
             </div>
         
             <div class="col-md-4">
-              <label for="fecha-fin">Fecha de Fin:</label>
+              <label for="fecha-fin"><i class="fas fa-calendar-alt"></i> Fecha de Fin:</label>
               <input type="date" id="fecha-fin" name="fecha_fin" class="form-control">
             </div>
             
             <div class="col-md-4">
-              <label for="estatus">Estatus:</label>
+              <label for="estatus"><i class="fas fa-flag"></i> Estatus:</label>
               <select id="estatus" name="estatus" class="form-select">
                 <option value="">Seleccionar Estatus</option>
                 <option value="Abierto">Abierto</option>
@@ -172,12 +218,12 @@
         
           <div class="form-row mt-3">
             <div class="col-md-6">
-              <label for="sucursal">Sucursal:</label>
+              <label for="sucursal"><i class="fas fa-store"></i> Sucursal:</label>
               <input type="text" id="sucursal" name="sucursal" class="form-control" placeholder="Nombre de sucursal">
             </div>
             
             <div class="col-md-6">
-              <label for="tecnico">Técnico Asignado:</label>
+              <label for="tecnico"><i class="fas fa-user-cog"></i> Técnico Asignado:</label>
               <select id="tecnico" name="tecnico" class="form-select">
                 <option value="" selected>Seleccione un técnico</option>
                 <option value="Victor Hugo Cordoba">Victor Hugo Cordoba</option>
@@ -199,7 +245,7 @@
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="solo-activas" name="solo_activas">
                 <label class="form-check-label" for="solo-activas">
-                  Mostrar solo incidencias activas
+                  <i class="fas fa-bell"></i> Mostrar solo incidencias activas
                 </label>
               </div>
             </div>
@@ -207,10 +253,10 @@
         
           <div class="form-row mt-3">
             <button type="submit" class="btn btn-primary me-2" aria-label="Buscar incidencias">
-              <i class="bi bi-search"></i> Buscar
+              <i class="fas fa-search"></i> Buscar
             </button>
             <button type="button" class="btn btn-outline-secondary" onclick="limpiarFiltros()">
-              <i class="bi bi-x-circle"></i> Limpiar Filtros
+              <i class="fas fa-times-circle"></i> Limpiar Filtros
             </button>
           </div>
         </details>
@@ -220,19 +266,19 @@
 
     <!-- Resultados del Reporte -->
     <section class="lista-incidencias">
-      <h2>Historial de incidencias</h2>
+      <h2><i class="fas fa-history"></i> Historial de incidencias</h2>
       <div id="report-data" style="overflow-x: auto;">
         <table class="table table-striped table-hover">
           <thead class="table-light">
             <tr>
-              <th># Reporte Interno</th>
-              <th># Incidencia Cliente</th>
-              <th>Cliente</th>
-              <th>Sucursal</th>
-              <th>Falla</th>
-              <th>Fecha</th>
-              <th>Estatus</th>
-              <th>Estado</th>
+              <th><i class="fas fa-hashtag"></i> # Reporte Interno</th>
+              <th><i class="fas fa-ticket-alt"></i> # Incidencia Cliente</th>
+              <th><i class="fas fa-building"></i> Cliente</th>
+              <th><i class="fas fa-store"></i> Sucursal</th>
+              <th><i class="fas fa-exclamation-triangle"></i> Falla</th>
+              <th><i class="fas fa-calendar"></i> Fecha</th>
+              <th><i class="fas fa-flag"></i> Estatus</th>
+              <th><i class="fas fa-circle"></i> Estado</th>
             </tr>
           </thead>
           <tbody id="tabla-body">
@@ -255,10 +301,14 @@
           <nav aria-label="Page navigation">
             <ul class="pagination pagination-sm mb-0">
               <li class="page-item disabled" id="btn-prev">
-                <a class="page-link" href="#" tabindex="-1">Anterior</a>
+                <a class="page-link" href="#" tabindex="-1">
+                  <i class="fas fa-chevron-left"></i> Anterior
+                </a>
               </li>
               <li class="page-item" id="btn-next">
-                <a class="page-link" href="#">Siguiente</a>
+                <a class="page-link" href="#">
+                  Siguiente <i class="fas fa-chevron-right"></i>
+                </a>
               </li>
             </ul>
           </nav>
@@ -269,6 +319,39 @@
 
   <!-- Agrega Bootstrap JS al final del body -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Toggle sidebar functionality
+      const toggleSidebar = document.getElementById('toggleSidebar');
+      const sidebar = document.querySelector('.sidebar');
+      const mainContent = document.getElementById('mainContent');
+      
+      if (toggleSidebar) {
+        toggleSidebar.addEventListener('click', function() {
+          sidebar.classList.toggle('contraida');
+          if (mainContent) {
+            mainContent.classList.toggle('expanded');
+          }
+          
+          // Cambiar icono
+          const icon = this.querySelector('i');
+          if (sidebar.classList.contains('contraida')) {
+            icon.className = 'fas fa-chevron-right';
+          } else {
+            icon.className = 'fas fa-chevron-left';
+          }
+        });
+      }
+
+      // Inicializar tooltips de Bootstrap
+      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+    });
+  </script>
+
   <script src="../scripts/script-busquedas.js?v=14" defer></script>
   
 </body>

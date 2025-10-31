@@ -4,28 +4,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ajustes</title>
-    <link rel="stylesheet" href="../css/styles.css?v=1.9">
-
-
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css?v=1.16">
 </head>
 <body>
 
-  <div class="retorna" >
-    <a href="../index.html">  <<- Inicio</a>    </div>
+  <div class="retorna">
+    <a href="../index.html"><<- Inicio</a>
+  </div>
     
-  <!-- Panel lateral -->
+  <!-- Panel lateral mejorado -->
   <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2><i class="fas fa-tools"></i> Panel</h2>
+      <button class="toggle-sidebar" id="toggleSidebar">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+    </div>
     
-    <ul>
-      <li><a href="../index.html">Inicio</a></li>
-      <li><a href="incidencias.html">Incidencias</a></li>
-      <li><a href="reportes.html">Buscar incidencias</a></li>
-      <li><a href="clientes.html">Clientes</a></li>
-      <li><a href="usuarios.html">Usuarios</a></li>
-      <li><a href="#">Configuración</a></li>
-    </ul>
+    <nav class="sidebar-nav">
+      <ul>
+        <li>
+          <a href="../index.html" class="nav-link">
+            <i class="fas fa-home"></i>
+            <span class="nav-text">Inicio</span>
+          </a>
+        </li>
+        <li>
+          <a href="incidencias.html" class="nav-link">
+            <i class="fas fa-exclamation-circle"></i>
+            <span class="nav-text">Incidencias</span>
+          </a>
+        </li>
+        <li>
+          <a href="reportes.html" class="nav-link">
+            <i class="fas fa-search"></i>
+            <span class="nav-text">Buscar incidencias</span>
+          </a>
+        </li>
+        <li>
+          <a href="clientes.html" class="nav-link">
+            <i class="fas fa-users"></i>
+            <span class="nav-text">Clientes</span>
+          </a>
+        </li>
+        <li>
+          <a href="usuarios.html" class="nav-link">
+            <i class="fas fa-user-cog"></i>
+            <span class="nav-text">Usuarios</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link">
+            <i class="fas fa-cog"></i>
+            <span class="nav-text">Configuración</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
 
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <i class="fas fa-user-circle"></i>
+        <span class="user-name">Usuario</span>
+      </div>
+    </div>
   </aside>
+
+  <main id="mainContent">
+    <!-- Tu contenido principal aquí -->
+    <section class="encabezado">
+      <h2>Ajustes del Sistema</h2>
+      <p>Contenido de la página de ajustes...</p>
+    </section>
+  </main>
     
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Toggle sidebar functionality
+      const toggleSidebar = document.getElementById('toggleSidebar');
+      const sidebar = document.querySelector('.sidebar');
+      const mainContent = document.getElementById('mainContent');
+      
+      if (toggleSidebar) {
+        toggleSidebar.addEventListener('click', function() {
+          sidebar.classList.toggle('contraida');
+          if (mainContent) {
+            mainContent.classList.toggle('expanded');
+          }
+          
+          // Cambiar icono
+          const icon = this.querySelector('i');
+          if (sidebar.classList.contains('contraida')) {
+            icon.className = 'fas fa-chevron-right';
+          } else {
+            icon.className = 'fas fa-chevron-left';
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>

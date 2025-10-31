@@ -4,113 +4,184 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alta de Usuarios Técnicos</title>
-    <link rel="stylesheet" href="../css/styles.css?v=9">
-    <!-- Agregamos Font Awesome  para los íconos -->
+    <link rel="stylesheet" href="../css/styles.css?v=1.16">
+    <!-- Agregamos Font Awesome para los íconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
     <script src="../scripts/script-user.js?v=4" defer></script>
 </head>
 <body>
 
-    <div class="retorna" >
-        <a href="../index.html">  <<- Inicio</a>        </div>
+    <div class="retorna">
+        <a href="../index.html"><i class="fas fa-arrow-left"></i> Inicio</a>
+    </div>
 
-  <!-- Panel lateral -->
+  <!-- Panel lateral mejorado -->
   <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2><i class="fas fa-tools"></i> Panel</h2>
+      <button class="toggle-sidebar" id="toggleSidebar">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+    </div>
     
-    <ul>
-      <li><a href="../index.html">Inicio</a></li>
-      <li><a href="incidencias.html">Incidencias</a></li>
-      <li><a href="reportes.html">Buscar incidencias</a></li>
-      <li><a href="clientes.html">Clientes</a></li>
-      <li><a href="usuarios.html">Usuarios</a></li>
-      <li><a href="#">Configuración</a></li>
-    </ul>
+    <nav class="sidebar-nav">
+      <ul>
+        <li>
+          <a href="../index.html" class="nav-link">
+            <i class="fas fa-home"></i>
+            <span class="nav-text">Inicio</span>
+          </a>
+        </li>
+        <li>
+          <a href="incidencias.html" class="nav-link">
+            <i class="fas fa-exclamation-circle"></i>
+            <span class="nav-text">Incidencias</span>
+          </a>
+        </li>
+        <li>
+          <a href="reportes.html" class="nav-link">
+            <i class="fas fa-search"></i>
+            <span class="nav-text">Buscar incidencias</span>
+          </a>
+        </li>
+        <li>
+          <a href="clientes.html" class="nav-link">
+            <i class="fas fa-users"></i>
+            <span class="nav-text">Clientes</span>
+          </a>
+        </li>
+        <li>
+          <a href="usuarios.html" class="nav-link active">
+            <i class="fas fa-user-cog"></i>
+            <span class="nav-text">Usuarios</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link">
+            <i class="fas fa-cog"></i>
+            <span class="nav-text">Configuración</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
 
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <i class="fas fa-user-circle"></i>
+        <span class="user-name">Administrador</span>
+      </div>
+    </div>
   </aside>
-    <main>
+
+    <main id="mainContent">
         <!-- Sección de registro de usuarios -->
         <section class="encabezado">
-            <h2>Dar de alta a un nuevo usuario</h2>
+            <h2><i class="fas fa-user-plus"></i> Dar de alta a un nuevo usuario</h2>
             <form id="alta-usuarios-form">
                 <div class="form-row">
                     <div>
-                        <label for="nombre">Nombre completo</label>
+                        <label for="nombre"><i class="fas fa-user"></i> Nombre completo</label>
                         <input type="text" id="nombre" name="nombre" required placeholder="Nombre del técnico">
                     </div>
                     <div>
-                        <label for="correo">Correo electrónico</label>
-                        <input type="text" id="correo" name="correo"  placeholder="Correo del técnico">
+                        <label for="correo"><i class="fas fa-envelope"></i> Correo electrónico</label>
+                        <input type="email" id="correo" name="correo" placeholder="Correo del técnico">
                     </div>
                 </div>
                 <div class="form-row">
                     <div>
-                        <label for="telefono">Teléfono</label>
-                        <input type="text" id="telefono" name="telefono"  placeholder="Número de teléfono">
+                        <label for="telefono"><i class="fas fa-phone"></i> Teléfono</label>
+                        <input type="tel" id="telefono" name="telefono" placeholder="Número de teléfono">
                     </div>
                     <div>
-                        <label for="usuario">Usuario</label>
+                        <label for="usuario"><i class="fas fa-id-card"></i> Usuario</label>
                         <input type="text" id="usuario" name="usuario" required placeholder="Nombre de usuario">
                     </div>
                 </div>
                 <div class="form-row">
                     <div>
-                        <label for="password">Contraseña</label>
-                        <input type="text" id="password" name="password"  placeholder="Contraseña">
+                        <label for="password"><i class="fas fa-lock"></i> Contraseña</label>
+                        <input type="password" id="password" name="password" placeholder="Contraseña">
                     </div>
                     <div>
-                        <label for="confirm-password">Confirmar Contraseña</label>
-                        <input type="text" id="confirm-password" name="confirm_password"  placeholder="Confirmar contraseña">
+                        <label for="confirm-password"><i class="fas fa-lock"></i> Confirmar Contraseña</label>
+                        <input type="password" id="confirm-password" name="confirm_password" placeholder="Confirmar contraseña">
                     </div>
                 </div>
                 <div class="form-row">
                     <div>
-                        <label for="rol">Rol</label>
+                        <label for="rol"><i class="fas fa-user-tag"></i> Rol</label>
                         <select id="rol" name="rol" required>
                             <option value="Administrativo">Administrativo</option>
                             <option value="Técnico">Técnico/Administrativo</option>
-
                             <option value="Técnico">Técnico</option>
                             <option value="Administrador">Administrador</option>
-                            
                         </select>
                     </div>
                 </div>
-                <button type="submit">Registrar Usuario</button>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-save"></i> Registrar Usuario
+                </button>
             </form>
-
         </section>  
     
-<section class="lista-incidencias">
-    <h2>Lista de Usuarios</h2>
-    <table id="tabla-usuarios">
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Usuario</th>
-                <th>Rol</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody id="tabla-body">
-            <!-- Las filas se agregarán dinámicamente aquí -->
-        </tbody>
-    </table>
-
-   </section> 
-
-
+        <section class="lista-incidencias">
+            <h2><i class="fas fa-users"></i> Lista de Usuarios</h2>
+            <table id="tabla-usuarios">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-user"></i> Nombre</th>
+                        <th><i class="fas fa-id-card"></i> Usuario</th>
+                        <th><i class="fas fa-user-tag"></i> Rol</th>
+                        <th><i class="fas fa-cogs"></i> Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-body">
+                    <!-- Las filas se agregarán dinámicamente aquí -->
+                </tbody>
+            </table>
+        </section> 
     </main>
 
-     <!-- Modal para edición de cliente (oculto inicialmente) -->
-  <div id="modal-edicion" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
-    <div style="background-color: white; margin: 5% auto; padding: 20px; width: 80%; max-width: 600px; border-radius: 5px;">
-      <h2>Editar Usuario</h2>
-      <div id="formulario-edicion">
-        <!-- El formulario de edición se cargará aquí -->
-      </div>
-      <button onclick="document.getElementById('modal-edicion').style.display = 'none'">Cancelar</button>
+    <!-- Modal para edición de usuario -->
+    <div id="modal-edicion" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="background-color: white; margin: 5% auto; padding: 20px; width: 80%; max-width: 600px; border-radius: 5px;">
+            <h2><i class="fas fa-edit"></i> Editar Usuario</h2>
+            <div id="formulario-edicion">
+                <!-- El formulario de edición se cargará aquí -->
+            </div>
+            <div style="margin-top: 20px;">
+                <button type="button" class="btn-secondary" onclick="document.getElementById('modal-edicion').style.display = 'none'">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Toggle sidebar functionality
+            const toggleSidebar = document.getElementById('toggleSidebar');
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.getElementById('mainContent');
+            
+            if (toggleSidebar) {
+                toggleSidebar.addEventListener('click', function() {
+                    sidebar.classList.toggle('contraida');
+                    if (mainContent) {
+                        mainContent.classList.toggle('expanded');
+                    }
+                    
+                    // Cambiar icono
+                    const icon = this.querySelector('i');
+                    if (sidebar.classList.contains('contraida')) {
+                        icon.className = 'fas fa-chevron-right';
+                    } else {
+                        icon.className = 'fas fa-chevron-left';
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
