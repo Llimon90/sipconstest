@@ -1,251 +1,276 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Ventas</title>
-    <link rel="stylesheet" href="../css/styles.css?v=2.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de ventas</title>
+  <link rel="stylesheet" href="../css/styles.css?v=2.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="../scripts/dark-mode.js?v=1"></script>
 </head>
+
 <body>
+  <!-- Botón Inicio Móvil -->
+  <div class="retorna">
+    <a href="../index.html"><i class="fas fa-arrow-left"></i> Inicio</a>
+  </div>
 
-    <!-- Botón Inicio Móvil -->
-    <button class="mobile-home-btn" onclick="window.location.href='../index.html'">
-        <i class="fas fa-home"></i>
-        <span>Volver al Inicio</span>
-    </button>
+  <!-- Panel lateral mejorado -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2 class="sidebar-title">
+        <i class="fas fa-tools"></i>
+        Panel
+      </h2>
+      <button id="toggleSidebar" class="toggle-sidebar">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <ul>
+        <li>
+          <a href="../index.html" class="nav-link">
+            <i class="fas fa-home"></i>
+            <span class="nav-text">Inicio</span>
+          </a>
+        </li>
+        <li>
+          <a href="incidencias.html" class="nav-link">
+            <i class="fas fa-tasks"></i>
+            <span class="nav-text">Incidencias</span>
+          </a>
+        </li>
+        <li>
+          <a href="reportes.html" class="nav-link">
+            <i class="fas fa-search"></i>
+            <span class="nav-text">Buscar Incidencias</span>
+          </a>
+        </li>
+        <li>
+          <a href="clientes.html" class="nav-link">
+            <i class="fas fa-users"></i>
+            <span class="nav-text">Clientes</span>
+          </a>
+        </li>
+        <li>
+          <a href="usuarios.html" class="nav-link">
+            <i class="fas fa-user-friends"></i>
+            <span class="nav-text">Usuarios</span>
+          </a>
+        </li>
+        <li>
+          <a href="ventas.html" class="nav-link active">
+            <i class="fas fa-chart-line"></i>
+            <span class="nav-text">Ventas</span>
+          </a>
+        </li>
+        <li>
+          <a href="soporte.html" class="nav-link">
+            <i class="fas fa-headset"></i>
+            <span class="nav-text">Soporte Técnico</span>
+          </a>
+        </li>
+        <li>
+          <a href="ajustes.html" class="nav-link">
+            <i class="fas fa-cog"></i>
+            <span class="nav-text">Ajustes</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
 
-    <!-- Panel lateral (solo visible en escritorio) -->
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <h2 class="sidebar-title">
-                <i class="fas fa-tools"></i>
-                Panel
-            </h2>
-            <button id="toggleSidebar" class="toggle-sidebar">
-                <i class="fas fa-chevron-left"></i>
-            </button>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <i class="fas fa-user-circle"></i>
+        <span class="user-name">Técnico</span>
+      </div>
+    </div>
+  </aside>
+  
+  <!-- Contenido Principal -->
+  <main id="mainContent">
+    <section class="encabezado">
+      <h2><i class="fas fa-cash-register"></i> Registro de Ventas</h2>
+      
+      <form id="form-venta">
+        <!-- Cliente y Sucursal -->
+        <div class="form-row">
+          <div>
+            <label for="cliente"><i class="fas fa-building"></i> Cliente:</label>
+            <select id="cliente" name="cliente" required>
+              <option value="" selected disabled>Seleccione un cliente</option>
+            </select>
+          </div>
+          <div>
+            <label for="sucursal"><i class="fas fa-store"></i> Sucursal:</label>
+            <input type="text" id="sucursal" name="sucursal" placeholder="Nombre de la sucursal">
+          </div>
         </div>
+
+        <!-- Equipo y Marca -->
+        <div class="form-row">
+          <div>
+            <label for="equipo"><i class="fas fa-desktop"></i> Equipo:</label>
+            <input type="text" id="equipo" name="equipo" placeholder="Tipo de equipo">
+          </div>
+          <div>
+            <label for="marca"><i class="fas fa-tag"></i> Marca:</label>
+            <input type="text" id="marca" name="marca" placeholder="Marca del equipo">
+          </div>
+        </div>
+
+        <!-- Modelo -->
+        <div class="form-row">
+          <div>
+            <label for="modelo"><i class="fas fa-cube"></i> Modelo:</label>
+            <input type="text" id="modelo" name="modelo" placeholder="Modelo específico">
+          </div>
+        </div>
+
+        <!-- Cantidad y Configuraciones -->
+        <div class="form-row">
+          <div>
+            <label for="qty"><i class="fas fa-boxes"></i> Cantidad:</label>
+            <input type="number" id="qty" name="qty" min="1" value="1" required>
+          </div>
+          <div>
+            <label for="garantia"><i class="fas fa-shield-alt"></i> Garantía (meses):</label>
+            <input type="number" id="garantia" name="garantia" min="0" placeholder="0">
+          </div>
+          <div>
+            <label for="calibracion"><i class="fas fa-tools"></i> Calibración (meses):</label>
+            <input type="number" id="calibracion" name="calibracion" min="0" placeholder="0">
+          </div>
+          <div class="checkbox-container">
+            <label for="servicio" class="checkbox-label">
+              <input type="checkbox" id="servicio" name="servicio">
+              <span class="checkmark"></span>
+              <i class="fas fa-concierge-bell"></i> Cláusula de servicio
+            </label>
+          </div>
+        </div>
+
+        <!-- Aquí se insertan dinámicamente los inputs de serie -->
+        <div id="series-container" class="series-container"></div>
+
+        <!-- Notas -->
+        <div class="form-row">
+          <div class="full-width">
+            <label for="notas"><i class="fas fa-sticky-note"></i> Notas:</label>
+            <textarea id="notas" name="notas" placeholder="Observaciones adicionales..."></textarea>
+          </div>
+        </div>
+
+        <!-- Botón registrar venta -->
+        <div class="form-row">
+          <button type="button" id="btn-registrar-venta" class="btn-primary">
+            <i class="fas fa-save"></i> Registrar Venta
+          </button>
+        </div>
+      </form>
+
+      <div id="mensaje" class="mensaje"></div>
+    </section>
+
+    <!-- Lista de Ventas Registradas -->
+    <section class="lista-incidencias">
+      <div class="lista-ventas">
+        <h2><i class="fas fa-history"></i> Ventas Registradas</h2>
         
-        <ul>
-            <li>
-                <a href="../index.html" title="Inicio">
-                    <i class="fas fa-home"></i>
-                    <span class="sidebar-link-text">Inicio</span>
-                </a>
-            </li>
-            <li>
-                <a href="incidencias.html" title="Incidencias">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span class="sidebar-link-text">Incidencias</span>
-                </a>
-            </li>
-            <li>
-                <a href="reportes.html" title="Buscar Incidencias">
-                    <i class="fas fa-search"></i>
-                    <span class="sidebar-link-text">Buscar Incidencias</span>
-                </a>
-            </li>
-            <li>
-                <a href="clientes.html" title="Clientes">
-                    <i class="fas fa-users"></i>
-                    <span class="sidebar-link-text">Clientes</span>
-                </a>
-            </li>
-            <li>
-                <a href="usuarios.html" title="Usuarios">
-                    <i class="fas fa-user-cog"></i>
-                    <span class="sidebar-link-text">Usuarios</span>
-                </a>
-            </li>
-            <li>
-                <a href="ventas.html" title="Ventas" class="active">
-                    <i class="fas fa-chart-line"></i>
-                    <span class="sidebar-link-text">Ventas</span>
-                </a>
-            </li>
-            <li>
-                <a href="soporte.html" title="Soporte Técnico">
-                    <i class="fas fa-headset"></i>
-                    <span class="sidebar-link-text">Soporte Técnico</span>
-                </a>
-            </li>
-            <li>
-                <a href="ajustes.html" title="Ajustes">
-                    <i class="fas fa-cog"></i>
-                    <span class="sidebar-link-text">Ajustes</span>
-                </a>
-            </li>
-        </ul>
-
-        <!-- Footer del sidebar con información del usuario -->
-        <div class="sidebar-footer">
-            <div class="user-info">
-                <i class="fas fa-user-circle"></i>
-                <span class="user-name">Técnico</span>
+        <!-- Filtros -->
+        <div class="filtros">
+          <div class="filtros-grid">
+            <div class="filtro-item">
+              <label for="filtro-fecha"><i class="fas fa-calendar"></i> Fecha:</label>
+              <input type="date" id="filtro-fecha" class="filtro-input">
             </div>
+            <div class="filtro-item">
+              <label for="filtro-cliente"><i class="fas fa-building"></i> Cliente:</label>
+              <input type="text" id="filtro-cliente" class="filtro-input" placeholder="Filtrar por cliente">
+            </div>
+            <div class="filtro-item">
+              <label for="filtro-sucursal"><i class="fas fa-store"></i> Sucursal:</label>
+              <input type="text" id="filtro-sucursal" class="filtro-input" placeholder="Filtrar por sucursal">
+            </div>
+            <div class="filtro-item">
+              <label for="filtro-equipo"><i class="fas fa-desktop"></i> Equipo:</label>
+              <input type="text" id="filtro-equipo" class="filtro-input" placeholder="Filtrar por equipo">
+            </div>
+          </div>
+
+          <div class="filtros-grid">
+            <div class="filtro-item">
+              <label for="filtro-marca"><i class="fas fa-tag"></i> Marca:</label>
+              <input type="text" id="filtro-marca" class="filtro-input" placeholder="Filtrar por marca">
+            </div>
+            <div class="filtro-item">
+              <label for="filtro-modelo"><i class="fas fa-cube"></i> Modelo:</label>
+              <input type="text" id="filtro-modelo" class="filtro-input" placeholder="Filtrar por modelo">
+            </div>
+            <div class="filtro-item">
+              <button type="button" id="btn-limpiar-filtros" class="btn-secondary">
+                <i class="fas fa-times"></i> Limpiar Filtros
+              </button>
+            </div>
+            <div class="filtro-item">
+              <button type="button" id="btn-refrescar" class="btn-primary">
+                <i class="fas fa-sync"></i> Actualizar
+              </button>
+            </div>
+          </div>
         </div>
-    </aside>
 
-    <main id="mainContent">
-        <section class="encabezado">
-            <h2><i class="fas fa-cash-register"></i> Registro de Ventas</h2>
-            
-            <form id="form-venta" class="new-incidencia-form">
-                <!-- Cliente y Sucursal -->
-                <div class="form-row">
-                    <div>
-                        <label for="cliente"><i class="fas fa-building"></i> Cliente</label>
-                        <select id="cliente" name="cliente" required>
-                            <option value="" selected disabled>Seleccione una opción</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="sucursal"><i class="fas fa-store"></i> Sucursal:</label>
-                        <input type="text" id="sucursal" name="sucursal" placeholder="Nombre de la sucursal">
-                    </div>
-                </div>
+        <!-- Tabla de Ventas -->
+        <div class="tabla-container">
+          <table id="tabla-ventas" class="tabla-ventas">
+            <thead>
+              <tr>
+                <th><i class="fas fa-calendar"></i> Fecha</th>
+                <th><i class="fas fa-building"></i> Cliente</th>
+                <th><i class="fas fa-store"></i> Sucursal</th>
+                <th><i class="fas fa-desktop"></i> Equipo</th>
+                <th><i class="fas fa-tag"></i> Marca</th>
+                <th><i class="fas fa-cube"></i> Modelo</th>
+                <th><i class="fas fa-boxes"></i> Cantidad</th>
+                <th><i class="fas fa-shield-alt"></i> Garantía</th>
+                <th><i class="fas fa-cog"></i> Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="cuerpo-tabla-ventas">
+              <!-- Los datos de ventas se cargarán aquí dinámicamente -->
+              <tr>
+                <td colspan="9" class="no-data">
+                  <i class="fas fa-inbox"></i>
+                  <br>
+                  No hay ventas registradas
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-                <!-- Equipo y Marca -->
-                <div class="form-row">
-                    <div>
-                        <label for="equipo"><i class="fas fa-desktop"></i> Equipo:</label>
-                        <input type="text" id="equipo" name="equipo" placeholder="Tipo de equipo">
-                    </div>
-                    <div>
-                        <label for="marca"><i class="fas fa-tag"></i> Marca:</label>
-                        <input type="text" id="marca" name="marca" placeholder="Marca del equipo">
-                    </div>
-                </div>
+        <!-- Paginación -->
+        <div class="paginacion">
+          <div class="info-paginacion">
+            Mostrando <span id="registros-mostrados">0</span> de <span id="total-registros">0</span> registros
+          </div>
+          <div class="controles-paginacion">
+            <button id="btn-anterior" class="btn-paginacion" disabled>
+              <i class="fas fa-chevron-left"></i> Anterior
+            </button>
+            <span id="info-pagina" class="info-pagina">Página 1</span>
+            <button id="btn-siguiente" class="btn-paginacion" disabled>
+              Siguiente <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
 
-                <!-- Modelo -->
-                <div class="form-row">
-                    <div>
-                        <label for="modelo"><i class="fas fa-cube"></i> Modelo:</label>
-                        <input type="text" id="modelo" name="modelo" placeholder="Modelo específico">
-                    </div>
-                </div>
-
-                <!-- Cantidad y Garantía -->
-                <div class="form-row">
-                    <div>
-                        <label for="qty"><i class="fas fa-boxes"></i> Cantidad:</label>
-                        <input type="number" id="qty" name="qty" min="1" value="1" required>
-                    </div>
-                    <div>
-                        <label for="garantia"><i class="fas fa-shield-alt"></i> Garantía (meses):</label>
-                        <input type="number" id="garantia" name="garantia" min="0" placeholder="0">
-                    </div>
-                    <div>
-                        <label for="calibracion"><i class="fas fa-tools"></i> Calibración (meses):</label>
-                        <input type="number" id="calibracion" name="calibracion" min="0" placeholder="0">
-                    </div>
-                    <div class="checkbox-group">
-                        <label for="servicio" class="checkbox-label">
-                            <input type="checkbox" id="servicio" name="servicio">
-                            <span class="checkmark"></span>
-                            <i class="fas fa-concierge-bell"></i> Cláusula de servicio
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Aquí se insertan dinámicamente los inputs de serie -->
-                <div id="series-container"></div>
-
-                <!-- Notas -->
-                <div class="form-row">
-                    <div>
-                        <label for="notas"><i class="fas fa-sticky-note"></i> Notas:</label>
-                        <textarea id="notas" name="notas" placeholder="Información adicional sobre la venta"></textarea>
-                    </div>
-                </div>
-
-                <!-- Botón registrar venta -->
-                <div class="form-row">
-                    <button type="button" id="btn-registrar-venta" class="btn-primary">
-                        <i class="fas fa-save"></i> Registrar Venta
-                    </button>
-                </div>
-            </form>
-
-            <div id="mensaje" class="mensaje"></div>
-        </section>
-
-        <section class="lista-ventas">
-            <h2><i class="fas fa-history"></i> Ventas Registradas</h2>
-            
-            <!-- Filtros -->
-            <div class="filtros">
-                <div class="filtros-grid">
-                    <div>
-                        <label for="filtro-fecha">Fecha:</label>
-                        <input type="date" id="filtro-fecha" placeholder="Filtrar por fecha">
-                    </div>
-                    <div>
-                        <label for="filtro-cliente">Cliente:</label>
-                        <input type="text" id="filtro-cliente" placeholder="Filtrar por cliente">
-                    </div>
-                    <div>
-                        <label for="filtro-sucursal">Sucursal:</label>
-                        <input type="text" id="filtro-sucursal" placeholder="Filtrar por sucursal">
-                    </div>
-                    <div>
-                        <label for="filtro-equipo">Equipo:</label>
-                        <input type="text" id="filtro-equipo" placeholder="Filtrar por equipo">
-                    </div>
-                </div>
-
-                <div class="filtros-grid">
-                    <div>
-                        <label for="filtro-marca">Marca:</label>
-                        <input type="text" id="filtro-marca" placeholder="Filtrar por marca">
-                    </div>
-                    <div>
-                        <label for="filtro-modelo">Modelo:</label>
-                        <input type="text" id="filtro-modelo" placeholder="Filtrar por modelo">
-                    </div>
-                    <div>
-                        <label for="filtro-serie">N° Serie:</label>
-                        <input type="text" id="filtro-serie" placeholder="Filtrar por número de serie">
-                    </div>
-                </div>
-
-                <div class="filtros-actions">
-                    <button id="btn-filtrar" class="btn-primary">
-                        <i class="fas fa-filter"></i> Filtrar
-                    </button>
-                    <button id="btn-limpiar-filtros" class="btn-secondary">
-                        <i class="fas fa-broom"></i> Limpiar Filtros
-                    </button>
-                    <button id="btn-refrescar" class="btn-secondary">
-                        <i class="fas fa-sync-alt"></i> Refrescar
-                    </button>
-                </div>
-            </div>
-            
-            <div id="tabla-ventas-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Cliente</th>
-                            <th>Sucursal</th>
-                            <th>Equipo</th>
-                            <th>Marca/Modelo</th>
-                            <th>N° Serie</th>
-                            <th>Garantía</th>
-                            <th>Notas</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ventas-body">
-                        <!-- Las ventas se cargarán aquí -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </main>
-
-    <script src="../scripts/sidebar-state.js"></script>
-    <script src="../scripts/registro_venta.js?v=34"></script>
+  <!-- Scripts -->
+  <script src="../scripts/sidebar-state.js?v=1"></script>
+  <script src="../scripts/ventas.js?v=1"></script>
 </body>
 </html>

@@ -4,178 +4,169 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alta de Usuarios Técnicos</title>
-    <link rel="stylesheet" href="../css/styles.css?v=2.0">
+    <link rel="stylesheet" href="../css/styles.css?v=9">
+    <!-- Agregamos Font Awesome  para los íconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
     <script src="../scripts/script-user.js?v=5" defer></script>
 </head>
 <body>
 
-    <!-- Botón Inicio Móvil -->
-    <button class="mobile-home-btn" onclick="window.location.href='../index.html'">
-        <i class="fas fa-home"></i>
-        <span>Volver al Inicio</span>
-    </button>
+  <!-- Botón Inicio Móvil -->
+  <button class="mobile-home-btn" onclick="window.location.href='../index.html'">
+    <i class="fas fa-home"></i>
+    <span>Volver al Inicio</span>
+  </button>
 
-    <!-- Panel lateral (solo visible en escritorio) -->
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <h2 class="sidebar-title">
-                <i class="fas fa-tools"></i>
-                Panel
-            </h2>
-            <button id="toggleSidebar" class="toggle-sidebar">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-        </div>
-        
-        <ul>
-            <li>
-                <a href="../index.html" title="Inicio">
-                    <i class="fas fa-home"></i>
-                    <span class="sidebar-link-text">Inicio</span>
-                </a>
-            </li>
-            <li>
-                <a href="incidencias.html" title="Incidencias">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span class="sidebar-link-text">Incidencias</span>
-                </a>
-            </li>
-            <li>
-                <a href="reportes.html" title="Buscar Incidencias">
-                    <i class="fas fa-search"></i>
-                    <span class="sidebar-link-text">Buscar Incidencias</span>
-                </a>
-            </li>
-            <li>
-                <a href="clientes.html" title="Clientes">
-                    <i class="fas fa-users"></i>
-                    <span class="sidebar-link-text">Clientes</span>
-                </a>
-            </li>
-            <li>
-                <a href="usuarios.html" title="Usuarios" class="active">
-                    <i class="fas fa-user-cog"></i>
-                    <span class="sidebar-link-text">Usuarios</span>
-                </a>
-            </li>
-            <li>
-                <a href="soporte.html" title="Soporte Técnico">
-                    <i class="fas fa-headset"></i>
-                    <span class="sidebar-link-text">Soporte Técnico</span>
-                </a>
-            </li>
-            <li>
-                <a href="ajustes.html" title="Ajustes">
-                    <i class="fas fa-cog"></i>
-                    <span class="sidebar-link-text">Ajustes</span>
-                </a>
-            </li>
-        </ul>
-
-        <!-- Footer del sidebar con información del usuario -->
-        <div class="sidebar-footer">
-            <div class="user-info">
-                <i class="fas fa-user-circle"></i>
-                <span class="user-name">Técnico</span>
-            </div>
-        </div>
-    </aside>
-
-    <main id="mainContent">
-        <!-- Sección de registro de usuarios -->
-        <section class="encabezado">
-            <h2><i class="fas fa-user-plus"></i> Dar de alta a un nuevo usuario</h2>
-            <form id="alta-usuarios-form" class="new-incidencia-form">
-                <div class="form-row">
-                    <div>
-                        <label for="nombre"><i class="fas fa-user"></i> Nombre completo</label>
-                        <input type="text" id="nombre" name="nombre" required placeholder="Nombre del técnico">
-                    </div>
-                    <div>
-                        <label for="correo"><i class="fas fa-envelope"></i> Correo electrónico</label>
-                        <input type="email" id="correo" name="correo" placeholder="Correo del técnico">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div>
-                        <label for="telefono"><i class="fas fa-phone"></i> Teléfono</label>
-                        <input type="tel" id="telefono" name="telefono" placeholder="Número de teléfono">
-                    </div>
-                    <div>
-                        <label for="usuario"><i class="fas fa-user-tag"></i> Usuario</label>
-                        <input type="text" id="usuario" name="usuario" required placeholder="Nombre de usuario">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div>
-                        <label for="password"><i class="fas fa-lock"></i> Contraseña</label>
-                        <input type="password" id="password" name="password" placeholder="Contraseña">
-                    </div>
-                    <div>
-                        <label for="confirm-password"><i class="fas fa-lock"></i> Confirmar Contraseña</label>
-                        <input type="password" id="confirm-password" name="confirm_password" placeholder="Confirmar contraseña">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div>
-                        <label for="rol"><i class="fas fa-user-shield"></i> Rol</label>
-                        <select id="rol" name="rol" required>
-                            <option value="Administrativo">Administrativo</option>
-                            <option value="Técnico/Administrativo">Técnico/Administrativo</option>
-                            <option value="Técnico">Técnico</option>
-                            <option value="Administrador">Administrador</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="estatus"><i class="fas fa-circle"></i> Estatus</label>
-                        <select id="estatus" name="estatus" required>
-                            <option value="Activo">Activo</option>
-                            <option value="Inactivo">Inactivo</option>
-                        </select>
-                    </div>
-                </div>
-                <button type="submit" class="btn-primary">
-                    <i class="fas fa-save"></i> Registrar Usuario
-                </button>
-            </form>
-        </section>  
-    
-        <section class="lista-usuarios">
-            <h2><i class="fas fa-users"></i> Lista de Usuarios</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Usuario</th>
-                        <th>Rol</th>
-                        <th>Estatus</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="tabla-body">
-                    <!-- Las filas se agregarán dinámicamente aquí -->
-                </tbody>
-            </table>
-        </section>
-    </main>
-
-    <!-- Modal para edición de usuario -->
-    <div id="modal-edicion" class="modal" style="display: none;">
-        <div class="modal-content">
-            <span class="close-modal" onclick="document.getElementById('modal-edicion').style.display = 'none'">&times;</span>
-            <h2><i class="fas fa-edit"></i> Editar Usuario</h2>
-            <div id="formulario-edicion">
-                <!-- El formulario de edición se cargará aquí -->
-            </div>
-            <div class="form-actions">
-                <button type="button" class="btn-secondary" onclick="document.getElementById('modal-edicion').style.display = 'none'">
-                    <i class="fas fa-times"></i> Cancelar
-                </button>
-            </div>
-        </div>
+  <!-- Panel lateral mejorado -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2 class="sidebar-title">
+        <i class="fas fa-tools"></i>
+        Panel
+      </h2>
+      <button id="toggleSidebar" class="toggle-sidebar">
+        <i class="fas fa-chevron-left"></i>
+      </button>
     </div>
+    
+    <ul>
+      <li>
+        <a href="../index.html" title="Inicio">
+          <i class="fas fa-home"></i>
+          <span class="sidebar-link-text">Inicio</span>
+        </a>
+      </li>
+      <li>
+        <a href="incidencias.html" title="Incidencias">
+          <i class="fas fa-tasks"></i>
+          <span class="sidebar-link-text">Incidencias</span>
+        </a>
+      </li>
+      <li>
+        <a href="reportes.html" title="Buscar Incidencias">
+          <i class="fas fa-search"></i>
+          <span class="sidebar-link-text">Buscar Incidencias</span>
+        </a>
+      </li>
+      <li>
+        <a href="clientes.html" title="Clientes">
+          <i class="fas fa-users"></i>
+          <span class="sidebar-link-text">Clientes</span>
+        </a>
+      </li>
+      <li>
+        <a href="usuarios.html" title="Usuarios" class="active">
+          <i class="fas fa-user-friends"></i>
+          <span class="sidebar-link-text">Usuarios</span>
+        </a>
+      </li>
+      <li>
+        <a href="soporte.html" title="Soporte Técnico">
+          <i class="fas fa-headset"></i>
+          <span class="sidebar-link-text">Soporte Técnico</span>
+        </a>
+      </li>
+      <li>
+        <a href="ajustes.html" title="Ajustes">
+          <i class="fas fa-cog"></i>
+          <span class="sidebar-link-text">Ajustes</span>
+        </a>
+      </li>
+    </ul>
 
-    <script src="../scripts/sidebar-state.js"></script>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <i class="fas fa-user-circle"></i>
+        <span class="user-name">Técnico</span>
+      </div>
+    </div>
+  </aside>
+  
+  <!-- CONTENIDO ORIGINAL EXACTO -->
+  <main>
+    <!-- Sección de registro de usuarios -->
+    <section class="encabezado">
+      <h2>Dar de alta a un nuevo usuario</h2>
+      <form id="alta-usuarios-form">
+        <div class="form-row">
+          <div>
+            <label for="nombre">Nombre completo</label>
+            <input type="text" id="nombre" name="nombre" required placeholder="Nombre del técnico">
+          </div>
+          <div>
+            <label for="correo">Correo electrónico</label>
+            <input type="text" id="correo" name="correo"  placeholder="Correo del técnico">
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label for="telefono">Teléfono</label>
+            <input type="text" id="telefono" name="telefono"  placeholder="Número de teléfono">
+          </div>
+          <div>
+            <label for="usuario">Usuario</label>
+            <input type="text" id="usuario" name="usuario" required placeholder="Nombre de usuario">
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label for="password">Contraseña</label>
+            <input type="text" id="password" name="password"  placeholder="Contraseña">
+          </div>
+          <div>
+            <label for="confirm-password">Confirmar Contraseña</label>
+            <input type="text" id="confirm-password" name="confirm_password"  placeholder="Confirmar contraseña">
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label for="rol">Rol</label>
+            <select id="rol" name="rol" required>
+              <option value="Administrativo">Administrativo</option>
+              <option value="Técnico">Técnico/Administrativo</option>
+              <option value="Técnico">Técnico</option>
+              <option value="Administrador">Administrador</option>
+              
+            </select>
+          </div>
+        </div>
+        <button type="submit">Registrar Usuario</button>
+      </form>
+
+    </section>  
+    
+<section class="lista-incidencias">
+  <h2>Lista de Usuarios</h2>
+  <table id="tabla-usuarios">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Usuario</th>
+        <th>Rol</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="tabla-body">
+      <!-- Las filas se agregarán dinámicamente aquí -->
+    </tbody>
+  </table>
+
+ </section> 
+
+  </main>
+
+   <!-- Modal para edición de cliente (oculto inicialmente) -->
+  <div id="modal-edicion" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+    <div style="background-color: white; margin: 5% auto; padding: 20px; width: 80%; max-width: 600px; border-radius: 5px;">
+      <h2>Editar Usuario</h2>
+      <div id="formulario-edicion">
+        <!-- El formulario de edición se cargará aquí -->
+      </div>
+      <button onclick="document.getElementById('modal-edicion').style.display = 'none'">Cancelar</button>
+    </div>
+  </div>
+
+  <script src="../scripts/sidebar-state.js"></script>
 </body>
 </html>
