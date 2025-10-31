@@ -83,7 +83,7 @@ async function cargarMarcas() {
     }
 }
 
-// **Función MODIFICADA:** Muestra marcas en el grid con listener de clic
+// Mostrar marcas en el grid
 function mostrarMarcas(marcas) {
     const container = document.getElementById('marcas-container');
     
@@ -100,47 +100,23 @@ function mostrarMarcas(marcas) {
         return;
     }
     
-    // Generamos el HTML con data attributes para identificar la marca
-    container.innerHTML = marcas.map(marca => {
-        const marcaNombreEscapada = marca.nombre.replace(/'/g, "\\'");
-        return `
-            <div class="model-card" data-marca-id="${marca.id}" data-marca-nombre="${marcaNombreEscapada}">
-                <div class="model-icon">
-                    <i class="fas fa-industry"></i>
-                </div>
-                <h3>${marca.nombre}</h3>
-                <p>Ver modelos</p>
-                <div class="model-actions">
-                    <button class="btn-small btn-primary folder-btn"> 
-                        <i class="fas fa-folder-open"></i>
-                    </button>
-                    <button class="btn-small btn-danger prevent-open" onclick="eliminarMarca(${marca.id}, '${marcaNombreEscapada}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
+    container.innerHTML = marcas.map(marca => `
+        <div class="model-card">
+            <div class="model-icon">
+                <i class="fas fa-industry"></i>
             </div>
-        `;
-    }).join('');
-
-    // **NUEVO:** Añadir el event listener a cada tarjeta para manejar la lógica de click
-    document.querySelectorAll('#marcas-container .model-card').forEach(card => {
-        card.addEventListener('click', function(event) {
-            // Comprobar si el click fue en un elemento con la clase 'prevent-open' (o uno de sus hijos)
-            if (event.target.closest('.prevent-open')) {
-                console.log('Click en botón de eliminar. Abriendo carpeta PREVENIDO.');
-                return; // No hacer nada si se hizo click en eliminar
-            }
-
-            // Obtener los datos de la marca
-            const marcaId = this.getAttribute('data-marca-id');
-            const marcaNombre = this.getAttribute('data-marca-nombre');
-            
-            // Cargar los modelos
-            if (marcaId && marcaNombre) {
-                cargarModelos(parseInt(marcaId), marcaNombre);
-            }
-        });
-    });
+            <h3>${marca.nombre}</h3>
+            <p>Ver modelos</p>
+            <div class="model-actions">
+                <button class="btn-small btn-primary" onclick="cargarModelos(${marca.id}, '${marca.nombre.replace(/'/g, "\\'")}')">
+                    <i class="fas fa-folder-open"></i>
+                </button>
+                <button class="btn-small btn-danger" onclick="eliminarMarca(${marca.id}, '${marca.nombre.replace(/'/g, "\\'")}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
     
     console.log(`Mostrando ${marcas.length} marcas`);
 }
@@ -376,7 +352,7 @@ async function eliminarModelo(modeloId, modeloNombre) {
         
         if (data.success) {
             alert('Modelo eliminado correctamente');
-            cargarModelos(currentMarcaId, document.querySelector('#modelos-container h3').textContent.replace('Modelos de ', '').replace(/\s\(\d+\)/, ''));
+            cargarModelos(currentMarcaId, document.querySelector('#modelos-container h3').textContent.replace('Modelos de ', ''));
         } else {
             throw new Error(data.message || 'Error al eliminar modelo');
         }
@@ -446,7 +422,6 @@ async function eliminarDocumento(documentoId, nombreArchivo) {
         alert('Error al eliminar el documento: ' + error.message);
     }
 }
-
 // Funciones de búsqueda
 function buscarContenido() {
     const searchTerm = document.getElementById('searchInput').value.trim();
@@ -503,7 +478,6 @@ async function ejecutarBusqueda(termino) {
     }
 }
 
-// **Función MODIFICADA:** Muestra resultados con el listener de clic en tarjetas
 function mostrarResultadosBusqueda(resultados, termino) {
     const container = document.getElementById('marcas-container');
     const marcas = resultados.marcas || [];
@@ -539,7 +513,7 @@ function mostrarResultadosBusqueda(resultados, termino) {
                 <h4><i class="fas fa-industry"></i> Marcas (${marcas.length})</h4>
                 <div class="model-grid-content">
                     ${marcas.map(marca => `
-                        <div class="model-card" data-marca-id="${marca.id}" data-marca-nombre="${(marca.nombre || '').replace(/'/g, "\\'")}">
+                        <div class="model-card" onclick="cargarModelos(${marca.id}, '${(marca.nombre || '').replace(/'/g, "\\'")}')">
                             <div class="model-icon">
                                 <i class="fas fa-industry"></i>
                             </div>
@@ -575,25 +549,6 @@ function mostrarResultadosBusqueda(resultados, termino) {
     }
 
     container.innerHTML = html;
-
-    // **NUEVO:** Añadir Event Listeners para el clic en la tarjeta de marca de los resultados de búsqueda
-    document.querySelectorAll('#marcas-container .model-card').forEach(card => {
-        card.addEventListener('click', function(event) {
-            // Comprobar si el click fue en un elemento que deba prevenir la acción
-            if (event.target.closest('.prevent-open')) {
-                return; 
-            }
-
-            // Obtener los datos de la marca
-            const marcaId = this.getAttribute('data-marca-id');
-            const marcaNombre = this.getAttribute('data-marca-nombre');
-            
-            // Cargar los modelos
-            if (marcaId && marcaNombre) {
-                 cargarModelos(parseInt(marcaId), marcaNombre);
-            }
-        });
-    });
 }
 
 function resaltarTexto(texto, termino) {
@@ -633,24 +588,13 @@ function volverAMarcas() {
     actualizarBreadcrumb();
     currentMarcaId = null;
     currentModeloId = null;
-    cargarMarcas(); // Asegurar que se recargan las marcas si se estaba en búsqueda
 }
 
 function volverAModelos() {
     console.log('Volviendo a modelos');
     document.getElementById('documentos-container').style.display = 'none';
     document.getElementById('modelos-container').style.display = 'block';
-    // Intentar obtener el nombre de la marca desde el breadcrumb si no está en currentMarcaId
-    let marcaNombre = '';
-    if (currentMarcaId) {
-        // Buscar el nombre de la marca en el breadcrumb
-        const breadcrumbSpan = document.querySelector('#breadcrumb > span:not(.documento-nombre)');
-        if (breadcrumbSpan) {
-            marcaNombre = breadcrumbSpan.textContent;
-        }
-    }
-    // Si no se encuentra, se usa una cadena vacía y cargarModelos lo manejará
-    cargarModelos(currentMarcaId, marcaNombre || 'Marca Desconocida'); 
+    actualizarBreadcrumb(document.querySelector('#marcas-container .model-card h3')?.textContent || '');
     currentModeloId = null;
 }
 
@@ -718,12 +662,12 @@ async function mostrarModalAgregarModelo() {
             selectMarca.appendChild(optionNuevaMarca);
             
             // Manejar selección de nueva marca
-            selectMarca.onchange = function() {
+            selectMarca.addEventListener('change', function() {
                 if (this.value === 'new') {
                     mostrarModalAgregarMarca();
                     this.value = '';
                 }
-            };
+            });
             
             // Si estamos en una marca específica, seleccionarla
             if (currentMarcaId) {
@@ -854,8 +798,8 @@ function actualizarBreadcrumbDocumentos(modeloNombre) {
     const breadcrumb = document.getElementById('breadcrumb');
     breadcrumb.innerHTML = `
         <a href="javascript:volverAMarcas()">Inicio</a> > 
-        <a href="javascript:volverAModelos()">Modelos</a> > 
-        <span class="documento-nombre">${modeloNombre}</span>
+        <a href="javascript:volverAModelos()">Marcas</a> > 
+        <span>${modeloNombre}</span>
     `;
 }
 
@@ -865,7 +809,6 @@ function verDocumento(ruta) {
     const modal = document.getElementById('previewModal');
     const pdfViewer = document.getElementById('pdfViewer');
     
-    // Se asume que el backend tiene un script para servir el archivo
     const url = `../backend/descargar_documento.php?archivo=${encodeURIComponent(ruta)}`;
     pdfViewer.src = url;
     modal.style.display = 'block';
@@ -886,10 +829,6 @@ window.onclick = function(event) {
     modals.forEach(modal => {
         if (event.target === modal) {
             modal.style.display = 'none';
-            // Detener la reproducción o carga si es el modal de vista previa
-            if (modal.id === 'previewModal') {
-                document.getElementById('pdfViewer').src = '';
-            }
         }
     });
 }

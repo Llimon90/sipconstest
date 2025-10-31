@@ -4,109 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalle de Incidencia</title>
-    <link rel="stylesheet" href="../css/styles.css?v=2">
-    <script src="../scripts/dark-mode.js?v=1"></script>  
-        <link rel="stylesheet" href="../css/detalle.css?v=2">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/styles.css?v=4">
+    <link rel="stylesheet" href="../css/detalle.css?v=2">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 </head>
 <body>
 
-  <!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Clientes</title>
-    <link rel="stylesheet" href="../css/styles.css?v=1.16">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-
-<body>
-  <div class="retorna">
-    <a href="../index.html"><i class="fas fa-arrow-left"></i> Inicio</a>
-  </div>
-
-  <!-- Panel lateral mejorado -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <h2><i class="fas fa-tools"></i> Panel</h2>
-      <button class="toggle-sidebar" id="toggleSidebar">
-        <i class="fas fa-chevron-left"></i>
-      </button>
+    <div class="retorna">
+        <a href="incidencias.html"><<- Volver a Incidencias</a>
     </div>
-    
-    <nav class="sidebar-nav">
-      <ul>
-        <li>
-          <a href="../index.html" class="nav-link">
-            <i class="fas fa-home"></i>
-            <span class="nav-text">Inicio</span>
-          </a>
-        </li>
-        <li>
-          <a href="incidencias.html" class="nav-link">
-            <i class="fas fa-exclamation-circle"></i>
-            <span class="nav-text">Incidencias</span>
-          </a>
-        </li>
-        <li>
-          <a href="reportes.html" class="nav-link">
-            <i class="fas fa-search"></i>
-            <span class="nav-text">Buscar incidencias</span>
-          </a>
-        </li>
-        <li>
-          <a href="clientes.html" class="nav-link">
-            <i class="fas fa-users"></i>
-            <span class="nav-text">Clientes</span>
-          </a>
-        </li>
-        <li>
-          <a href="usuarios.html" class="nav-link">
-            <i class="fas fa-user-cog"></i>
-            <span class="nav-text">Usuarios</span>
-          </a>
-        </li>
-        <li>
-          <a href="soporte.html" class="nav-link active">
-            <i class="fas fa-headset"></i>
-            <span class="nav-text">Soporte Técnico</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="nav-link">
-            <i class="fas fa-cog"></i>
-            <span class="nav-text">Configuración</span>
-          </a>
-        </li>
-      </ul>
-    </nav>
 
-    <div class="sidebar-footer">
-      <div class="user-info">
-        <i class="fas fa-user-circle"></i>
-        <span class="user-name">Técnico</span>
-      </div>
-    </div>
-  </aside>
+    <!-- Panel lateral -->
+    <aside class="sidebar">
+        <ul>
+            <li><a href="../index.html">Inicio</a></li>
+            <li><a href="incidencias.html">Incidencias</a></li>
+            <li><a href="reportes.html">Buscar incidencias</a></li>
+            <li><a href="clientes.html">Clientes</a></li>
+            <li><a href="usuarios.html">Usuarios</a></li>
+            <li><a href="#">Configuración</a></li>
+        </ul>
+    </aside>
+
     <!-- Contenido principal -->
-    <main id="mainContent">
+    <main>
         <!-- Formulario para ACTUALIZAR una incidencia -->
         <section class="encabezado">
-            <h2><i class="fas fa-info-circle"></i> Detalles de la Incidencia</h2>
+            <h2>Detalles de la Incidencia</h2>
             <div id="detalle-incidencia">
-                <p><i class="fas fa-spinner fa-spin"></i> Cargando detalles...</p>
+                <p>Cargando detalles...</p>
             </div>
         </section>
         
-        <section class="archivos-incidencia encabezado">
-            <h2><i class="fas fa-paperclip"></i> Archivos de la Incidencia</h2>
+        <section class="archivos-incidencia">
+            <h2>Archivos de la Incidencia</h2>
             <div id="contenedor-archivos" style="display: flex; flex-wrap: wrap;"></div>
         </section>
     </main>
 
-    <script src="../scripts/sidebar-state.js?v=1"></script>
     <script src="../scripts/detalle.js?v=10"></script>
 </body>
 </html>

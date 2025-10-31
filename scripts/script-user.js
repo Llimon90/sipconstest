@@ -47,10 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-    cargarTecnicosEnSelect('select-tecnico');
-    
-
-
   cargarUsuarios();
 });
 // Función para cargar usuarios
@@ -152,6 +148,7 @@ async function editarUsuario(id) {
                         <label for="rol-editar">Rol:</label>
                         <select id="rol-editar" required>
                             <option value="Administrador" ${usuario.rol === 'Administrador' ? 'selected' : ''}>Administrador</option>
+                             <option value="Técnico/Administrativo" ${usuario.rol === 'Técnico/Administrativo' ? 'selected' : ''}>Técnico/Administrativo</option>
                             <option value="Técnico" ${usuario.rol === 'Técnico' ? 'selected' : ''}>Técnico</option>
                             <option value="Administrativo" ${usuario.rol === 'Administrativo' ? 'selected' : ''}>Administrativo</option>
                         </select>
@@ -232,34 +229,3 @@ async function eliminarUsuario(id) {
         }
     }
 }
-
-
-
-// Función para cargar técnicos en un select
-async function cargarTecnicosEnSelect(selectId) {
-    try {
-        const response = await fetch('../backend/obtener-tecnicos.php');
-        const resultado = await response.json();
-
-        if (resultado.success) {
-            const select = document.getElementById(selectId);
-            select.innerHTML = '<option value="">Seleccione un técnico</option>';
-            
-            resultado.tecnicos.forEach(tecnico => {
-                const option = document.createElement('option');
-                option.value = tecnico.id;
-                option.textContent = tecnico.nombre;
-                select.appendChild(option);
-            });
-        } else {
-            console.error('Error al cargar técnicos:', resultado.message);
-        }
-    } catch (error) {
-        console.error('Error al cargar técnicos:', error);
-
-
-    }
-
-    
-}
-

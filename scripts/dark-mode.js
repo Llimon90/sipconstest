@@ -1,129 +1,165 @@
-// scripts/dark-mode.js
-class DarkModeManager {
+// Gestor de tema con persistencia mejorada
+class TemaManager {
     constructor() {
-        this.storageKey = 'modoOscuro';
-        this.toggleButton = null;
-        this.init();
+        this.claveAlmacenamiento = 'modoOscuroSistema';
+        this.inicializar();
     }
 
-    init() {
-        // Crear el interruptor si no existe
-        this.createToggle();
-        
-        // Aplicar estado guardado
-        this.applySavedState();
-        
-        // Configurar event listeners
-        this.setupEventListeners();
+    inicializar() {
+        this.crearInterruptor();
+        this.aplicarTemaGuardado();
+        this.configurarEventos();
+        this.configurarObservadorNavegacion();
     }
 
-    createToggle() {
-        // Verificar si ya existe el interruptor
-        if (document.getElementById('modoOscuroToggle')) {
-            this.toggleButton = document.getElementById('modoOscuroToggle');
+    crearInterruptor() {
+        // Evitar duplicados
+        if (document.querySelector('.dark-mode-toggle')) {
             return;
         }
 
-        // Crear el interruptor
         const toggleHTML = `
-            <div class="modo-oscuro-toggle" id="modoOscuroToggle">
-                <div class="modo-oscuro-tooltip">Modo Oscuro</div>
-                <div class="modo-oscuro-switch">
-                    <i class="fas fa-sun modo-oscuro-icon sun"></i>
-                    <i class="fas fa-moon modo-oscuro-icon moon"></i>
-                </div>
+            <div class="dark-mode-toggle">
+                <label class="toggle-label">
+                    <i class="fas fa-sun toggle-icon sun-icon"></i>
+                    <div class="toggle-switch"></div>
+                    <i class="fas fa-moon toggle-icon moon-icon"></i>
+                    <span class="toggle-text"></span>
+                </label>
             </div>
         `;
-
-        // Insertar en el body
-        document.body.insertAdjacentHTML('beforeend', toggleHTML);
-        this.toggleButton = document.getElementById('modoOscuroToggle');
+        
+        document.body.insertAdjacentHTML('afterbegin', toggleHTML);
     }
 
-    getState() {
-        const savedState = localStorage.getItem(this.storageKey);
-        return savedState === 'activado';
+    obtenerTemaGuardado() {
+        const temaGuardado = localStorage.getItem(this.claveAlmacenamiento);
+        
+        // Si no hay tema guardado, usar preferencia del sistema
+        if (temaGuardado === null) {
+            return this.detectarPreferenciaSistema();
+        }
+        
+        return temaGuardado === 'true';
     }
 
-    saveState(isActive) {
-        localStorage.setItem(this.storageKey, isActive ? 'activado' : 'desactivado');
+    detectarPreferenciaSistema() {
+        return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
 
-    applySavedState() {
-        const isActive = this.getState();
-        if (isActive) {
-            this.activateDarkMode();
+    aplicarTemaGuardado() {
+        const modoOscuro = this.obtenerTemaGuardado();
+        this.cambiarTema(modoOscuro);
+    }
+
+    cambiarTema(modoOscuro) {
+        if (modoOscuro) {
+            document.body.classList.add('modo-oscuro');
         } else {
-            this.deactivateDarkMode();
+            document.body.classList.remove('modo-oscuro');
+        }
+        
+        // Guardar preferencia
+        localStorage.setItem(this.claveAlmacenamiento, modoOscuro);
+        
+        // Actualizar estado visual del interruptor
+        this.actualizarEstadoInterruptor(modoOscuro);
+    }
+
+    actualizarEstadoInterruptor(modoOscuro) {
+        const toggle = document.querySelector('.dark-mode-toggle');
+        if (toggle) {
+            // El estado visual se controla por CSS según la clase del body
+            // Esta función es para posibles futuras extensiones
         }
     }
 
-    setupEventListeners() {
-        if (this.toggleButton) {
-            this.toggleButton.addEventListener('click', () => {
-                this.toggleDarkMode();
+    configurarEventos() {
+        const toggle = document.querySelector('.dark-mode-toggle');
+        if (toggle) {
+            toggle.addEventListener('click', () => {
+                const modoOscuroActual = document.body.classList.contains('modo-oscuro');
+                this.cambiarTema(!modoOscuroActual);
             });
         }
 
-        // También aplicar a nuevas páginas cargadas
-        this.setupNavigationListener();
+        // Escuchar cambios en la preferencia del sistema
+        if (window.matchMedia) {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                // Solo aplicar si no hay preferencia guardada explícitamente
+                const temaGuardado = localStorage.getItem(this.claveAlmacenamiento);
+                if (temaGuardado === null) {
+                    this.cambiarTema(e.matches);
+                }
+            });
+        }
     }
 
-    setupNavigationListener() {
-        // Asegurar que el modo se mantenga al navegar
-        document.addEventListener('click', (e) => {
-            const link = e.target.closest('a');
-            if (link && link.href && !link.href.startsWith('javascript:')) {
-                // El estado se mantiene automáticamente por localStorage
-            }
+    configurarObservadorNavegacion() {
+        // Observar cambios en la URL para mantener el tema en navegación SPA
+        if (window.history && window.history.pushState) {
+            const originalPushState = history.pushState;
+            const originalReplaceState = history.replaceState;
+
+            // Interceptar pushState
+            history.pushState = function() {
+                originalPushState.apply(this, arguments);
+                window.dispatchEvent(new Event('locationchange'));
+            };
+
+            // Interceptar replaceState
+            history.replaceState = function() {
+                originalReplaceState.apply(this, arguments);
+                window.dispatchEvent(new Event('locationchange'));
+            };
+
+            // Escuchar cambios de popstate (navegación con botones atrás/adelante)
+            window.addEventListener('popstate', () => {
+                window.dispatchEvent(new Event('locationchange'));
+            });
+
+            // Asegurar que el tema se mantenga en cambios de ubicación
+            window.addEventListener('locationchange', () => {
+                this.verificarConsistenciaTema();
+            });
+        }
+
+        // También verificar en eventos de carga de página
+        window.addEventListener('load', () => {
+            this.verificarConsistenciaTema();
         });
     }
 
-    toggleDarkMode() {
-        const isActive = document.body.classList.contains('modo-oscuro');
-        
-        if (isActive) {
-            this.deactivateDarkMode();
-        } else {
-            this.activateDarkMode();
-        }
-    }
-
-    activateDarkMode() {
-        document.body.classList.add('modo-oscuro');
-        this.saveState(true);
-        this.updateToggleVisual(true);
-    }
-
-    deactivateDarkMode() {
-        document.body.classList.remove('modo-oscuro');
-        this.saveState(false);
-        this.updateToggleVisual(false);
-    }
-
-    updateToggleVisual(isActive) {
-        if (this.toggleButton) {
-            const tooltip = this.toggleButton.querySelector('.modo-oscuro-tooltip');
-            if (tooltip) {
-                tooltip.textContent = isActive ? 'Modo Claro' : 'Modo Oscuro';
+    verificarConsistenciaTema() {
+        // Pequeño retraso para asegurar que el DOM esté listo
+        setTimeout(() => {
+            const modoOscuroGuardado = this.obtenerTemaGuardado();
+            const modoOscuroActual = document.body.classList.contains('modo-oscuro');
+            
+            // Corregir inconsistencia si la hay
+            if (modoOscuroGuardado !== modoOscuroActual) {
+                this.cambiarTema(modoOscuroGuardado);
             }
-        }
-    }
-
-    // Método para forzar estado (útil para debugging)
-    forceState(state) {
-        if (state) {
-            this.activateDarkMode();
-        } else {
-            this.deactivateDarkMode();
-        }
+        }, 100);
     }
 }
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    new DarkModeManager();
+    new TemaManager();
 });
 
-// También exportar para uso global (opcional)
-window.DarkModeManager = DarkModeManager;
+// También inicializar si el DOM ya está listo (para scripts que se cargan después)
+if (document.readyState === 'interactive' || document.readyState === 'complete') {
+    new TemaManager();
+}
+
+// Compatibilidad con jQuery
+if (typeof jQuery !== 'undefined') {
+    jQuery(document).ready(() => {
+        new TemaManager();
+    });
+}
+
+// Exportar para uso global (opcional)
+window.TemaManager = TemaManager;
