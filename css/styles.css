@@ -1240,7 +1240,148 @@ main.expanded {
 
 /* ===== TABLAS EN MODO OSCURO - 2 TONOS SIMPLES ===== */
 
-/* TABLAS REGULARES (lista-incidencias) */
+/* ===== MODO OSCURO COMPLETO ===== */
+body.modo-oscuro {
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+  font-family: Arial, sans-serif;
+}
+
+/* ===== ESTRUCTURA PRINCIPAL ===== */
+body.modo-oscuro main {
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+}
+
+body.modo-oscuro .encabezado {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  border: 1px solid #404040;
+}
+
+body.modo-oscuro .lista-incidencias {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  border: 1px solid #404040;
+}
+
+body.modo-oscuro .lista-ventas {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+}
+
+body.modo-oscuro .filtros {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+}
+
+/* ===== FORMULARIOS ===== */
+body.modo-oscuro input[type="text"],
+body.modo-oscuro input[type="date"],
+body.modo-oscuro input[type="password"],
+body.modo-oscuro input[type="email"],
+body.modo-oscuro input[type="tel"],
+body.modo-oscuro input[type="number"],
+body.modo-oscuro select,
+body.modo-oscuro textarea {
+  background-color: #363636;
+  color: #e0e0e0;
+  border: 1px solid #555;
+  border-radius: 4px;
+}
+
+body.modo-oscuro input[type="text"]:focus,
+body.modo-oscuro input[type="date"]:focus,
+body.modo-oscuro input[type="password"]:focus,
+body.modo-oscuro input[type="email"]:focus,
+body.modo-oscuro input[type="tel"]:focus,
+body.modo-oscuro input[type="number"]:focus,
+body.modo-oscuro select:focus,
+body.modo-oscuro textarea:focus {
+  border-color: #3498db;
+  background-color: #404040;
+  color: #ffffff;
+  outline: none;
+}
+
+body.modo-oscuro label {
+  color: #e0e0e0;
+  font-weight: bold;
+}
+
+body.modo-oscuro .form-group {
+  color: #e0e0e0;
+}
+
+body.modo-oscuro .form-row {
+  color: #e0e0e0;
+}
+
+/* ===== BOTONES ===== */
+body.modo-oscuro button {
+  background-color: #2980b9;
+  color: #ffffff;
+  border: 1px solid #2980b9;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+body.modo-oscuro button:hover {
+  background-color: #3498db;
+  border-color: #3498db;
+}
+
+body.modo-oscuro .btn-primary {
+  background-color: #2980b9;
+  border-color: #2980b9;
+  color: #ffffff;
+}
+
+body.modo-oscuro .btn-primary:hover {
+  background-color: #3498db;
+  border-color: #3498db;
+}
+
+body.modo-oscuro .btn-secondary {
+  background-color: #555;
+  border-color: #555;
+  color: #e0e0e0;
+}
+
+body.modo-oscuro .btn-secondary:hover {
+  background-color: #666;
+  border-color: #666;
+  color: #ffffff;
+}
+
+body.modo-oscuro .btn-outline-secondary {
+  color: #b0b0b0;
+  border-color: #666;
+  background-color: transparent;
+}
+
+body.modo-oscuro .btn-outline-secondary:hover {
+  background-color: #666;
+  border-color: #666;
+  color: #ffffff;
+}
+
+body.modo-oscuro .btn-rojo {
+  background-color: #c0392b;
+  border-color: #c0392b;
+  color: #ffffff;
+}
+
+body.modo-oscuro .btn-rojo:hover {
+  background-color: #e74c3c;
+  border-color: #e74c3c;
+}
+
+/* ===== TABLAS - 2 TONOS DE GRIS ===== */
+
+/* TABLAS REGULARES */
 body.modo-oscuro .lista-incidencias table {
   background: #2d2d2d;
   color: #e0e0e0;
@@ -1266,15 +1407,15 @@ body.modo-oscuro .lista-incidencias td {
 
 /* 2 TONOS DE GRIS PARA FILAS */
 body.modo-oscuro .lista-incidencias tbody tr:nth-child(odd) {
-  background-color: #363636; /* Gris claro - filas impares */
+  background-color: #363636;
 }
 
 body.modo-oscuro .lista-incidencias tbody tr:nth-child(even) {
-  background-color: #2e2e2e; /* Gris oscuro - filas pares */
+  background-color: #2e2e2e;
 }
 
 body.modo-oscuro .lista-incidencias tbody tr:hover {
-  background-color: #404040 !important; /* Gris destacado al hover */
+  background-color: #404040 !important;
   color: #ffffff;
 }
 
@@ -1300,13 +1441,12 @@ body.modo-oscuro .table td {
   color: #e0e0e0 !important;
 }
 
-/* 2 TONOS PARA TABLAS BOOTSTRAP */
 body.modo-oscuro .table-striped tbody tr:nth-of-type(odd) {
-  background-color: #363636 !important; /* Gris claro */
+  background-color: #363636 !important;
 }
 
 body.modo-oscuro .table-striped tbody tr:nth-of-type(even) {
-  background-color: #2e2e2e !important; /* Gris oscuro */
+  background-color: #2e2e2e !important;
 }
 
 body.modo-oscuro .table-hover tbody tr:hover {
@@ -1314,185 +1454,480 @@ body.modo-oscuro .table-hover tbody tr:hover {
   color: #ffffff !important;
 }
 
-body.modo-oscuro .table-light {
-  background-color: #404040 !important;
-  color: #ffffff !important;
-}
-
-body.modo-oscuro .table-light th {
-  background-color: #404040 !important;
-  color: #ffffff !important;
-}
-
-/* TABLAS DE VENTAS */
-body.modo-oscuro .lista-ventas table {
-  background: #2d2d2d !important;
-  border: 1px solid #404040 !important;
-}
-
-body.modo-oscuro .lista-ventas thead {
-  background-color: #404040 !important;
-}
-
-body.modo-oscuro .lista-ventas th {
-  background-color: #404040 !important;
-  color: #ffffff !important;
-  border-color: #555 !important;
-}
-
-body.modo-oscuro .lista-ventas td {
-  border-color: #404040 !important;
-  color: #e0e0e0 !important;
-}
-
-/* 2 TONOS PARA TABLAS DE VENTAS */
-body.modo-oscuro .lista-ventas tbody tr:nth-child(odd) {
-  background-color: #363636 !important;
-}
-
-body.modo-oscuro .lista-ventas tbody tr:nth-child(even) {
-  background-color: #2e2e2e !important;
-}
-
-body.modo-oscuro .lista-ventas tbody tr:hover {
-  background-color: #404040 !important;
-}
-
-/* TABLAS DE USUARIOS */
-body.modo-oscuro #tabla-usuarios {
-  background: #2d2d2d !important;
-  border: 1px solid #404040 !important;
-}
-
-body.modo-oscuro #tabla-usuarios thead {
-  background-color: #404040 !important;
-}
-
-body.modo-oscuro #tabla-usuarios th {
-  background-color: #404040 !important;
-  color: #ffffff !important;
-  border-color: #555 !important;
-}
-
-body.modo-oscuro #tabla-usuarios td {
-  border-color: #404040 !important;
-  color: #e0e0e0 !important;
-}
-
-/* 2 TONOS PARA TABLAS DE USUARIOS */
-body.modo-oscuro #tabla-usuarios tbody tr:nth-child(odd) {
-  background-color: #363636 !important;
-}
-
-body.modo-oscuro #tabla-usuarios tbody tr:nth-child(even) {
-  background-color: #2e2e2e !important;
-}
-
-body.modo-oscuro #tabla-usuarios tbody tr:hover {
-  background-color: #404040 !important;
-}
-
-/* TABLAS DE CLIENTES */
+/* OTRAS TABLAS */
+body.modo-oscuro #tabla-usuarios,
+body.modo-oscuro .lista-ventas table,
 body.modo-oscuro table[border="1"] {
   background: #2d2d2d !important;
   border: 1px solid #404040 !important;
+  color: #e0e0e0 !important;
 }
 
+body.modo-oscuro #tabla-usuarios thead,
+body.modo-oscuro .lista-ventas thead,
 body.modo-oscuro table[border="1"] thead {
   background-color: #404040 !important;
 }
 
+body.modo-oscuro #tabla-usuarios th,
+body.modo-oscuro .lista-ventas th,
 body.modo-oscuro table[border="1"] th {
   background-color: #404040 !important;
   color: #ffffff !important;
   border-color: #555 !important;
 }
 
+body.modo-oscuro #tabla-usuarios td,
+body.modo-oscuro .lista-ventas td,
 body.modo-oscuro table[border="1"] td {
   border-color: #404040 !important;
   color: #e0e0e0 !important;
 }
 
-/* 2 TONOS PARA TABLAS CON BORDER="1" */
+/* 2 TONOS PARA TODAS LAS TABLAS */
+body.modo-oscuro #tabla-usuarios tbody tr:nth-child(odd),
+body.modo-oscuro .lista-ventas tbody tr:nth-child(odd),
 body.modo-oscuro table[border="1"] tbody tr:nth-child(odd) {
   background-color: #363636 !important;
 }
 
+body.modo-oscuro #tabla-usuarios tbody tr:nth-child(even),
+body.modo-oscuro .lista-ventas tbody tr:nth-child(even),
 body.modo-oscuro table[border="1"] tbody tr:nth-child(even) {
   background-color: #2e2e2e !important;
 }
 
+body.modo-oscuro #tabla-usuarios tbody tr:hover,
+body.modo-oscuro .lista-ventas tbody tr:hover,
 body.modo-oscuro table[border="1"] tbody tr:hover {
   background-color: #404040 !important;
 }
 
-/* TABLAS GENÉRICAS - CAPTURA TODAS LAS DEMÁS */
-body.modo-oscuro table:not(.modo-oscuro-toggle):not(.modal-content table) {
-  background: #2d2d2d !important;
-  color: #e0e0e0 !important;
-  border: 1px solid #404040 !important;
+/* ===== MENSAJES Y ALERTAS ===== */
+body.modo-oscuro .mensaje {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  border-left: 4px solid #3498db;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
 }
 
-body.modo-oscuro table:not(.modo-oscuro-toggle):not(.modal-content table) thead {
-  background-color: #404040 !important;
+body.modo-oscuro .mensaje.error {
+  background-color: #442222;
+  color: #ff9999;
+  border-left-color: #e74c3c;
 }
 
-body.modo-oscuro table:not(.modo-oscuro-toggle):not(.modal-content table) th {
-  background-color: #404040 !important;
-  color: #ffffff !important;
-  border-color: #555 !important;
+body.modo-oscuro .mensaje.success {
+  background-color: #224422;
+  color: #99ff99;
+  border-left-color: #2ecc71;
 }
 
-body.modo-oscuro table:not(.modo-oscuro-toggle):not(.modal-content table) td {
-  border-color: #404040 !important;
-  color: #e0e0e0 !important;
+body.modo-oscuro .mensaje.info {
+  background-color: #223344;
+  color: #99ccff;
+  border-left-color: #3498db;
 }
 
-/* 2 TONOS PARA TODAS LAS TABLAS GENÉRICAS */
-body.modo-oscuro table:not(.modo-oscuro-toggle):not(.modal-content table) tbody tr:nth-child(odd) {
-  background-color: #363636 !important;
+/* ===== TARJETAS Y OPciones ===== */
+body.modo-oscuro .option-box {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  border: 1px solid #404040;
 }
 
-body.modo-oscuro table:not(.modo-oscuro-toggle):not(.modal-content table) tbody tr:nth-child(even) {
-  background-color: #2e2e2e !important;
+body.modo-oscuro .option-box:hover {
+  background-color: #363636;
+  box-shadow: 0 2px 10px rgba(52, 152, 219, 0.5);
+  transform: translateY(-2px);
 }
 
-body.modo-oscuro table:not(.modo-oscuro-toggle):not(.modal-content table) tbody tr:hover {
-  background-color: #404040 !important;
+body.modo-oscuro .option-box h3 {
+  color: #ffffff;
 }
 
-/* BOTONES EN TABLAS */
+body.modo-oscuro .option-box p {
+  color: #b0b0b0;
+}
+
+body.modo-oscuro .option-box i {
+  color: #3498db;
+}
+
+/* ===== FILTROS Y DETALLES ===== */
+body.modo-oscuro .filtros-avanzados {
+  background-color: #2d2d2d;
+  border-left: 4px solid #3498db;
+  color: #e0e0e0;
+}
+
+body.modo-oscuro .filtros-avanzados summary {
+  color: #e0e0e0;
+  font-weight: bold;
+}
+
+body.modo-oscuro .filtros-rapidos {
+  background-color: #2d2d2d;
+  border: 1px solid #404040;
+  color: #e0e0e0;
+}
+
+body.modo-oscuro .filtros-rapidos h5 {
+  color: #e0e0e0;
+}
+
+/* ===== ELEMENTOS BOOTSTRAP ===== */
+body.modo-oscuro .form-control {
+  background-color: #363636;
+  color: #e0e0e0;
+  border: 1px solid #555;
+}
+
+body.modo-oscuro .form-control:focus {
+  background-color: #404040;
+  color: #ffffff;
+  border-color: #3498db;
+}
+
+body.modo-oscuro .form-select {
+  background-color: #363636;
+  color: #e0e0e0;
+  border: 1px solid #555;
+}
+
+body.modo-oscuro .form-select:focus {
+  background-color: #404040;
+  color: #ffffff;
+  border-color: #3498db;
+}
+
+body.modo-oscuro .form-check-label {
+  color: #e0e0e0;
+}
+
+body.modo-oscuro .form-check-input {
+  background-color: #363636;
+  border-color: #555;
+}
+
+body.modo-oscuro .form-check-input:checked {
+  background-color: #3498db;
+  border-color: #3498db;
+}
+
+/* ===== PAGINACIÓN ===== */
+body.modo-oscuro .pagination .page-link {
+  background-color: #363636;
+  color: #e0e0e0;
+  border-color: #555;
+}
+
+body.modo-oscuro .pagination .page-link:hover {
+  background-color: #404040;
+  color: #ffffff;
+  border-color: #666;
+}
+
+body.modo-oscuro .pagination .page-item.disabled .page-link {
+  background-color: #2d2d2d;
+  color: #888;
+  border-color: #555;
+}
+
+body.modo-oscuro .pagination .page-item.active .page-link {
+  background-color: #3498db;
+  border-color: #3498db;
+  color: #ffffff;
+}
+
+/* ===== BREADCRUMB Y NAVEGACIÓN ===== */
+body.modo-oscuro .breadcrumb {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+}
+
+body.modo-oscuro .breadcrumb a {
+  color: #3498db;
+}
+
+body.modo-oscuro .breadcrumb a:hover {
+  color: #5dade2;
+}
+
+body.modo-oscuro .retorna {
+  background-color: #2d2d2d;
+}
+
+body.modo-oscuro .retorna a {
+  color: #3498db;
+  background-color: #2d2d2d;
+}
+
+body.modo-oscuro .retorna a:hover {
+  color: #5dade2;
+  background-color: #363636;
+}
+
+/* ===== BOTONES DE ACCIÓN ===== */
 body.modo-oscuro .btn-editar {
   color: #64b5f6 !important;
+  background: transparent;
+  border: none;
 }
 
 body.modo-oscuro .btn-editar:hover {
   color: #90caf9 !important;
+  background: rgba(100, 181, 246, 0.1);
 }
 
 body.modo-oscuro .btn-eliminar {
   color: #e57373 !important;
+  background: transparent;
+  border: none;
 }
 
 body.modo-oscuro .btn-eliminar:hover {
   color: #ef9a9a !important;
+  background: rgba(229, 115, 115, 0.1);
 }
 
-/* PAGINACIÓN EN TABLAS */
-body.modo-oscuro .pagination .page-link {
-  background-color: #363636 !important;
-  color: #e0e0e0 !important;
-  border-color: #555 !important;
+/* ===== BADGES Y ETIQUETAS ===== */
+body.modo-oscuro .badge-activo {
+  background-color: #27ae60;
+  color: #ffffff;
 }
 
-body.modo-oscuro .pagination .page-link:hover {
-  background-color: #404040 !important;
-  color: #ffffff !important;
+body.modo-oscuro .badge-inactivo {
+  background-color: #7f8c8d;
+  color: #ffffff;
 }
 
-body.modo-oscuro .pagination .page-item.disabled .page-link {
-  background-color: #2d2d2d !important;
-  color: #888 !important;
-  border-color: #555 !important;
+/* ===== SCROLLBAR ===== */
+body.modo-oscuro ::-webkit-scrollbar {
+  width: 8px;
 }
 
+body.modo-oscuro ::-webkit-scrollbar-track {
+  background: #2d2d2d;
+}
+
+body.modo-oscuro ::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+body.modo-oscuro ::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* ===== INTERRUPTOR MODO OSCURO ===== */
+.modo-oscuro-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1001;
+  background: #f8f9fa;
+  border: 2px solid #dee2e6;
+  border-radius: 25px;
+  padding: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+body.modo-oscuro .modo-oscuro-toggle {
+  background: #2d2d2d;
+  border-color: #555;
+}
+
+.modo-oscuro-toggle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.modo-oscuro-switch {
+  width: 50px;
+  height: 25px;
+  background: #ccc;
+  border-radius: 25px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+body.modo-oscuro .modo-oscuro-switch {
+  background: #3498db;
+}
+
+.modo-oscuro-switch::before {
+  content: '';
+  position: absolute;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: white;
+  top: 2px;
+  left: 2px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+body.modo-oscuro .modo-oscuro-switch::before {
+  transform: translateX(25px);
+}
+
+.modo-oscuro-icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: #666;
+  transition: all 0.3s ease;
+}
+
+.modo-oscuro-icon.sun {
+  left: 8px;
+}
+
+.modo-oscuro-icon.moon {
+  right: 8px;
+}
+
+body.modo-oscuro .modo-oscuro-icon.sun {
+  color: #ffd700;
+}
+
+body.modo-oscuro .modo-oscuro-icon.moon {
+  color: #e0e0e0;
+}
+
+body:not(.modo-oscuro) .modo-oscuro-icon.moon {
+  color: #999;
+}
+
+body:not(.modo-oscuro) .modo-oscuro-icon.sun {
+  color: #ffa500;
+}
+
+/* Tooltip para el interruptor */
+.modo-oscuro-tooltip {
+  position: absolute;
+  top: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.modo-oscuro-toggle:hover .modo-oscuro-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+body.modo-oscuro .modo-oscuro-tooltip {
+  background: #555;
+}
+
+/* ===== ELEMENTOS ESPECÍFICOS DEL SISTEMA ===== */
+body.modo-oscuro #tecnico-content {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+}
+
+body.modo-oscuro .archivos-incidencia {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  border: 1px solid #404040;
+}
+
+body.modo-oscuro .file-management-section {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  border-top: 1px solid #404040;
+}
+
+body.modo-oscuro .file-thumbnail {
+  background-color: #363636;
+  border: 1px solid #555;
+}
+
+body.modo-oscuro .search-container {
+  background-color: #2d2d2d;
+}
+
+body.modo-oscuro .search-container input {
+  background-color: #363636;
+  color: #e0e0e0;
+  border: 1px solid #555;
+}
+
+body.modo-oscuro .search-container button {
+  background-color: #2980b9;
+  color: #ffffff;
+  border: 1px solid #2980b9;
+}
+
+/* ===== MODALES ===== */
+body.modo-oscuro .modal-content {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  border: 1px solid #404040;
+}
+
+body.modo-oscuro .modal-header {
+  background-color: #404040;
+  color: #ffffff;
+  border-bottom: 1px solid #555;
+}
+
+body.modo-oscuro .modal-footer {
+  background-color: #363636;
+  border-top: 1px solid #555;
+}
+
+/* ===== TEXTO Y TÍTULOS ===== */
+body.modo-oscuro h1,
+body.modo-oscuro h2,
+body.modo-oscuro h3,
+body.modo-oscuro h4,
+body.modo-oscuro h5,
+body.modo-oscuro h6 {
+  color: #ffffff;
+}
+
+body.modo-oscuro p {
+  color: #e0e0e0;
+}
+
+body.modo-oscuro a {
+  color: #3498db;
+}
+
+body.modo-oscuro a:hover {
+  color: #5dade2;
+}
+
+/* ===== ESTADOS Y COLORES ESPECIALES ===== */
+body.modo-oscuro .estado-activo {
+  background-color: #1e3a1e !important;
+  color: #90ee90 !important;
+}
+
+body.modo-oscuro .estado-pendiente {
+  background-color: #3a2e1e !important;
+  color: #ffd700 !important;
+}
+
+body.modo-oscuro .estado-inactivo {
+  background-color: #3a1e1e !important;
+  color: #ff9999 !important;
+}
