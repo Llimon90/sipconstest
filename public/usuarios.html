@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alta de Usuarios Técnicos</title>
     <link rel="stylesheet" href="../css/styles.css?v=1.16">
-    <!-- Agregamos Font Awesome para los íconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="../scripts/script-user.js?v=4" defer></script>
 </head>
@@ -158,30 +157,6 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // Toggle sidebar functionality
-            const toggleSidebar = document.getElementById('toggleSidebar');
-            const sidebar = document.querySelector('.sidebar');
-            const mainContent = document.getElementById('mainContent');
-            
-            if (toggleSidebar) {
-                toggleSidebar.addEventListener('click', function() {
-                    sidebar.classList.toggle('contraida');
-                    if (mainContent) {
-                        mainContent.classList.toggle('expanded');
-                    }
-                    
-                    // Cambiar icono
-                    const icon = this.querySelector('i');
-                    if (sidebar.classList.contains('contraida')) {
-                        icon.className = 'fas fa-chevron-right';
-                    } else {
-                        icon.className = 'fas fa-chevron-left';
-                    }
-                });
-            }
-        });
-    </script>
+    <script src="../scripts/sidebar-state.js?v=1"></script>
 </body>
 </html>

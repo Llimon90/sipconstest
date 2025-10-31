@@ -10,23 +10,32 @@
 </head>
 <body>
 
-  <div class="retorna" >
-    <a href="../index.html">  <<- Inicio</a>
+      <div class="retorna">
+        <a href="../index.html"><i class="fas fa-arrow-left"></i> Inicio</a>
     </div>
-    
-  <!-- Panel lateral -->
-  <aside class="sidebar">
-    
-    <ul>
-      <li><a href="../index.html">Inicio</a></li>
-      <li><a href="incidencias.html">Incidencias</a></li>
-      <li><a href="reportes.html">Buscar incidencias</a></li>
-      <li><a href="clientes.html">Clientes</a></li>
-      <li><a href="usuarios.html">Usuarios</a></li>
-      <li><a href="#">Configuración</a></li>
-    </ul>
 
-  </aside>
+    <!-- Barra lateral -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-tools"></i> Panel</h2>
+            <button class="toggle-sidebar" id="toggleSidebar">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul>
+                <!-- Tus elementos de menú -->
+            </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span class="user-name">Usuario</span>
+            </div>
+        </div>
+    </aside>
     
 </body>
 </html>

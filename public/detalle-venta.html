@@ -83,43 +83,43 @@
       <form id="form-venta">
         <div class="form-row">
           <div class="form-group">
-            <label for="cliente">Cliente:</label>
+            <label for="cliente"><i class="fas fa-building"></i> Cliente:</label>
             <input type="text" id="cliente" name="cliente" required>
           </div>
           
           <div class="form-group">
-            <label for="sucursal">Sucursal:</label>
+            <label for="sucursal"><i class="fas fa-store"></i> Sucursal:</label>
             <input type="text" id="sucursal" name="sucursal">
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="equipo">Equipo:</label>
+            <label for="equipo"><i class="fas fa-desktop"></i> Equipo:</label>
             <input type="text" id="equipo" name="equipo" required>
           </div>
           
           <div class="form-group">
-            <label for="marca">Marca:</label>
+            <label for="marca"><i class="fas fa-tag"></i> Marca:</label>
             <input type="text" id="marca" name="marca">
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="modelo">Modelo:</label>
+            <label for="modelo"><i class="fas fa-cube"></i> Modelo:</label>
             <input type="text" id="modelo" name="modelo">
           </div>
           
           <div class="form-group">
-            <label for="numero_serie">Número de Serie:</label>
+            <label for="numero_serie"><i class="fas fa-barcode"></i> Número de Serie:</label>
             <input type="text" id="numero_serie" name="numero_serie">
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="garantia">Garantía (meses):</label>
+            <label for="garantia"><i class="fas fa-shield-alt"></i> Garantía (meses):</label>
             <input type="number" id="garantia" name="garantia" required>
           </div>
           
@@ -132,7 +132,7 @@
         </div>
         
         <div class="form-group">
-          <label for="notas">Notas:</label>
+          <label for="notas"><i class="fas fa-sticky-note"></i> Notas:</label>
           <textarea id="notas" name="notas" rows="4"></textarea>
         </div>
         
@@ -154,32 +154,7 @@
     </section>
   </main>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      // Toggle sidebar functionality
-      const toggleSidebar = document.getElementById('toggleSidebar');
-      const sidebar = document.querySelector('.sidebar');
-      const mainContent = document.getElementById('mainContent');
-      
-      if (toggleSidebar) {
-        toggleSidebar.addEventListener('click', function() {
-          sidebar.classList.toggle('contraida');
-          if (mainContent) {
-            mainContent.classList.toggle('expanded');
-          }
-          
-          // Cambiar icono
-          const icon = this.querySelector('i');
-          if (sidebar.classList.contains('contraida')) {
-            icon.className = 'fas fa-chevron-right';
-          } else {
-            icon.className = 'fas fa-chevron-left';
-          }
-        });
-      }
-    });
-  </script>
-
+  <script src="../scripts/sidebar-state.js?v=1"></script>
   <script src="../scripts/actualiza-venta.js?v=4"></script>
 </body>
 </html>

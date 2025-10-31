@@ -1141,3 +1141,46 @@ main {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Estado inicial basado en localStorage */
+.sidebar.contraida {
+  width: 70px;
+}
+
+.sidebar.contraida .sidebar-header {
+  padding: 25px 15px 20px;
+  justify-content: center;
+}
+
+.sidebar.contraida .sidebar-header h2,
+.sidebar.contraida .nav-text,
+.sidebar.contraida .user-name {
+  display: none;
+}
+
+.sidebar.contraida .nav-link {
+  padding: 18px 20px;
+  justify-content: center;
+  border-left: none;
+  border-radius: 8px;
+  margin: 0 10px 5px;
+}
+
+.sidebar.contraida .nav-link:hover {
+  padding: 18px 20px;
+  background: rgba(52, 152, 219, 0.3);
+  border-left: none;
+}
+
+.sidebar.contraida .user-info {
+  justify-content: center;
+}
+
+.sidebar.contraida .user-info i {
+  font-size: 1.8rem;
+}
+
+/* Contenido principal ajustado */
+main.expanded {
+  margin-left: 70px;
+}

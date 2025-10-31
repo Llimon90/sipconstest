@@ -9,7 +9,7 @@
 </head>
 <body>
   <div class="retorna">
-    <a href="../index.html"><<- Inicio</a>
+    <a href="../index.html"><i class="fas fa-arrow-left"></i> Inicio</a>
   </div>
   
   <!-- Panel lateral mejorado -->
@@ -98,32 +98,7 @@
     </div>
   </main>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      // Toggle sidebar functionality
-      const toggleSidebar = document.getElementById('toggleSidebar');
-      const sidebar = document.querySelector('.sidebar');
-      const mainContent = document.getElementById('mainContent');
-      
-      if (toggleSidebar) {
-        toggleSidebar.addEventListener('click', function() {
-          sidebar.classList.toggle('contraida');
-          if (mainContent) {
-            mainContent.classList.toggle('expanded');
-          }
-          
-          // Cambiar icono
-          const icon = this.querySelector('i');
-          if (sidebar.classList.contains('contraida')) {
-            icon.className = 'fas fa-chevron-right';
-          } else {
-            icon.className = 'fas fa-chevron-left';
-          }
-        });
-      }
-    });
-  </script>
-
+  <script src="../scripts/sidebar-state.js?v=1"></script>
   <script src="script.js"></script>
 </body>
 </html>
