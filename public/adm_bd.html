@@ -11,31 +11,73 @@
 <body>
 
       <div class="retorna">
-        <a href="../index.html"><i class="fas fa-arrow-left"></i> Inicio</a>
+    <a href="../index.html"><i class="fas fa-arrow-left"></i> Inicio</a>
+  </div>
+
+  <!-- Panel lateral mejorado -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2><i class="fas fa-tools"></i> Panel</h2>
+      <button class="toggle-sidebar" id="toggleSidebar">
+        <i class="fas fa-chevron-left"></i>
+      </button>
     </div>
+    
+    <nav class="sidebar-nav">
+      <ul>
+        <li>
+          <a href="../index.html" class="nav-link">
+            <i class="fas fa-home"></i>
+            <span class="nav-text">Inicio</span>
+          </a>
+        </li>
+        <li>
+          <a href="incidencias.html" class="nav-link">
+            <i class="fas fa-exclamation-circle"></i>
+            <span class="nav-text">Incidencias</span>
+          </a>
+        </li>
+        <li>
+          <a href="reportes.html" class="nav-link">
+            <i class="fas fa-search"></i>
+            <span class="nav-text">Buscar incidencias</span>
+          </a>
+        </li>
+        <li>
+          <a href="clientes.html" class="nav-link">
+            <i class="fas fa-users"></i>
+            <span class="nav-text">Clientes</span>
+          </a>
+        </li>
+        <li>
+          <a href="usuarios.html" class="nav-link">
+            <i class="fas fa-user-cog"></i>
+            <span class="nav-text">Usuarios</span>
+          </a>
+        </li>
+        <li>
+          <a href="soporte.html" class="nav-link active">
+            <i class="fas fa-headset"></i>
+            <span class="nav-text">Soporte Técnico</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-link">
+            <i class="fas fa-cog"></i>
+            <span class="nav-text">Configuración</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
 
-    <!-- Barra lateral -->
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <h2><i class="fas fa-tools"></i> Panel</h2>
-            <button class="toggle-sidebar" id="toggleSidebar">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-        </div>
-        
-        <nav class="sidebar-nav">
-            <ul>
-                <!-- Tus elementos de menú -->
-            </ul>
-        </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <i class="fas fa-user-circle"></i>
+        <span class="user-name">Técnico</span>
+      </div>
+    </div>
+  </aside>
 
-        <div class="sidebar-footer">
-            <div class="user-info">
-                <i class="fas fa-user-circle"></i>
-                <span class="user-name">Usuario</span>
-            </div>
-        </div>
-    </aside>
     
 </body>
 </html>
