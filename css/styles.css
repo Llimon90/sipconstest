@@ -1988,3 +1988,50 @@ body.modo-oscuro .lista-incidencias,
 body.modo-oscuro .lista-ventas {
     margin-left: 0;
     margin-right: 0;
+
+    /* ===== CORRECCIÓN DEL ESPACIO ===== */
+main {
+    margin-left: var(--sidebar-width);
+    padding: 20px;
+    flex: 1;
+    min-width: 0;
+    transition: var(--transition);
+    width: calc(100% - var(--sidebar-width));
+    /* Asegurar que no haya espacios adicionales */
+    box-sizing: border-box;
+}
+
+main.contraido {
+    margin-left: var(--sidebar-collapsed);
+    width: calc(100% - var(--sidebar-collapsed));
+}
+
+/* Eliminar cualquier margen o padding no deseado */
+.encabezado,
+.lista-incidencias,
+.lista-ventas,
+.model-grid,
+.new-incidencia-form,
+.filtros {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+    width: 100%;
+}
+
+/* Contenedor principal sin espacios */
+#admin-content {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* Grid containers ajustados */
+.model-grid-content,
+.options-container {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}

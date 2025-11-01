@@ -189,4 +189,47 @@ class SidebarStateManager {
 // Inicializar la clase cuando el DOM esté completamente cargado
 document.addEventListener('DOMContentLoaded', () => {
     new SidebarStateManager();
+});// Manejo del estado de la sidebar sin animaciones iniciales
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.querySelector('.sidebar');
+    const main = document.querySelector('main');
+    const toggleBtn = document.querySelector('.toggle-sidebar');
+    
+    // Deshabilitar transiciones temporalmente durante la carga
+    document.body.style.transition = 'none';
+    sidebar.style.transition = 'none';
+    if (main) main.style.transition = 'none';
+    
+    // Verificar estado guardado o usar estado por defecto
+    const sidebarState = localStorage.getItem('sidebarState');
+    
+    if (sidebarState === 'contraida') {
+        sidebar.classList.add('contraida');
+        if (main) main.classList.add('contraido');
+    } else {
+        sidebar.classList.remove('contraida');
+        if (main) main.classList.remove('contraido');
+    }
+    
+    // Rehabilitar transiciones después de un breve delay
+    setTimeout(() => {
+        document.body.style.transition = '';
+        sidebar.style.transition = 'var(--transition)';
+        if (main) main.style.transition = 'var(--transition)';
+    }, 100);
+    
+    // Event listener para el botón toggle
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('contraida');
+            if (main) main.classList.toggle('contraido');
+            
+            // Guardar estado en localStorage
+            const isContraida = sidebar.classList.contains('contraida');
+            localStorage.setItem('sidebarState', isContraida ? 'contraida' : 'expandida');
+        });
+    }
+    
+    // Asegurar que no haya flash de contenido no estilizado
+    document.body.style.opacity = '1';
 });
