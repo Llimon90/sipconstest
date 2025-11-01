@@ -16,134 +16,126 @@ class SidebarStateManager {
      * configura listeners y marca la página activa.
      */
     init() {
+        // Antes de aplicar el estado, deshabilitamos transiciones para evitar el "flash" inicial
+        this.disableTransitions(); 
+        
         // Aplicar estado guardado al cargar la página
         this.applySavedState();
         
-        // Configurar event listeners
+        // Configuramos listeners
         this.setupEventListeners();
         
         // Marcar página activa
         this.setActivePage();
+
+        // Reactivamos las transiciones después de un breve delay
+        this.enableTransitions();
     }
 
-    /**
-     * Obtiene el nombre del archivo de la página actual.
-     * @returns {string} El nombre de la página actual en minúsculas.
-     */
+    // --- Métodos de Estado y Almacenamiento ---
+
     getCurrentPage() {
         const path = window.location.pathname;
-        // Obtiene el último segmento del path o 'index.html' si está vacío
         const page = path.split('/').pop() || 'index.html';
         return page.toLowerCase();
     }
 
-    /**
-     * Obtiene el estado guardado de la barra lateral.
-     * @returns {boolean} true si está contraída, false si está expandida.
-     */
     getState() {
         const savedState = localStorage.getItem(this.storageKey);
-        // Retorna true si el estado guardado es 'contraida'
         return savedState === 'contraida';
     }
 
-    /**
-     * Guarda el estado de la barra lateral en localStorage.
-     * @param {boolean} isContraida - true si está contraída, false si está expandida.
-     */
     saveState(isContraida) {
         localStorage.setItem(this.storageKey, isContraida ? 'contraida' : 'expandida');
     }
 
-    /**
-     * Aplica las clases CSS para el estado guardado de la barra lateral.
-     */
+    // --- Métodos de Transición/Estilo (NUEVOS PARA SOLUCIONAR EL FLASH) ---
+
+    disableTransitions() {
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.getElementById('mainContent');
+
+        // Deshabilitar transiciones CSS para evitar el parpadeo inicial
+        document.body.style.setProperty('transition', 'none', 'important');
+        if (sidebar) sidebar.style.setProperty('transition', 'none', 'important');
+        if (mainContent) mainContent.style.setProperty('transition', 'none', 'important');
+    }
+
+    enableTransitions() {
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.getElementById('mainContent');
+
+        // Rehabilitar transiciones después de un breve delay
+        setTimeout(() => {
+            document.body.style.removeProperty('transition');
+            if (sidebar) sidebar.style.removeProperty('transition');
+            if (mainContent) mainContent.style.removeProperty('transition');
+        }, 50); // Un pequeño delay (e.g., 50ms) es suficiente
+    }
+
+    // --- Métodos de Interacción DOM ---
+
     applySavedState() {
         const isContraida = this.getState();
         const sidebar = document.querySelector('.sidebar');
-        // Usamos 'mainContent' como ID para el contenido principal
         const mainContent = document.getElementById('mainContent');
 
         if (sidebar) {
+            // Aplicar las clases sin animaciones
             if (isContraida) {
                 sidebar.classList.add('contraida');
-                if (mainContent) {
-                    mainContent.classList.add('contraido');
-                }
+                if (mainContent) mainContent.classList.add('contraido');
             } else {
                 sidebar.classList.remove('contraida');
-                if (mainContent) {
-                    mainContent.classList.remove('contraido');
-                }
+                if (mainContent) mainContent.classList.remove('contraido');
             }
             this.updateToggleIcon(isContraida);
         }
     }
 
-    /**
-     * Configura los event listeners para el botón de toggle y los enlaces de navegación.
-     */
     setupEventListeners() {
-        const toggleButton = document.getElementById('toggleSidebar');
+        // Asegúrate de usar el ID correcto: 'toggleSidebar' (basado en el código original de la clase)
+        const toggleButton = document.getElementById('toggleSidebar'); 
         
         if (toggleButton) {
-            // Un solo listener para el botón de toggle
             toggleButton.addEventListener('click', () => {
                 this.toggleSidebar();
             });
         }
 
-        // Asegurar que los enlaces mantengan el estado al navegar
         this.setupNavigationLinks();
     }
 
-    /**
-     * Cambia el estado de la barra lateral (toggle).
-     */
     toggleSidebar() {
         const sidebar = document.querySelector('.sidebar');
         const mainContent = document.getElementById('mainContent');
-        // Determina el estado actual
         const isContraida = sidebar.classList.contains('contraida');
 
         if (isContraida) {
             // Expandir
             sidebar.classList.remove('contraida');
-            if (mainContent) {
-                mainContent.classList.remove('contraido');
-            }
+            if (mainContent) mainContent.classList.remove('contraido');
             this.saveState(false);
         } else {
             // Contraer
             sidebar.classList.add('contraida');
-            if (mainContent) {
-                mainContent.classList.add('contraido');
-            }
+            if (mainContent) mainContent.classList.add('contraido');
             this.saveState(true);
         }
 
-        // Actualiza el icono del botón después del toggle
         this.updateToggleIcon(!isContraida);
     }
 
-    /**
-     * Actualiza el icono del botón de toggle (flecha).
-     * @param {boolean} isContraida - Estado actual después del toggle.
-     */
     updateToggleIcon(isContraida) {
         const toggleButton = document.getElementById('toggleSidebar');
         if (toggleButton) {
             const icon = toggleButton.querySelector('i');
             if (icon) {
-                // Si está contraída, la flecha apunta a la derecha (para expandir)
                 icon.className = isContraida ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
             }
         }
     }
 
-    /**
-     * Marca el enlace de la página actual como 'activo'.
-     */
     setActivePage() {
         const links = document.querySelectorAll('.sidebar a');
         links.forEach(link => {
@@ -151,7 +143,6 @@ class SidebarStateManager {
             if (href) {
                 const linkPage = href.split('/').pop().toLowerCase();
                 
-                // Lógica de comparación de página, incluyendo casos especiales
                 const isCurrentPage = (
                     linkPage === this.currentPage || 
                     (this.currentPage === 'index.html' && href === '../index.html') ||
@@ -167,18 +158,11 @@ class SidebarStateManager {
         });
     }
 
-    /**
-     * Agrega un listener a todos los enlaces para guardar el estado de la sidebar
-     * justo antes de la navegación.
-     */
     setupNavigationLinks() {
-        // Selecciona todos los enlaces que tienen un atributo 'href'
         const navLinks = document.querySelectorAll('a[href]');
         navLinks.forEach(link => {
             link.addEventListener('click', () => {
-                // Guardar el estado actual antes de que el navegador cambie de página
                 const sidebar = document.querySelector('.sidebar');
-                // Asume que la sidebar existe en el momento del click
                 const isContraida = sidebar.classList.contains('contraida');
                 this.saveState(isContraida);
             });
@@ -189,47 +173,4 @@ class SidebarStateManager {
 // Inicializar la clase cuando el DOM esté completamente cargado
 document.addEventListener('DOMContentLoaded', () => {
     new SidebarStateManager();
-});// Manejo del estado de la sidebar sin animaciones iniciales
-document.addEventListener('DOMContentLoaded', function() {
-    const sidebar = document.querySelector('.sidebar');
-    const main = document.querySelector('main');
-    const toggleBtn = document.querySelector('.toggle-sidebar');
-    
-    // Deshabilitar transiciones temporalmente durante la carga
-    document.body.style.transition = 'none';
-    sidebar.style.transition = 'none';
-    if (main) main.style.transition = 'none';
-    
-    // Verificar estado guardado o usar estado por defecto
-    const sidebarState = localStorage.getItem('sidebarState');
-    
-    if (sidebarState === 'contraida') {
-        sidebar.classList.add('contraida');
-        if (main) main.classList.add('contraido');
-    } else {
-        sidebar.classList.remove('contraida');
-        if (main) main.classList.remove('contraido');
-    }
-    
-    // Rehabilitar transiciones después de un breve delay
-    setTimeout(() => {
-        document.body.style.transition = '';
-        sidebar.style.transition = 'var(--transition)';
-        if (main) main.style.transition = 'var(--transition)';
-    }, 100);
-    
-    // Event listener para el botón toggle
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', function() {
-            sidebar.classList.toggle('contraida');
-            if (main) main.classList.toggle('contraido');
-            
-            // Guardar estado en localStorage
-            const isContraida = sidebar.classList.contains('contraida');
-            localStorage.setItem('sidebarState', isContraida ? 'contraida' : 'expandida');
-        });
-    }
-    
-    // Asegurar que no haya flash de contenido no estilizado
-    document.body.style.opacity = '1';
 });
