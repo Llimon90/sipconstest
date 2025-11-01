@@ -16,19 +16,19 @@ class SidebarStateManager {
      * configura listeners y marca la página activa.
      */
     init() {
-        // Antes de aplicar el estado, deshabilitamos transiciones para evitar el "flash" inicial
+        // 1. Deshabilitar transiciones temporalmente para evitar el "flash" (Flickering)
         this.disableTransitions(); 
         
-        // Aplicar estado guardado al cargar la página
+        // 2. Aplicar estado guardado al cargar la página
         this.applySavedState();
         
-        // Configuramos listeners
+        // 3. Configurar listeners
         this.setupEventListeners();
         
-        // Marcar página activa
+        // 4. Marcar página activa
         this.setActivePage();
 
-        // Reactivamos las transiciones después de un breve delay
+        // 5. Reactivar las transiciones
         this.enableTransitions();
     }
 
@@ -49,13 +49,12 @@ class SidebarStateManager {
         localStorage.setItem(this.storageKey, isContraida ? 'contraida' : 'expandida');
     }
 
-    // --- Métodos de Transición/Estilo (NUEVOS PARA SOLUCIONAR EL FLASH) ---
+    // --- Métodos de Transición/Estilo para evitar el Flickering ---
 
     disableTransitions() {
         const sidebar = document.querySelector('.sidebar');
         const mainContent = document.getElementById('mainContent');
 
-        // Deshabilitar transiciones CSS para evitar el parpadeo inicial
         document.body.style.setProperty('transition', 'none', 'important');
         if (sidebar) sidebar.style.setProperty('transition', 'none', 'important');
         if (mainContent) mainContent.style.setProperty('transition', 'none', 'important');
@@ -65,12 +64,11 @@ class SidebarStateManager {
         const sidebar = document.querySelector('.sidebar');
         const mainContent = document.getElementById('mainContent');
 
-        // Rehabilitar transiciones después de un breve delay
         setTimeout(() => {
             document.body.style.removeProperty('transition');
             if (sidebar) sidebar.style.removeProperty('transition');
             if (mainContent) mainContent.style.removeProperty('transition');
-        }, 50); // Un pequeño delay (e.g., 50ms) es suficiente
+        }, 50);
     }
 
     // --- Métodos de Interacción DOM ---
@@ -81,7 +79,6 @@ class SidebarStateManager {
         const mainContent = document.getElementById('mainContent');
 
         if (sidebar) {
-            // Aplicar las clases sin animaciones
             if (isContraida) {
                 sidebar.classList.add('contraida');
                 if (mainContent) mainContent.classList.add('contraido');
@@ -94,7 +91,6 @@ class SidebarStateManager {
     }
 
     setupEventListeners() {
-        // Asegúrate de usar el ID correcto: 'toggleSidebar' (basado en el código original de la clase)
         const toggleButton = document.getElementById('toggleSidebar'); 
         
         if (toggleButton) {
