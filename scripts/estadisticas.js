@@ -206,11 +206,9 @@ function actualizarEstadisticasTecnicos(data) {
     
     // Actualizar tarjetas de técnicos
     actualizarElementoSiExiste('tecnicoEficiente', data.tecnico_eficiente || 'N/A');
-    actualizarElementoSiExiste('tecnicoMes', data.tecnico_mas_asignadas || 'N/A');
-    actualizarElementoSiExiste('totalTecnicos', data.total_tecnicos || '0');
-    
-    // Para técnico más rápido, usaríamos tiempos de resolución si estuvieran disponibles
+    actualizarElementoSiExiste('tecnicoMes', data.tecnico_mas_completadas || 'N/A');
     actualizarElementoSiExiste('tecnicoRapido', data.tecnico_eficiente || 'N/A');
+    actualizarElementoSiExiste('totalTecnicos', data.total_tecnicos || '0');
     
     // Crear gráficos de técnicos
     crearGraficosTecnicos(data);
@@ -425,13 +423,22 @@ function crearGraficosTecnicos(data) {
             type: 'bar',
             data: {
                 labels: data.graficos.rendimiento.labels,
-                datasets: [{
-                    label: 'Incidencias Asignadas',
-                    data: data.graficos.rendimiento.datos,
-                    backgroundColor: '#4361ee',
-                    borderColor: '#3a0ca3',
-                    borderWidth: 1
-                }]
+                datasets: [
+                    {
+                        label: 'Incidencias Asignadas',
+                        data: data.graficos.rendimiento.datos_asignadas,
+                        backgroundColor: '#4361ee',
+                        borderColor: '#3a0ca3',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Incidencias Completadas',
+                        data: data.graficos.rendimiento.datos_completadas,
+                        backgroundColor: '#28a745',
+                        borderColor: '#20a745',
+                        borderWidth: 1
+                    }
+                ]
             },
             options: {
                 responsive: true,
@@ -454,8 +461,8 @@ function crearGraficosTecnicos(data) {
                 datasets: [{
                     label: 'Eficiencia (%)',
                     data: data.graficos.eficiencia.datos,
-                    backgroundColor: '#28a745',
-                    borderColor: '#20a745',
+                    backgroundColor: '#ffc107',
+                    borderColor: '#e0a800',
                     borderWidth: 1
                 }]
             },
@@ -464,7 +471,36 @@ function crearGraficosTecnicos(data) {
                 scales: {
                     y: {
                         beginAtZero: true,
-                        max: 100
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Porcentaje (%)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Gráfico de satisfacción (placeholder)
+    const ctxSatisfaccion = document.getElementById('chartSatisfaccion');
+    if (ctxSatisfaccion) {
+        charts.satisfaccion = new Chart(ctxSatisfaccion, {
+            type: 'doughnut',
+            data: {
+                labels: ['Excelente', 'Bueno', 'Regular', 'Malo'],
+                datasets: [{
+                    data: [65, 25, 7, 3],
+                    backgroundColor: ['#28a745', '#20c997', '#ffc107', '#dc3545'],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
                     }
                 }
             }
@@ -472,14 +508,6 @@ function crearGraficosTecnicos(data) {
     }
 }
 
-// ... (resto de las funciones de utilidad se mantienen igual)
-
-function aplicarFiltros() {
-    console.log('Aplicando filtros...');
-    cargarEstadisticas();
-}
-
-// Resto de funciones permanecen igual...
 function actualizarElementoSiExiste(id, valor) {
     const elemento = document.getElementById(id);
     if (elemento) {
@@ -554,6 +582,11 @@ function downloadChart(chartId) {
     link.download = `grafico-${chartId}-${new Date().toISOString().split('T')[0]}.png`;
     link.href = chart.toBase64Image();
     link.click();
+}
+
+function aplicarFiltros() {
+    console.log('Aplicando filtros...');
+    cargarEstadisticas();
 }
 
 // Hacer funciones globales para los botones HTML
