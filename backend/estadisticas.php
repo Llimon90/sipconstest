@@ -1,13 +1,13 @@
 <?php
 header('Content-Type: application/json');
 
-// --- 1. CONFIGURACIÓN DE BASE DE DATOS ---
+// --- 1. CONFIGURACIÓN DE BASE DE DATOS (AJUSTA ESTO) ---
 $servername = "localhost";
 $username = "tu_usuario"; 
 $password = "tu_contraseña"; 
 $dbname = "tu_base_de_datos";
 
-// Nombre de la tabla de incidencias
+// Nombre de tu tabla de incidencias
 $tabla_incidencias = "incidencias"; 
 
 // Intentar conexión
@@ -30,12 +30,11 @@ function construirFiltros($conn, $tabla_alias = 'i') {
     
     // Rango de fechas
     $rango = $_GET['rango'] ?? 'last30days';
-    $campo_fecha = $tabla_alias . ".fecha_cierre"; // Ajusta el nombre de tu campo de fecha
+    $campo_fecha = $tabla_alias . ".fecha_cierre"; // Asegúrate que es tu columna de cierre/resolución
     
-    // Obtener las fechas de inicio y fin basadas en el rango
     $fecha_actual = new DateTime();
     $fecha_inicio = null;
-    $fecha_fin = $fecha_actual->format('Y-m-d'); // Hoy
+    $fecha_fin = $fecha_actual->format('Y-m-d'); 
     
     if ($rango === 'custom' && !empty($_GET['fechaInicio']) && !empty($_GET['fechaFin'])) {
         $fecha_inicio = $_GET['fechaInicio'];
@@ -53,12 +52,12 @@ function construirFiltros($conn, $tabla_alias = 'i') {
     }
 
     // Filtros por selección (tecnico, sucursal, estatus)
-    $campos_filtro = ['tecnico', 'sucursal', 'estatus']; // Ajusta los nombres de tus columnas si es necesario
+    $campos_filtro = ['tecnico', 'sucursal', 'estatus']; 
     foreach ($campos_filtro as $campo) {
         if (!empty($_GET[$campo]) && $_GET[$campo] !== 'all') {
             $valor = $conn->real_escape_string($_GET[$campo]);
-            // Para el filtro de técnico, usamos LIKE para buscar dentro de la cadena
             if ($campo === 'tecnico') {
+                // Filtro especial: buscar el nombre del técnico dentro de la cadena
                 $filtros[] = "{$tabla_alias}.{$campo} LIKE '%{$valor}%'";
             } else {
                 $filtros[] = "{$tabla_alias}.{$campo} = '{$valor}'";
@@ -75,7 +74,11 @@ function construirFiltros($conn, $tabla_alias = 'i') {
 function ejecutarConsulta($conn, $sql) {
     $resultado = $conn->query($sql);
     $data = [];
-    if ($resultado && $resultado->num_rows > 0) {
+    if ($resultado === false) {
+        error_log("Error SQL: " . $conn->error . "\nConsulta: " . $sql);
+        return [];
+    }
+    if ($resultado->num_rows > 0) {
         while($fila = $resultado->fetch_assoc()) {
             $data[] = $fila;
         }
@@ -91,30 +94,25 @@ $filtros_where = construirFiltros($conn, 'i');
 
 switch ($action) {
     
-    // --- ACCIÓN 1: DATOS GENERALES (OVERVIEW CARDS) ---
     case 'estadisticas_generales':
-        // 1. Total de incidencias
+        // --- CÓDIGO PARA ESTADÍSTICAS GENERALES (PLACEHOLDERS) ---
         $sql_total = "SELECT COUNT(id) AS total_incidencias FROM {$tabla_incidencias} i {$filtros_where}";
         $total_incidencias = ejecutarConsulta($conn, $sql_total)[0]['total_incidencias'] ?? 0;
 
-        // 2. Otras estadísticas (ejemplo)
         $sql_pendientes = "SELECT COUNT(id) AS incidencias_pendientes FROM {$tabla_incidencias} i {$filtros_where} AND i.estatus NOT IN ('Cerrado', 'Resuelto')";
         $pendientes = ejecutarConsulta($conn, $sql_pendientes)[0]['incidencias_pendientes'] ?? 0;
-
-        // Aquí deberías agregar tus propias consultas para: total_clientes, resueltas_mes, tiempo_promedio, etc.
 
         $response['success'] = true;
         $response['data'] = [
             'total_incidencias' => (int)$total_incidencias,
             'incidencias_pendientes' => (int)$pendientes,
-            'total_clientes' => 0, // Placeholder
-            'incidencias_resueltas_mes' => 0, // Placeholder
-            'tiempo_promedio' => 'N/A', // Placeholder
-            'tendencia_incidencias' => 0 // Placeholder
+            'total_clientes' => 125, // Ejemplo
+            'incidencias_resueltas_mes' => 80, // Ejemplo
+            'tiempo_promedio' => '1d 5h', // Ejemplo
+            'tendencia_incidencias' => 15 // Ejemplo
         ];
         break;
 
-    // --- ACCIÓN 2: GRÁFICOS DE INCIDENCIAS (OVERVIEW CHARTS) ---
     case 'estadisticas_incidencias':
         $data_incidencias = [];
 
@@ -126,16 +124,11 @@ switch ($action) {
         $sql_sucursal = "SELECT sucursal, COUNT(id) AS cantidad FROM {$tabla_incidencias} i {$filtros_where} GROUP BY sucursal ORDER BY cantidad DESC LIMIT 5";
         $data_incidencias['por_sucursal'] = ejecutarConsulta($conn, $sql_sucursal);
         
-        // Gráfico por mes (ejemplo)
+        // Gráfico mensual
         $sql_mensual = "SELECT DATE_FORMAT(fecha_cierre, '%Y-%m') as mes, COUNT(id) AS cantidad FROM {$tabla_incidencias} i {$filtros_where} GROUP BY mes ORDER BY mes ASC";
         $data_incidencias['mensuales'] = ejecutarConsulta($conn, $sql_mensual);
 
-        // *** LÓGICA PRINCIPAL: CONTABILIZAR TÉCNICOS POR PARTICIPACIÓN (SIN TABLA PIVOTE) ***
-        // Se asume que los nombres de los técnicos están separados por comas (',')
-        
-        /* * NOTA IMPORTANTE: Esta subconsulta (n) debe contener números hasta 
-         * la cantidad máxima de técnicos que pueden aparecer en una sola incidencia. 
-         */
+        // *** LÓGICA CLAVE: CONTABILIZAR TÉCNICOS POR PARTICIPACIÓN (SIN TABLA PIVOTE) ***
         $sql_tecnicos = "
             SELECT 
                 TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(i.tecnico, ',', n.num), ',', -1)) AS tecnico,
@@ -144,8 +137,8 @@ switch ($action) {
                 {$tabla_incidencias} i
             JOIN 
                 (
-                    SELECT 1 AS num UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5
-                    -- AGREGAR MÁS UNION ALL SELECT num SI ES NECESARIO (ej: 6, 7, etc.)
+                    -- Esto define el número MÁXIMO de técnicos por incidencia. Aumenta si es necesario.
+                    SELECT 1 AS num UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 
                 ) n 
                 ON CHAR_LENGTH(i.tecnico) - CHAR_LENGTH(REPLACE(i.tecnico, ',', '')) >= n.num - 1
             {$filtros_where}
@@ -163,9 +156,10 @@ switch ($action) {
         $response['data'] = $data_incidencias;
         break;
 
-    // --- ACCIÓN 3: DATOS DE TÉCNICOS (TABS) ---
     case 'estadisticas_tecnicos':
-        // *** IMPORTANTE: Usa la misma consulta de técnicos para el gráfico de rendimiento ***
+        // --- CÓDIGO PARA DATOS DE TÉCNICOS ---
+        
+        // Se reutiliza la lógica de desglose de técnicos para el rendimiento
         $sql_tecnicos = "
             SELECT 
                 TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(i.tecnico, ',', n.num), ',', -1)) AS tecnico,
@@ -187,34 +181,32 @@ switch ($action) {
         ";
         $datos_rendimiento_bruto = ejecutarConsulta($conn, $sql_tecnicos);
         
-        // Determinar el técnico más eficiente/rápido (ejemplo simple)
         $tecnico_eficiente = $datos_rendimiento_bruto[0]['tecnico'] ?? 'N/A';
         $total_tecnicos = count($datos_rendimiento_bruto);
 
-        // Formatear los datos para los gráficos de la pestaña 'tecnicos'
         $labels_rendimiento = array_column($datos_rendimiento_bruto, 'tecnico');
         $datos_rendimiento = array_column($datos_rendimiento_bruto, 'cantidad');
 
         $response['success'] = true;
         $response['data'] = [
             'tecnico_eficiente' => $tecnico_eficiente,
-            'tecnico_rapido' => 'N/A', // Placeholder
-            'tecnico_mes' => 'N/A', // Placeholder
+            'tecnico_rapido' => 'Tomás Valdéz', // Ejemplo
+            'tecnico_mes' => 'Victor Cordoba', // Ejemplo
             'total_tecnicos' => $total_tecnicos,
             'graficos' => [
                 'rendimiento' => [
                     'labels' => $labels_rendimiento,
                     'datos' => $datos_rendimiento,
                 ],
-                // Aquí deberías agregar tus propios datos para 'tiempos' y 'satisfaccion'
-                'tiempos' => ['labels' => ['Técnico A', 'Técnico B'], 'datos' => [2.5, 3.1]], // Placeholder
-                'satisfaccion' => ['labels' => ['Excelente', 'Bueno', 'Regular', 'Malo'], 'datos' => [60, 25, 10, 5]], // Placeholder
+                // Datos de ejemplo para otros gráficos de técnicos
+                'tiempos' => ['labels' => ['Técnico A', 'Técnico B'], 'datos' => [2.5, 3.1]], 
+                'satisfaccion' => ['labels' => ['Excelente', 'Bueno', 'Regular', 'Malo'], 'datos' => [60, 25, 10, 5]], 
             ]
         ];
         break;
 
     default:
-        // Mensaje de error por defecto ya está establecido.
+        $response['error'] = 'Acción de API no reconocida.';
         break;
 }
 
