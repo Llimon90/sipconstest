@@ -77,7 +77,7 @@ function construirFiltros($conn, $tabla_alias = 'i', $campo_fecha = 'fecha') {
 }
 
 /**
- * Extrae técnicos individuales del campo tecnico
+ * Extrae técnicos individuales del campo tecnico (separados por espacios)
  */
 function extraerTecnicosIndividuales($conn, $filtros_where) {
     $sql = "
@@ -88,22 +88,100 @@ function extraerTecnicosIndividuales($conn, $filtros_where) {
         {$filtros_where}
         AND tecnico IS NOT NULL 
         AND tecnico != ''
+        AND LENGTH(tecnico) > 3
     ";
     
     $resultados = ejecutarConsulta($conn, $sql);
     $tecnicos_individuales = [];
     
     foreach ($resultados as $fila) {
-        $tecnicos = explode(',', $fila['tecnico']);
+        // Separar por espacios y limpiar cada técnico
+        $tecnicos = preg_split('/\s+/', trim($fila['tecnico']));
+        
         foreach ($tecnicos as $tecnico) {
             $tecnico_limpio = trim($tecnico);
-            if (!empty($tecnico_limpio) && !in_array($tecnico_limpio, $tecnicos_individuales)) {
+            
+            // Filtros estrictos para nombres válidos
+            $es_valido = (
+                strlen($tecnico_limpio) > 2 &&                    // Más de 2 caracteres
+                !preg_match('/^\d+$/', $tecnico_limpio) &&        // No es solo números
+                !preg_match('/[.,;!?]/', $tecnico_limpio) &&      // No tiene puntuación
+                preg_match('/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/', $tecnico_limpio) // Solo letras y espacios
+            );
+            
+            if ($es_valido) {
                 $tecnicos_individuales[] = $tecnico_limpio;
             }
         }
     }
     
-    return $tecnicos_individuales;
+    return array_unique($tecnicos_individuales);
+}
+
+/**
+ * Cuenta incidencias por técnico individual con agrupación inteligente
+ */
+function contarIncidenciasPorTecnico($conn, $filtros_where) {
+    $tecnicos_unicos = extraerTecnicosIndividuales($conn, $filtros_where);
+    
+    // Agrupar nombres similares para evitar duplicados
+    $tecnicos_agrupados = [];
+    foreach ($tecnicos_unicos as $tecnico) {
+        $encontrado = false;
+        foreach ($tecnicos_agrupados as $grupo => $tecnicos_grupo) {
+            // Si el técnico actual contiene o es contenido por un grupo existente
+            if (strpos($tecnico, $grupo) !== false || strpos($grupo, $tecnico) !== false) {
+                $tecnicos_agrupados[$grupo][] = $tecnico;
+                $encontrado = true;
+                break;
+            }
+        }
+        if (!$encontrado) {
+            $tecnicos_agrupados[$tecnico] = [$tecnico];
+        }
+    }
+    
+    // Usar el nombre más común de cada grupo como representante
+    $tecnicos_data = [];
+    foreach ($tecnicos_agrupados as $grupo_principal => $tecnicos_grupo) {
+        $representante = $grupo_principal;
+        
+        // Contar frecuencia de cada nombre en el grupo
+        $frecuencias = array_count_values($tecnicos_grupo);
+        arsort($frecuencias);
+        $representante = array_key_first($frecuencias);
+        
+        $tecnico_escape = $conn->real_escape_string($representante);
+        
+        // Buscar incidencias donde el técnico aparece exactamente
+        $sql_count = "
+            SELECT COUNT(*) as cantidad
+            FROM incidencias i
+            {$filtros_where}
+            AND (
+                i.tecnico = '{$tecnico_escape}' 
+                OR i.tecnico LIKE '{$tecnico_escape} %'
+                OR i.tecnico LIKE '% {$tecnico_escape}'
+                OR i.tecnico LIKE '% {$tecnico_escape} %'
+            )
+        ";
+        
+        $cantidad = ejecutarConsulta($conn, $sql_count)[0]['cantidad'] ?? 0;
+        
+        if ($cantidad > 0) {
+            $tecnicos_data[] = [
+                'tecnico' => $representante,
+                'cantidad' => $cantidad
+            ];
+        }
+    }
+    
+    // Ordenar por cantidad descendente
+    usort($tecnicos_data, function($a, $b) {
+        return $b['cantidad'] - $a['cantidad'];
+    });
+    
+    return $tecnicos_data;
 }
 
 /**
@@ -129,11 +207,10 @@ function ejecutarConsulta($conn, $sql) {
  */
 function calcularEstadisticasTecnicos($conn, $filtros_where) {
     $estadisticas = [];
+    $tecnicos_data = contarIncidenciasPorTecnico($conn, $filtros_where);
     
-    // Obtener todos los técnicos únicos
-    $tecnicos = extraerTecnicosIndividuales($conn, $filtros_where);
-    
-    foreach ($tecnicos as $tecnico) {
+    foreach ($tecnicos_data as $tecnico_info) {
+        $tecnico = $tecnico_info['tecnico'];
         $tecnico_escape = $conn->real_escape_string($tecnico);
         
         // Incidencias asignadas a este técnico
@@ -141,7 +218,12 @@ function calcularEstadisticasTecnicos($conn, $filtros_where) {
             SELECT COUNT(*) as total
             FROM incidencias i
             {$filtros_where}
-            AND i.tecnico LIKE '%{$tecnico_escape}%'
+            AND (
+                i.tecnico = '{$tecnico_escape}' 
+                OR i.tecnico LIKE '{$tecnico_escape} %'
+                OR i.tecnico LIKE '% {$tecnico_escape}'
+                OR i.tecnico LIKE '% {$tecnico_escape} %'
+            )
         ";
         $asignadas = ejecutarConsulta($conn, $sql_asignadas)[0]['total'] ?? 0;
         
@@ -150,7 +232,12 @@ function calcularEstadisticasTecnicos($conn, $filtros_where) {
             SELECT COUNT(*) as total
             FROM incidencias i
             {$filtros_where}
-            AND i.tecnico LIKE '%{$tecnico_escape}%'
+            AND (
+                i.tecnico = '{$tecnico_escape}' 
+                OR i.tecnico LIKE '{$tecnico_escape} %'
+                OR i.tecnico LIKE '% {$tecnico_escape}'
+                OR i.tecnico LIKE '% {$tecnico_escape} %'
+            )
             AND i.estatus IN ('completado', 'cerrado con factura', 'cerrado sin factura', 'resuelto')
         ";
         $completadas = ejecutarConsulta($conn, $sql_completadas)[0]['total'] ?? 0;
@@ -257,34 +344,8 @@ switch ($action) {
         $sql_clientes = "SELECT cliente, COUNT(id) AS cantidad FROM {$tabla_incidencias} i {$filtros_where} WHERE cliente IS NOT NULL AND cliente != '' GROUP BY cliente ORDER BY cantidad DESC LIMIT 10";
         $data_incidencias['top_clientes'] = ejecutarConsulta($conn, $sql_clientes);
         
-        // Gráfico 5: Por Técnico (CON filtros)
-        $tecnicos_data = [];
-        $tecnicos = extraerTecnicosIndividuales($conn, $filtros_where);
-        
-        foreach ($tecnicos as $tecnico) {
-            $tecnico_escape = $conn->real_escape_string($tecnico);
-            $sql_count = "
-                SELECT COUNT(*) as cantidad
-                FROM incidencias i
-                {$filtros_where}
-                AND i.tecnico LIKE '%{$tecnico_escape}%'
-            ";
-            $cantidad = ejecutarConsulta($conn, $sql_count)[0]['cantidad'] ?? 0;
-            
-            if ($cantidad > 0) {
-                $tecnicos_data[] = [
-                    'tecnico' => $tecnico,
-                    'cantidad' => $cantidad
-                ];
-            }
-        }
-        
-        // Ordenar por cantidad descendente
-        usort($tecnicos_data, function($a, $b) {
-            return $b['cantidad'] - $a['cantidad'];
-        });
-        
-        $data_incidencias['por_tecnico'] = $tecnicos_data;
+        // Gráfico 5: Por Técnico - USAR FUNCIÓN CORREGIDA
+        $data_incidencias['por_tecnico'] = contarIncidenciasPorTecnico($conn, $filtros_where);
         
         // Gráfico 6: Top tipos de equipo (CON filtros)
         $sql_equipos = "SELECT equipo, COUNT(id) AS cantidad FROM {$tabla_incidencias} i {$filtros_where} WHERE equipo IS NOT NULL AND equipo != '' GROUP BY equipo ORDER BY cantidad DESC LIMIT 8";
@@ -301,8 +362,10 @@ switch ($action) {
         // Encontrar técnicos destacados
         $tecnico_eficiente = '';
         $tecnico_mas_asignadas = '';
+        $tecnico_mas_completadas = '';
         $max_eficiencia = 0;
         $max_asignadas = 0;
+        $max_completadas = 0;
         
         foreach ($estadisticas_tecnicos as $tecnico => $stats) {
             if ($stats['eficiencia'] > $max_eficiencia && $stats['asignadas'] >= 3) {
@@ -314,18 +377,25 @@ switch ($action) {
                 $max_asignadas = $stats['asignadas'];
                 $tecnico_mas_asignadas = $tecnico;
             }
+            
+            if ($stats['completadas'] > $max_completadas) {
+                $max_completadas = $stats['completadas'];
+                $tecnico_mas_completadas = $tecnico;
+            }
         }
         
         // Preparar datos para gráficos
         $labels_rendimiento = [];
-        $datos_rendimiento = [];
+        $datos_asignadas = [];
+        $datos_completadas = [];
         $labels_eficiencia = [];
         $datos_eficiencia = [];
         
         foreach ($estadisticas_tecnicos as $tecnico => $stats) {
             if ($stats['asignadas'] > 0) {
                 $labels_rendimiento[] = $tecnico;
-                $datos_rendimiento[] = $stats['asignadas'];
+                $datos_asignadas[] = $stats['asignadas'];
+                $datos_completadas[] = $stats['completadas'];
                 $labels_eficiencia[] = $tecnico;
                 $datos_eficiencia[] = $stats['eficiencia'];
             }
@@ -335,12 +405,14 @@ switch ($action) {
         $response['data'] = [
             'tecnico_eficiente' => $tecnico_eficiente ?: 'N/A',
             'tecnico_mas_asignadas' => $tecnico_mas_asignadas ?: 'N/A',
+            'tecnico_mas_completadas' => $tecnico_mas_completadas ?: 'N/A',
             'total_tecnicos' => count($estadisticas_tecnicos),
             'estadisticas' => $estadisticas_tecnicos,
             'graficos' => [
                 'rendimiento' => [
                     'labels' => $labels_rendimiento,
-                    'datos' => $datos_rendimiento,
+                    'datos_asignadas' => $datos_asignadas,
+                    'datos_completadas' => $datos_completadas,
                 ],
                 'eficiencia' => [
                     'labels' => $labels_eficiencia,
