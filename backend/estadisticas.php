@@ -77,7 +77,7 @@ function construirFiltros($conn, $tabla_alias = 'i', $campo_fecha = 'fecha') {
 }
 
 /**
- * Extrae técnicos individuales del campo tecnico (separados por espacios)
+ * Extrae técnicos individuales del campo tecnico (separados por diagonal "/")
  */
 function extraerTecnicosIndividuales($conn, $filtros_where) {
     $sql = "
@@ -88,28 +88,24 @@ function extraerTecnicosIndividuales($conn, $filtros_where) {
         {$filtros_where}
         AND tecnico IS NOT NULL 
         AND tecnico != ''
-        AND LENGTH(tecnico) > 3
     ";
     
     $resultados = ejecutarConsulta($conn, $sql);
     $tecnicos_individuales = [];
     
     foreach ($resultados as $fila) {
-        // Separar por espacios y limpiar cada técnico
-        $tecnicos = preg_split('/\s+/', trim($fila['tecnico']));
+        // Separar por diagonal "/" y limpiar cada técnico
+        $tecnicos = explode('/', trim($fila['tecnico']));
         
         foreach ($tecnicos as $tecnico) {
             $tecnico_limpio = trim($tecnico);
             
-            // Filtros estrictos para nombres válidos
-            $es_valido = (
-                strlen($tecnico_limpio) > 2 &&                    // Más de 2 caracteres
-                !preg_match('/^\d+$/', $tecnico_limpio) &&        // No es solo números
-                !preg_match('/[.,;!?]/', $tecnico_limpio) &&      // No tiene puntuación
-                preg_match('/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/', $tecnico_limpio) // Solo letras y espacios
-            );
-            
-            if ($es_valido) {
+            // Filtrar solo nombres válidos (más de 2 caracteres, no vacíos)
+            if (strlen($tecnico_limpio) > 2 && 
+                !empty($tecnico_limpio) &&
+                $tecnico_limpio !== '/' &&
+                !in_array($tecnico_limpio, $tecnicos_individuales)) {
+                
                 $tecnicos_individuales[] = $tecnico_limpio;
             }
         }
@@ -119,47 +115,25 @@ function extraerTecnicosIndividuales($conn, $filtros_where) {
 }
 
 /**
- * Cuenta incidencias por técnico individual con agrupación inteligente
+ * Cuenta incidencias por técnico individual con separación por diagonal "/"
  */
 function contarIncidenciasPorTecnico($conn, $filtros_where) {
     $tecnicos_unicos = extraerTecnicosIndividuales($conn, $filtros_where);
-    
-    // Agrupar nombres similares para evitar duplicados
-    $tecnicos_agrupados = [];
-    foreach ($tecnicos_unicos as $tecnico) {
-        $encontrado = false;
-        foreach ($tecnicos_agrupados as $grupo => $tecnicos_grupo) {
-            // Si el técnico actual contiene o es contenido por un grupo existente
-            if (strpos($tecnico, $grupo) !== false || strpos($grupo, $tecnico) !== false) {
-                $tecnicos_agrupados[$grupo][] = $tecnico;
-                $encontrado = true;
-                break;
-            }
-        }
-        if (!$encontrado) {
-            $tecnicos_agrupados[$tecnico] = [$tecnico];
-        }
-    }
-    
-    // Usar el nombre más común de cada grupo como representante
     $tecnicos_data = [];
-    foreach ($tecnicos_agrupados as $grupo_principal => $tecnicos_grupo) {
-        $representante = $grupo_principal;
+    
+    foreach ($tecnicos_unicos as $tecnico) {
+        $tecnico_escape = $conn->real_escape_string($tecnico);
         
-        // Contar frecuencia de cada nombre en el grupo
-        $frecuencias = array_count_values($tecnicos_grupo);
-        arsort($frecuencias);
-        $representante = array_key_first($frecuencias);
-        
-        $tecnico_escape = $conn->real_escape_string($representante);
-        
-        // Buscar incidencias donde el técnico aparece exactamente
+        // Buscar incidencias donde el técnico aparece (búsqueda exacta considerando diagonales)
         $sql_count = "
             SELECT COUNT(*) as cantidad
             FROM incidencias i
             {$filtros_where}
             AND (
                 i.tecnico = '{$tecnico_escape}' 
+                OR i.tecnico LIKE '{$tecnico_escape}/%'
+                OR i.tecnico LIKE '%/{$tecnico_escape}'
+                OR i.tecnico LIKE '%/{$tecnico_escape}/%'
                 OR i.tecnico LIKE '{$tecnico_escape} %'
                 OR i.tecnico LIKE '% {$tecnico_escape}'
                 OR i.tecnico LIKE '% {$tecnico_escape} %'
@@ -170,7 +144,7 @@ function contarIncidenciasPorTecnico($conn, $filtros_where) {
         
         if ($cantidad > 0) {
             $tecnicos_data[] = [
-                'tecnico' => $representante,
+                'tecnico' => $tecnico,
                 'cantidad' => $cantidad
             ];
         }
@@ -220,6 +194,9 @@ function calcularEstadisticasTecnicos($conn, $filtros_where) {
             {$filtros_where}
             AND (
                 i.tecnico = '{$tecnico_escape}' 
+                OR i.tecnico LIKE '{$tecnico_escape}/%'
+                OR i.tecnico LIKE '%/{$tecnico_escape}'
+                OR i.tecnico LIKE '%/{$tecnico_escape}/%'
                 OR i.tecnico LIKE '{$tecnico_escape} %'
                 OR i.tecnico LIKE '% {$tecnico_escape}'
                 OR i.tecnico LIKE '% {$tecnico_escape} %'
@@ -234,6 +211,9 @@ function calcularEstadisticasTecnicos($conn, $filtros_where) {
             {$filtros_where}
             AND (
                 i.tecnico = '{$tecnico_escape}' 
+                OR i.tecnico LIKE '{$tecnico_escape}/%'
+                OR i.tecnico LIKE '%/{$tecnico_escape}'
+                OR i.tecnico LIKE '%/{$tecnico_escape}/%'
                 OR i.tecnico LIKE '{$tecnico_escape} %'
                 OR i.tecnico LIKE '% {$tecnico_escape}'
                 OR i.tecnico LIKE '% {$tecnico_escape} %'
