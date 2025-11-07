@@ -1,326 +1,460 @@
-/**
- * Archivo: ../scripts/estadisticas.js
- */
+// Variables globales para los charts
+let charts = {};
+let currentTab = 'overview';
 
-// 🛑 RUTA ACTUALIZADA: Probamos la ruta relativa directa 'backend/'
-// Esto asume que el HTML que carga este JS está en el directorio superior al de 'backend'.
-const API_URL = 'backend/estadisticas.php'; 
-
-let charts = {}; // Objeto para almacenar instancias de Chart.js
-let initialLoadDone = false;
-
-// ===================================================================
-// 1. FUNCIONES AUXILIARES DE MANEJO DE PETICIONES
-// ===================================================================
-
-async function fetchData(action, filters) {
-    // La URL se construye basada en window.location.origin
-    const url = new URL(API_URL, window.location.origin);
-    url.searchParams.set('action', action);
-    
-    // Añadir filtros
-    for (const key in filters) {
-        if (filters[key] !== null) {
-            url.searchParams.set(key, filters[key]);
-        }
-    }
-
-    try {
-        const response = await fetch(url.toString());
-        
-        if (!response.ok) {
-            const errorText = await response.text(); 
-            // Esto captura el error 404 o cualquier otro error de HTTP
-            throw new Error(`Error HTTP ${response.status}: El servidor respondió de forma inesperada. Detalles: ${errorText.substring(0, 50)}...`);
-        }
-        
-        const jsonResponse = await response.json();
-
-        if (!jsonResponse.success) {
-            throw new Error(`Error en la API: ${jsonResponse.error}`);
-        }
-        
-        return jsonResponse.data;
-
-    } catch (error) {
-        console.error(`Error al cargar datos para ${action}:`, error);
-        alert(`Error al cargar datos de estadísticas: ${error.message}`);
-        return null; 
-    }
-}
-
-// ===================================================================
-// 2. FUNCIÓN DE FILTROS Y CONTROLES
-// ===================================================================
-
-function getFilters() {
-    const rango = document.getElementById('rango').value;
-    const tecnico = document.getElementById('tecnico').value;
-    const sucursal = document.getElementById('sucursal').value;
-    const estatus = document.getElementById('estatus').value;
-    
-    let fechaInicio = null;
-    let fechaFin = null;
-
-    if (rango === 'custom') {
-        fechaInicio = document.getElementById('fechaInicio').value;
-        fechaFin = document.getElementById('fechaFin').value;
-        if (!fechaInicio || !fechaFin) {
-            alert("Debes seleccionar un rango de fechas personalizado.");
-            return null;
-        }
-    }
-
-    return { rango, tecnico, sucursal, estatus, fechaInicio, fechaFin };
-}
-
-/** Carga y rellena los selectores de Técnico y Sucursal. */
-async function loadFilterOptions() {
-    const data = await fetchData('get_filtros', {}); 
-    
-    if (data) {
-        const tecnicoSelect = document.getElementById('tecnico');
-        const sucursalSelect = document.getElementById('sucursal');
-
-        tecnicoSelect.innerHTML = '<option value="all">Todos los Técnicos</option>';
-        sucursalSelect.innerHTML = '<option value="all">Todas las Sucursales</option>';
-
-        data.tecnicos.forEach(t => {
-            const option = new Option(t.nombre, t.id);
-            tecnicoSelect.add(option);
-        });
-
-        data.sucursales.forEach(s => {
-            const option = new Option(s.nombre, s.id);
-            sucursalSelect.add(option);
-        });
-    }
-}
-
-
-// ===================================================================
-// 3. FUNCIONES DE CARGA POR SECCIÓN
-// ===================================================================
-
-async function loadGeneralStatistics() {
-    const filters = getFilters();
-    if (!filters) return;
-    
-    const data = await fetchData('estadisticas_generales', filters);
-    
-    if (data) {
-        // 1. Actualización de KPIs
-        document.getElementById('totalIncidencias').textContent = data.total_incidencias || 'N/A';
-        document.getElementById('totalClientes').textContent = data.total_clientes || 'N/A';
-        document.getElementById('resueltasEsteMes').textContent = data.incidencias_resueltas_rango || 'N/A';
-        document.getElementById('tiempoPromedio').textContent = data.tiempo_promedio || 'N/A';
-        document.getElementById('lastUpdated').textContent = `Última actualización: ${new Date().toLocaleTimeString()}`;
-        
-        // 2. Actualizar gráficos
-        drawChart('chartTopClientes', data.top_clientes, 'bar', 'Incidencias', 'Top Clientes');
-        drawChart('chartMensual', data.evolucion_mensual, 'line', 'Incidencias', 'Evolución Mensual');
-    }
-}
-
-async function loadIncidenceAnalysis() {
-    const filters = getFilters();
-    if (!filters) return;
-
-    const data = await fetchData('estadisticas_incidencias', filters);
-    
-    if (data) {
-        // 1. Actualización de KPIs
-        document.getElementById('incidenciasAbiertas').textContent = data.incidencias_abiertas_kpi || 'N/A';
-        document.getElementById('incidenciasAsignadas').textContent = data.incidencias_asignadas_kpi || 'N/A';
-        document.getElementById('incidenciasCompletadas').textContent = data.incidencias_resueltas_rango || 'N/A';
-        document.getElementById('incidenciasFacturadas').textContent = data.incidencias_facturadas_kpi || 'N/A';
-
-        // 2. Actualizar gráficos de incidencias
-        drawChart('chartPorEstatus', data.incidencias_por_estatus, 'doughnut', 'Cantidad', 'Incidencias por Estatus');
-        drawChart('chartPorSucursal', data.incidencias_por_sucursal, 'bar', 'Cantidad', 'Incidencias por Sucursal');
-        drawChart('chartTopFallas', data.top_fallas_recurrentes, 'horizontalBar', 'Cantidad', 'Top 5 Fallas Recurrentes'); 
-        drawChart('chartPorPrioridad', data.incidencias_por_prioridad, 'pie', 'Cantidad', 'Distribución por Prioridad');
-    }
-}
-
-async function loadTechnicianPerformance() {
-    const filters = getFilters();
-    if (!filters) return;
-    
-    const data = await fetchData('estadisticas_tecnicos', filters);
-    
-    if (data) {
-        // 1. Actualización de KPIs
-        document.getElementById('tecnicoEficiente').textContent = data.tecnico_mas_eficiente || 'N/A';
-        document.getElementById('tecnicoRapido').textContent = data.tecnico_mas_rapido || 'N/A';
-        document.getElementById('tecnicoMes').textContent = data.tecnico_del_mes || 'N/A';
-        document.getElementById('totalTecnicos').textContent = data.total_tecnicos_activos || 'N/A';
-
-        // 2. Actualizar gráficos de técnicos
-        drawChart('chartRendimiento', data.rendimiento_tecnicos, 'bar', 'Resueltas', 'Rendimiento por Técnico');
-        drawChart('chartTiempos', data.tiempos_respuesta, 'bar', 'Días', 'Tiempos Promedio por Técnico');
-        drawChart('chartSatisfaccion', data.satisfaccion_cliente, 'doughnut', 'Puntuación', 'Satisfacción del Cliente');
-    }
-}
-
-// ===================================================================
-// 4. FUNCIÓN MAESTRA DE CARGA
-// ===================================================================
-
-function loadAllStatistics() {
-    if (initialLoadDone) {
-        loadGeneralStatistics();
-        loadIncidenceAnalysis();
-        loadTechnicianPerformance();
-    }
-}
-
-function setupFilterListeners() {
-    const filterElements = ['rango', 'tecnico', 'sucursal', 'estatus'];
-    filterElements.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.addEventListener('change', loadAllStatistics);
-        }
-    });
-
-    const customRangeDiv = document.getElementById('custom-date-range');
-    const rangoSelect = document.getElementById('rango');
-    
-    if (rangoSelect) {
-        rangoSelect.addEventListener('change', () => {
-            if (rangoSelect.value === 'custom') {
-                customRangeDiv.style.display = 'flex';
-            } else {
-                customRangeDiv.style.display = 'none';
-            }
-        });
-        if (rangoSelect.value === 'custom') {
-            customRangeDiv.style.display = 'flex';
-        } else {
-            customRangeDiv.style.display = 'none';
-        }
-    }
-    
-    document.getElementById('fechaInicio')?.addEventListener('change', () => {
-        if (document.getElementById('rango').value === 'custom') loadAllStatistics();
-    });
-    document.getElementById('fechaFin')?.addEventListener('change', () => {
-        if (document.getElementById('rango').value === 'custom') loadAllStatistics();
-    });
-}
-
-// ===================================================================
-// 5. MANEJO DE GRÁFICOS (Chart.js)
-// ===================================================================
-
-/**
- * Función genérica para dibujar y actualizar gráficos.
- */
-function drawChart(chartId, dataArray, type, yLabel, title) {
-    const ctx = document.getElementById(chartId);
-    if (!ctx || !dataArray || dataArray.length === 0) {
-        if (charts[chartId]) charts[chartId].destroy();
-        return;
-    }
-
-    if (charts[chartId]) {
-        charts[chartId].destroy();
-    }
-    
-    const labels = dataArray.map(item => item.label || item.cliente || item.tecnico || 'N/A');
-    const values = dataArray.map(item => item.value || item.cantidad || item.resueltas || item.tiempo || 0);
-
-    const isBar = (type === 'bar' || type === 'horizontalBar');
-    const primaryColor = '#4361ee'; 
-    const secondaryColors = ['#4895ef', '#4cc9f0', '#b5179e', '#f72585', '#7209b7', '#3f37c9', '#4d908e'];
-
-    const backgroundColors = isBar 
-        ? [primaryColor, ...secondaryColors] 
-        : secondaryColors; 
-
-    const chartConfig = {
-        type: type === 'horizontalBar' ? 'bar' : type,
-        data: {
-            labels: labels,
-            datasets: [{
-                label: title,
-                data: values,
-                backgroundColor: isBar ? backgroundColors : backgroundColors.slice(0, values.length),
-                borderColor: isBar ? primaryColor : 'white',
-                borderWidth: isBar ? 1 : 2,
-                tension: type === 'line' ? 0.4 : undefined,
-                fill: type === 'line' ? true : false,
-                borderColor: type === 'line' ? primaryColor : undefined,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            indexAxis: type === 'horizontalBar' ? 'y' : 'x', 
-            plugins: {
-                legend: {
-                    display: type !== 'bar' && type !== 'horizontalBar' && type !== 'line',
-                    position: 'bottom',
-                },
-                title: {
-                    display: false, 
-                }
-            },
-            scales: isBar || type === 'line' ? {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: isBar,
-                        text: yLabel
-                    }
-                }
-            } : {}
-        }
-    };
-    
-    charts[chartId] = new Chart(ctx, chartConfig);
-}
-
-// ===================================================================
-// 6. INICIALIZACIÓN
-// ===================================================================
-
-document.addEventListener('DOMContentLoaded', async () => {
-    setupFilterListeners();
-    
-    await loadFilterOptions();
-
-    initialLoadDone = true;
-    
-    loadAllStatistics();
+// Cargar estadísticas al iniciar la página
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Iniciando carga de estadísticas...');
+    inicializarInterfaz();
+    cargarEstadisticas();
 });
 
-// ===================================================================
-// 7. FUNCIONES DE EXPORTACIÓN (Placeholder)
-// ===================================================================
+function inicializarInterfaz() {
+    // Configurar pestañas
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabId = this.getAttribute('data-tab');
+            cambiarPestaña(tabId);
+        });
+    });
+
+    // Configurar filtro de fechas personalizadas
+    const rangoFecha = document.getElementById('rango');
+    if (rangoFecha) {
+        rangoFecha.addEventListener('change', function() {
+            const customDateRange = document.getElementById('custom-date-range');
+            
+            if (this.value === 'custom') {
+                if (customDateRange) customDateRange.style.display = 'flex';
+            } else {
+                if (customDateRange) customDateRange.style.display = 'none';
+            }
+        });
+    }
+
+    // Configurar botón de exportación
+    const exportBtn = document.getElementById('btnExportar');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function() {
+            const exportOptions = document.getElementById('exportOptions');
+            if (exportOptions) {
+                exportOptions.style.display = exportOptions.style.display === 'flex' ? 'none' : 'flex';
+            }
+        });
+    }
+
+    // Inicializar fecha actual para filtros personalizados
+    const hoy = new Date();
+    const hace30Dias = new Date();
+    hace30Dias.setDate(hoy.getDate() - 30);
+    
+    const fechaInicio = document.getElementById('fechaInicio');
+    const fechaFin = document.getElementById('fechaFin');
+    
+    if (fechaInicio) fechaInicio.value = hace30Dias.toISOString().split('T')[0];
+    if (fechaFin) fechaFin.value = hoy.toISOString().split('T')[0];
+}
+
+function cambiarPestaña(tabId) {
+    // Actualizar pestañas activas
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+
+    // Activar pestaña seleccionada
+    const tabElement = document.querySelector(`[data-tab="${tabId}"]`);
+    const tabContent = document.getElementById(tabId);
+    
+    if (tabElement) tabElement.classList.add('active');
+    if (tabContent) tabContent.classList.add('active');
+    
+    currentTab = tabId;
+    
+    // Cargar datos específicos de la pestaña si es necesario
+    if (tabId === 'tecnicos-tab') {
+        cargarDatosTecnicos();
+    }
+}
+
+async function cargarEstadisticas() {
+    try {
+        mostrarLoading(true);
+        
+        // Cargar filtros primero
+        await cargarFiltros();
+        
+        // Cargar estadísticas generales
+        const responseGeneral = await fetch('backend/estadisticas.php?action=estadisticas_generales');
+        if (!responseGeneral.ok) {
+            throw new Error('Error en la respuesta del servidor: ' + responseGeneral.status);
+        }
+        const dataGeneral = await responseGeneral.json();
+        
+        console.log('Datos generales recibidos:', dataGeneral);
+        
+        if (dataGeneral.success) {
+            actualizarEstadisticasGenerales(dataGeneral.data);
+        } else {
+            throw new Error(dataGeneral.error || 'Error en los datos generales');
+        }
+        
+        // Cargar estadísticas detalladas de incidencias
+        const responseIncidencias = await fetch('backend/estadisticas.php?action=estadisticas_incidencias');
+        if (!responseIncidencias.ok) {
+            throw new Error('Error en la respuesta del servidor: ' + responseIncidencias.status);
+        }
+        const dataIncidencias = await responseIncidencias.json();
+        
+        console.log('Datos de incidencias recibidos:', dataIncidencias);
+        
+        if (dataIncidencias.success) {
+            crearGraficos(dataIncidencias.data);
+        } else {
+            throw new Error(dataIncidencias.error || 'Error en los datos de incidencias');
+        }
+        
+    } catch (error) {
+        console.error('Error cargando estadísticas:', error);
+        mostrarError('Error al cargar las estadísticas: ' + error.message);
+    } finally {
+        mostrarLoading(false);
+    }
+}
+
+async function cargarFiltros() {
+    try {
+        const response = await fetch('backend/estadisticas.php?action=get_filtros');
+        if (!response.ok) return;
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            const tecnicoSelect = document.getElementById('tecnico');
+            const sucursalSelect = document.getElementById('sucursal');
+
+            if (tecnicoSelect) {
+                tecnicoSelect.innerHTML = '<option value="all">Todos los técnicos</option>';
+                data.data.tecnicos.forEach(t => {
+                    const option = new Option(t.nombre, t.nombre);
+                    tecnicoSelect.add(option);
+                });
+            }
+
+            if (sucursalSelect) {
+                sucursalSelect.innerHTML = '<option value="all">Todas las sucursales</option>';
+                data.data.sucursales.forEach(s => {
+                    const option = new Option(s.nombre, s.nombre);
+                    sucursalSelect.add(option);
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error cargando filtros:', error);
+    }
+}
+
+function actualizarEstadisticasGenerales(data) {
+    console.log('Actualizando estadísticas generales:', data);
+    
+    // Actualizar tarjetas principales con verificación de elementos
+    actualizarElementoSiExiste('totalIncidencias', data.total_incidencias || '0');
+    actualizarElementoSiExiste('totalClientes', data.total_clientes || '0');
+    actualizarElementoSiExiste('resueltasEsteMes', data.incidencias_resueltas_mes || '0');
+    actualizarElementoSiExiste('tiempoPromedio', data.tiempo_promedio || '0d');
+    
+    // Calcular y mostrar tendencias
+    const tendencia = data.tendencia_incidencias || 0;
+    const elemento = document.getElementById('tendenciaIncidencias');
+    if (elemento) {
+        elemento.textContent = `${tendencia >= 0 ? '+' : ''}${tendencia}% vs mes anterior`;
+        elemento.className = `stat-change ${tendencia >= 0 ? '' : 'negative'}`;
+    }
+    
+    // Calcular eficiencia
+    const total = data.total_incidencias || 1;
+    const resueltas = data.incidencias_resueltas_mes || 0;
+    const eficiencia = Math.round((resueltas / total) * 100);
+    actualizarElementoSiExiste('eficienciaMensual', `${eficiencia}% de eficiencia`);
+    
+    // Actualizar estadísticas de la pestaña de incidencias
+    actualizarElementoSiExiste('incidenciasAbiertas', data.incidencias_activas || '0');
+    actualizarElementoSiExiste('incidenciasAsignadas', data.incidencias_activas || '0');
+    actualizarElementoSiExiste('incidenciasCompletadas', data.incidencias_completadas || '0');
+    actualizarElementoSiExiste('incidenciasFacturadas', data.incidencias_facturadas || '0');
+    
+    // Actualizar última actualización
+    actualizarElementoSiExiste('lastUpdated', `Actualizado: ${new Date().toLocaleTimeString()}`);
+}
+
+function actualizarElementoSiExiste(id, valor) {
+    const elemento = document.getElementById(id);
+    if (elemento) {
+        elemento.textContent = valor;
+    } else {
+        console.warn(`Elemento con ID '${id}' no encontrado`);
+    }
+}
+
+function crearGraficos(data) {
+    console.log('Creando gráficos con datos:', data);
+    
+    // Destruir charts existentes
+    Object.values(charts).forEach(chart => {
+        if (chart) chart.destroy();
+    });
+    
+    // Colores para los gráficos
+    const colores = [
+        '#4361ee', '#3a0ca3', '#4cc9f0', '#f72585', '#7209b7',
+        '#4895ef', '#560bad', '#b5179e', '#f15bb5', '#00bbf9'
+    ];
+    
+    // Gráfico de estatus
+    if (data.por_estatus && data.por_estatus.length > 0) {
+        const ctxEstatus = document.getElementById('chartPorEstatus');
+        if (ctxEstatus) {
+            charts.estatus = new Chart(ctxEstatus, {
+                type: 'doughnut',
+                data: {
+                    labels: data.por_estatus.map(item => item.estatus || 'Sin estatus'),
+                    datasets: [{
+                        data: data.por_estatus.map(item => item.cantidad),
+                        backgroundColor: colores,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    // Gráfico por técnico
+    if (data.por_tecnico && data.por_tecnico.length > 0) {
+        const ctxTecnico = document.getElementById('chartRendimiento');
+        if (ctxTecnico) {
+            charts.tecnico = new Chart(ctxTecnico, {
+                type: 'bar',
+                data: {
+                    labels: data.por_tecnico.map(item => item.tecnico || 'Sin técnico'),
+                    datasets: [{
+                        label: 'Incidencias',
+                        data: data.por_tecnico.map(item => item.cantidad),
+                        backgroundColor: '#4361ee',
+                        borderColor: '#3a0ca3',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    // Gráfico por sucursal
+    if (data.por_sucursal && data.por_sucursal.length > 0) {
+        const ctxSucursal = document.getElementById('chartPorSucursal');
+        if (ctxSucursal) {
+            charts.sucursal = new Chart(ctxSucursal, {
+                type: 'pie',
+                data: {
+                    labels: data.por_sucursal.map(item => item.sucursal || 'Sin sucursal'),
+                    datasets: [{
+                        data: data.por_sucursal.map(item => item.cantidad),
+                        backgroundColor: colores,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    // Gráfico mensual
+    if (data.mensuales && data.mensuales.length > 0) {
+        const ctxMensual = document.getElementById('chartMensual');
+        if (ctxMensual) {
+            charts.mensual = new Chart(ctxMensual, {
+                type: 'line',
+                data: {
+                    labels: data.mensuales.map(item => formatearMes(item.mes)),
+                    datasets: [{
+                        label: 'Incidencias',
+                        data: data.mensuales.map(item => item.cantidad),
+                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                        borderColor: '#4361ee',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    // Gráfico top clientes
+    if (data.top_clientes && data.top_clientes.length > 0) {
+        const ctxClientes = document.getElementById('chartTopClientes');
+        if (ctxClientes) {
+            charts.clientes = new Chart(ctxClientes, {
+                type: 'bar',
+                data: {
+                    labels: data.top_clientes.map(item => item.cliente || 'Sin cliente'),
+                    datasets: [{
+                        label: 'Número de Incidencias',
+                        data: data.top_clientes.map(item => item.cantidad),
+                        backgroundColor: colores,
+                        borderColor: colores.map(color => color),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    }
+}
+
+function cargarDatosTecnicos() {
+    // Simular datos de técnicos
+    setTimeout(() => {
+        actualizarElementoSiExiste('tecnicoEficiente', 'Juan Pérez');
+        actualizarElementoSiExiste('tecnicoRapido', 'María García');
+        actualizarElementoSiExiste('tecnicoMes', 'Carlos López');
+        actualizarElementoSiExiste('totalTecnicos', '8');
+    }, 500);
+}
+
+function formatearMes(mesString) {
+    if (!mesString) return 'Sin fecha';
+    const [year, month] = mesString.split('-');
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return `${meses[parseInt(month) - 1]} ${year}`;
+}
+
+function mostrarLoading(mostrar) {
+    const elementos = document.querySelectorAll('.stat-value, .chart-container');
+    elementos.forEach(elemento => {
+        if (mostrar) {
+            elemento.style.opacity = '0.5';
+        } else {
+            elemento.style.opacity = '1';
+        }
+    });
+}
+
+function mostrarError(mensaje) {
+    let errorDiv = document.getElementById('errorMessage');
+    if (!errorDiv) {
+        errorDiv = document.createElement('div');
+        errorDiv.id = 'errorMessage';
+        errorDiv.style.cssText = `
+            background: #dc3545;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        `;
+        const mainContent = document.getElementById('mainContent');
+        const filters = document.querySelector('.filters');
+        if (mainContent && filters) {
+            mainContent.insertBefore(errorDiv, filters);
+        }
+    }
+    errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${mensaje}`;
+    errorDiv.style.display = 'block';
+    
+    setTimeout(() => {
+        errorDiv.style.display = 'none';
+    }, 5000);
+}
+
+// Funciones de utilidad para gráficos
+function toggleChartType(chartId) {
+    const chart = charts[chartId];
+    if (!chart) return;
+    
+    const currentType = chart.config.type;
+    let newType = currentType;
+    
+    if (currentType === 'bar') newType = 'line';
+    else if (currentType === 'line') newType = 'pie';
+    else if (currentType === 'pie') newType = 'doughnut';
+    else if (currentType === 'doughnut') newType = 'bar';
+    
+    chart.config.type = newType;
+    chart.update();
+}
 
 function downloadChart(chartId) {
     const chart = charts[chartId];
-    if (chart) {
-        const a = document.createElement('a');
-        a.href = chart.toBase64Image();
-        a.download = `${chartId}_${new Date().toISOString()}.png`;
-        a.click();
-    } else {
-        alert("Gráfico no encontrado para descargar.");
-    }
+    if (!chart) return;
+    
+    const link = document.createElement('a');
+    link.download = `grafico-${chartId}-${new Date().toISOString().split('T')[0]}.png`;
+    link.href = chart.toBase64Image();
+    link.click();
 }
 
 function exportarPDF() {
-    alert('Función de exportar a PDF no implementada.');
+    alert('Funcionalidad de exportación PDF - En desarrollo');
 }
 
 function exportarExcel() {
-    alert('Función de exportar a Excel no implementada.');
+    alert('Funcionalidad de exportación Excel - En desarrollo');
 }
 
-function toggleExportOptions() {
-    const exportOptions = document.getElementById('exportOptions');
-    exportOptions.style.display = exportOptions.style.display === 'flex' ? 'none' : 'flex';
+function exportarImagen() {
+    alert('Funcionalidad de exportación imagen - En desarrollo');
 }
+
+// Hacer funciones globales
+window.cargarEstadisticas = cargarEstadisticas;
+window.loadAllStatistics = cargarEstadisticas;
+window.toggleChartType = toggleChartType;
+window.downloadChart = downloadChart;
+window.exportarPDF = exportarPDF;
+window.exportarExcel = exportarExcel;
+window.exportarImagen = exportarImagen;
