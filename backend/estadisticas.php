@@ -19,7 +19,7 @@ header('Content-Type: application/json');
 //   |- conexion.php
 //   |- backend/
 //        |- estadisticas.php  <-- Estás aquí
-require_once 'conexion.php'; 
+require_once '/conexion.php'; 
 
 // La conexión a la base de datos debe estar disponible aquí como una variable,
 // por ejemplo: $pdo (si usas PDO) o $conn (si usas MySQLi).
