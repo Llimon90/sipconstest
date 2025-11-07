@@ -299,17 +299,17 @@ ${tecnicosIniciales.length === 0 ? `
                     <option value="Cerrado con factura" ${data.estatus === "Cerrado con factura" ? 'selected' : ''}>Cerrado con factura</option>
                 </select>
             </div>
+            <div>
+                <div style="margin-bottom: 15px;">
+                    <label>FALLA:</label>
+                    <textarea id="falla" required style="width: 100%;">${data.falla || ''}</textarea>
+                </div>
 
-            <div style="margin-bottom: 15px;">
-                <label>FALLA:</label>
-                <textarea id="falla" required style="width: 100%;">${data.falla || ''}</textarea>
+                <div style="margin-bottom: 15px;">
+                    <label>TRABAJO REALIZADO:</label>
+                    <textarea id="accion" style="width: 100%;">${data.accion || ''}</textarea>
+                </div>
             </div>
-
-            <div style="margin-bottom: 15px;">
-                <label>TRABAJO REALIZADO:</label>
-                <textarea id="accion" style="width: 100%;">${data.accion || ''}</textarea>
-            </div>
-    
             <div style="margin-bottom: 15px;">
                 <label>NOTAS ADICIONALES</label>
                 <textarea id="notas" style="width: 100%;">${data.notas || ''}</textarea>
