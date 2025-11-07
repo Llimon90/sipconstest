@@ -152,7 +152,7 @@
             display: flex;
             gap: 20px;
             flex-wrap: wrap;
-            align-items: end;
+            align-items: flex-end; /* Corregido: 'end' por 'flex-end' para consistencia */
         }
         
         .filter-item {
@@ -369,61 +369,21 @@
                 <i class="fas fa-chart-line"></i>
                 Analytics
             </h2>
-            <button id="toggleSidebar" class="toggle-sidebar">
-                <i class="fas fa-chevron-left"></i>
+            <button id="toggleSidebar" class="toggle-sidebar" aria-label="Alternar menú lateral"> <i class="fas fa-chevron-left"></i>
             </button>
         </div>
         
-        <ul>
-            <li>
-                <a href="../index.html" title="Inicio">
-                    <i class="fas fa-home"></i>
-                    <span class="sidebar-link-text">Inicio</span>
-                </a>
-            </li>
-            <li>
-                <a href="incidencias.html" title="Incidencias">
-                    <i class="fas fa-tasks"></i>
-                    <span class="sidebar-link-text">Incidencias</span>
-                </a>
-            </li>
-            <li>
-                <a href="reportes.html" title="Buscar Incidencias">
-                    <i class="fas fa-search"></i>
-                    <span class="sidebar-link-text">Buscar Incidencias</span>
-                </a>
-            </li>
-            <li>
-                <a href="clientes.html" title="Clientes">
-                    <i class="fas fa-users"></i>
-                    <span class="sidebar-link-text">Clientes</span>
-                </a>
-            </li>
-            <li>
-                <a href="usuarios.html" title="Usuarios">
-                    <i class="fas fa-user-friends"></i>
-                    <span class="sidebar-link-text">Usuarios</span>
-                </a>
-            </li>
-            <li>
-                <a href="soporte.html" title="Soporte Técnico">
-                    <i class="fas fa-headset"></i>
-                    <span class="sidebar-link-text">Soporte Técnico</span>
-                </a>
-            </li>
-            <li>
-                <a href="informes.html" title="Estadísticas" class="active">
-                    <i class="fas fa-chart-bar"></i>
-                    <span class="sidebar-link-text">Estadísticas</span>
-                </a>
-            </li>
-            <li>
-                <a href="ajustes.html" title="Ajustes">
-                    <i class="fas fa-cog"></i>
-                    <span class="sidebar-link-text">Ajustes</span>
-                </a>
-            </li>
-        </ul>
+        <nav> <ul>
+                <li><a href="../index.html" title="Inicio"><i class="fas fa-home"></i><span class="sidebar-link-text">Inicio</span></a></li>
+                <li><a href="incidencias.html" title="Incidencias"><i class="fas fa-tasks"></i><span class="sidebar-link-text">Incidencias</span></a></li>
+                <li><a href="reportes.html" title="Buscar Incidencias"><i class="fas fa-search"></i><span class="sidebar-link-text">Buscar Incidencias</span></a></li>
+                <li><a href="clientes.html" title="Clientes"><i class="fas fa-users"></i><span class="sidebar-link-text">Clientes</span></a></li>
+                <li><a href="usuarios.html" title="Usuarios"><i class="fas fa-user-friends"></i><span class="sidebar-link-text">Usuarios</span></a></li>
+                <li><a href="soporte.html" title="Soporte Técnico"><i class="fas fa-headset"></i><span class="sidebar-link-text">Soporte Técnico</span></a></li>
+                <li><a href="informes.html" title="Estadísticas" class="active"><i class="fas fa-chart-bar"></i><span class="sidebar-link-text">Estadísticas</span></a></li>
+                <li><a href="ajustes.html" title="Ajustes"><i class="fas fa-cog"></i><span class="sidebar-link-text">Ajustes</span></a></li>
+            </ul>
+        </nav>
 
         <div class="sidebar-footer">
             <div class="user-info">
@@ -434,23 +394,19 @@
     </aside>
 
     <main id="mainContent">
-        <section class="encabezado">
-            <h1><i class="fas fa-chart-pie"></i> Panel de Estadísticas</h1>
+        <header class="encabezado"> <h1><i class="fas fa-chart-pie"></i> Panel de Estadísticas</h1>
             <p>Análisis en tiempo real de las gestiones técnicas</p>
-        </section>
+        </header>
 
-        <div class="tabs">
-            <button class="tab active" data-tab="overview-tab">Resumen General</button>
-            <button class="tab" data-tab="incidencias-tab">Análisis de Incidencias</button>
-            <button class="tab" data-tab="tecnicos-tab">Rendimiento de Técnicos</button>
+        <div class="tabs" role="tablist"> <button class="tab active" data-tab="overview-tab" role="tab" aria-selected="true" aria-controls="overview-tab">Resumen General</button>
+            <button class="tab" data-tab="incidencias-tab" role="tab" aria-selected="false" aria-controls="incidencias-tab">Análisis de Incidencias</button>
+            <button class="tab" data-tab="tecnicos-tab" role="tab" aria-selected="false" aria-controls="tecnicos-tab">Rendimiento de Técnicos</button>
         </div>
 
-        <div class="filters">
-            <div class="filter-group">
+        <form class="filters" onsubmit="return false;"> <div class="filter-group">
                 <div class="filter-item">
                     <label for="rango"><i class="far fa-calendar-alt"></i> Rango de Fechas</label>
-                    <select id="rango"> 
-                        <option value="7">Últimos 7 días</option>
+                    <select id="rango" name="rango"> <option value="7">Últimos 7 días</option>
                         <option value="30" selected>Últimos 30 días</option>
                         <option value="90">Últimos 3 meses</option>
                         <option value="180">Últimos 6 meses</option>
@@ -458,33 +414,27 @@
                         <option value="custom">Personalizado</option>
                     </select>
                 </div>
-                <div id="custom-date-range" style="display: none; gap: 20px; flex-wrap: wrap; flex: 1; min-width: 380px;">
-                    <div class="filter-item" style="flex: 1; min-width: 180px;">
-                        <label for="fechaInicio"><i class="far fa-calendar"></i> Fecha Inicio</label>
-                        <input type="date" id="fechaInicio">
-                    </div>
-                    <div class="filter-item" style="flex: 1; min-width: 180px;">
-                        <label for="fechaFin"><i class="far fa-calendar"></i> Fecha Fin</label>
-                        <input type="date" id="fechaFin">
-                    </div>
+                
+                <div id="custom-date-range" class="filter-group" style="display: none; flex: 2; min-width: 380px;"> 
+                    <div class="filter-item" style="flex: 1;"> <label for="fechaInicio"><i class="far fa-calendar"></i> Fecha Inicio</label>
+                        <input type="date" id="fechaInicio" name="fechaInicio"> </div>
+                    <div class="filter-item" style="flex: 1;"> <label for="fechaFin"><i class="far fa-calendar"></i> Fecha Fin</label>
+                        <input type="date" id="fechaFin" name="fechaFin"> </div>
                 </div>
                 
                 <div class="filter-item">
                     <label for="tecnico"><i class="fas fa-user-cog"></i> Técnico</label>
-                    <select id="tecnico">
-                        <option value="all">Todos los técnicos</option>
+                    <select id="tecnico" name="tecnico"> <option value="all">Todos los técnicos</option>
                         </select>
                 </div>
                 <div class="filter-item">
                     <label for="sucursal"><i class="fas fa-building"></i> Sucursal</label>
-                    <select id="sucursal">
-                        <option value="all">Todas las sucursales</option>
+                    <select id="sucursal" name="sucursal"> <option value="all">Todas las sucursales</option>
                         </select>
                 </div>
                 <div class="filter-item">
                     <label for="estatus"><i class="fas fa-filter"></i> Estatus</label>
-                    <select id="estatus">
-                        <option value="all">Todos los estatus</option>
+                    <select id="estatus" name="estatus"> <option value="all">Todos los estatus</option>
                         <option value="abierto">Abierto</option>
                         <option value="asignado">Asignado</option>
                         <option value="pendiente">Pendiente</option>
@@ -493,238 +443,136 @@
                         <option value="cerrado sin factura">Cerrado sin Factura</option>
                     </select>
                 </div>
-                <div class="filter-item">
-                    <label>&nbsp;</label>
+                <div class="filter-item" style="min-width: fit-content;"> <label>&nbsp;</label>
                     <div style="display: flex; gap: 10px;">
-                        <button onclick="loadAllStatistics()" class="btn btn-primary">
-                            <i class="fas fa-sync-alt"></i> Recargar
+                        <button type="button" onclick="loadAllStatistics()" class="btn btn-primary" aria-label="Recargar estadísticas"> <i class="fas fa-sync-alt"></i> Recargar
                         </button>
-                        <button onclick="toggleExportOptions()" class="btn btn-outline" id="btnExportar">
-                            <i class="fas fa-download"></i> Exportar
+                        <button type="button" onclick="toggleExportOptions()" class="btn btn-outline" id="btnExportar" aria-expanded="false" aria-controls="exportOptions"> <i class="fas fa-download"></i> Exportar
                         </button>
                     </div>
                 </div>
             </div>
             <div class="export-options" id="exportOptions" style="display: none;">
-                <button onclick="exportarPDF()" class="btn btn-outline">
-                    <i class="fas fa-file-pdf"></i> PDF
-                </button>
-                <button onclick="exportarExcel()" class="btn btn-outline">
-                    <i class="fas fa-file-excel"></i> Excel
-                </button>
-                <button onclick="exportarImagen()" class="btn btn-outline">
-                    <i class="fas fa-image"></i> Imagen
-                </button>
-            </div>
-        </div>
+                <button type="button" onclick="exportarPDF()" class="btn btn-outline"><i class="fas fa-file-pdf"></i> PDF</button> <button type="button" onclick="exportarExcel()" class="btn btn-outline"><i class="fas fa-file-excel"></i> Excel</button> <button type="button" onclick="exportarImagen()" class="btn btn-outline"><i class="fas fa-image"></i> Imagen</button> </div>
+        </form>
 
-        <div class="tab-content active" id="overview-tab">
-            <div class="stats-grid" id="statsGeneral">
-                <div class="stat-card">
+        <div class="tab-content active" id="overview-tab" role="tabpanel" aria-labelledby="overview-tab">
+            <section class="stats-grid" id="statsGeneral"> <div class="stat-card">
                     <h3><i class="fas fa-tasks"></i> Total Incidencias</h3>
-                    <div class="stat-value">
-                        <span id="totalIncidencias">0</span>
-                        <i class="fas fa-clipboard-list stat-icon"></i>
-                    </div>
-                    <div class="stat-change">
-                        <i class="fas fa-chart-line"></i>
-                        <span id="tendenciaIncidencias">+0% vs mes anterior</span>
-                    </div>
+                    <div class="stat-value"><span id="totalIncidencias">0</span><i class="fas fa-clipboard-list stat-icon"></i></div>
+                    <div class="stat-change"><i class="fas fa-chart-line"></i><span id="tendenciaIncidencias">+0% vs mes anterior</span></div>
                     <div class="last-updated" id="lastUpdated"></div>
                 </div>
                 <div class="stat-card">
                     <h3><i class="fas fa-users"></i> Total Clientes</h3>
-                    <div class="stat-value">
-                        <span id="totalClientes">0</span>
-                        <i class="fas fa-user-friends stat-icon"></i>
-                    </div>
-                    <div class="stat-change">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Clientes registrados</span>
-                    </div>
+                    <div class="stat-value"><span id="totalClientes">0</span><i class="fas fa-user-friends stat-icon"></i></div>
+                    <div class="stat-change"><i class="fas fa-chart-line"></i><span>Clientes registrados</span></div>
                 </div>
                 <div class="stat-card">
                     <h3><i class="fas fa-check-circle"></i> Resueltas en el Rango</h3> 
-                    <div class="stat-value">
-                        <span id="resueltasEsteMes">0</span> 
-                        <i class="fas fa-check-double stat-icon"></i>
-                    </div>
-                    <div class="stat-change">
-                        <i class="fas fa-chart-line"></i>
-                        <span id="eficienciaMensual">0% de eficiencia</span>
-                    </div>
+                    <div class="stat-value"><span id="resueltasEsteMes">0</span><i class="fas fa-check-double stat-icon"></i></div>
+                    <div class="stat-change"><i class="fas fa-chart-line"></i><span id="eficienciaMensual">0% de eficiencia</span></div>
                 </div>
                 <div class="stat-card">
                     <h3><i class="fas fa-clock"></i> Tiempo Promedio</h3>
-                    <div class="stat-value">
-                        <span id="tiempoPromedio">0d</span>
-                        <i class="fas fa-stopwatch stat-icon"></i>
-                    </div>
-                    <div class="stat-change">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Resolución de incidencias</span>
-                    </div>
+                    <div class="stat-value"><span id="tiempoPromedio">0d</span><i class="fas fa-stopwatch stat-icon"></i></div>
+                    <div class="stat-change"><i class="fas fa-chart-line"></i><span>Resolución de incidencias</span></div>
                 </div>
-            </div>
+            </section>
             
-            <div class="stats-row">
-                <div class="chart-container">
-                    <div class="chart-title">
-                        <span>Top 10 Clientes con Más Incidencias</span>
-                    </div>
+            <section class="stats-row"> <div class="chart-container">
+                    <div class="chart-title"><span>Top 10 Clientes con Más Incidencias</span></div>
                     <canvas id="chartTopClientes" height="300"></canvas> 
                 </div>
                 <div class="chart-container">
-                    <div class="chart-title">
-                        <span>Evolución Mensual</span>
-                    </div>
+                    <div class="chart-title"><span>Evolución Mensual</span></div>
                     <canvas id="chartMensual" height="300"></canvas>
                 </div>
-            </div>
+            </section>
         </div>
 
-        <div class="tab-content" id="incidencias-tab">
-            <div class="stats-grid">
-                <div class="stat-card">
+        <div class="tab-content" id="incidencias-tab" role="tabpanel" aria-labelledby="incidencias-tab">
+            <section class="stats-grid"> <div class="stat-card">
                     <h3><i class="fas fa-exclamation-circle"></i> Incidencias Abiertas</h3>
-                    <div class="stat-value">
-                        <span id="incidenciasAbiertas">0</span>
-                        <i class="fas fa-door-open stat-icon"></i>
-                    </div>
-                    <div class="stat-change">
-                        <span>Actualmente pendientes</span>
-                    </div>
+                    <div class="stat-value"><span id="incidenciasAbiertas">0</span><i class="fas fa-door-open stat-icon"></i></div>
+                    <div class="stat-change"><span>Actualmente pendientes</span></div>
                 </div>
                 <div class="stat-card">
                     <h3><i class="fas fa-user-clock"></i> Asignadas</h3>
-                    <div class="stat-value">
-                        <span id="incidenciasAsignadas">0</span>
-                        <i class="fas fa-user-check stat-icon"></i>
-                    </div>
-                    <div class="stat-change">
-                        <span>En proceso</span>
-                    </div>
+                    <div class="stat-value"><span id="incidenciasAsignadas">0</span><i class="fas fa-user-check stat-icon"></i></div>
+                    <div class="stat-change"><span>En proceso</span></div>
                 </div>
                 <div class="stat-card">
                     <h3><i class="fas fa-flag-checkered"></i> Completadas</h3>
-                    <div class="stat-value">
-                        <span id="incidenciasCompletadas">0</span> 
-                        <i class="fas fa-flag stat-icon"></i>
-                    </div>
-                    <div class="stat-change">
-                        <span>Finalizadas en el rango</span>
-                    </div>
+                    <div class="stat-value"><span id="incidenciasCompletadas">0</span><i class="fas fa-flag stat-icon"></i></div>
+                    <div class="stat-change"><span>Finalizadas en el rango</span></div>
                 </div>
                 <div class="stat-card">
                     <h3><i class="fas fa-file-invoice-dollar"></i> Cerradas con Factura</h3>
-                    <div class="stat-value">
-                        <span id="incidenciasFacturadas">0</span>
-                        <i class="fas fa-file-invoice stat-icon"></i>
-                    </div>
-                    <div class="stat-change">
-                        <span>Ingresos generados</span>
-                    </div>
+                    <div class="stat-value"><span id="incidenciasFacturadas">0</span><i class="fas fa-file-invoice stat-icon"></i></div>
+                    <div class="stat-change"><span>Ingresos generados</span></div>
                 </div>
-            </div>
+            </section>
 
-            <div class="stats-row">
-                <div class="chart-container">
-                    <div class="chart-title">
-                        <span>Incidencias por Estatus</span>
-                    </div>
+            <section class="stats-row"> <div class="chart-container">
+                    <div class="chart-title"><span>Incidencias por Estatus</span></div>
                     <canvas id="chartPorEstatus" height="250"></canvas> 
                 </div>
                 <div class="chart-container">
-                    <div class="chart-title">
-                        <span>Incidencias por Sucursal</span>
-                    </div>
+                    <div class="chart-title"><span>Incidencias por Sucursal</span></div>
                     <canvas id="chartPorSucursal" height="250"></canvas> 
                 </div>
-            </div>
+            </section>
             
-            <div class="stats-row">
-                <div class="chart-container">
-                    <div class="chart-title">
-                        <span>Top 5 Fallas Recurrentes</span>
-                    </div>
+            <section class="stats-row"> <div class="chart-container">
+                    <div class="chart-title"><span>Top 5 Fallas Recurrentes</span></div>
                     <canvas id="chartTopFallas" height="250"></canvas> 
                 </div>
                 <div class="chart-container">
-                    <div class="chart-title">
-                        <span>Distribución por Prioridad</span>
-                    </div>
+                    <div class="chart-title"><span>Distribución por Prioridad</span></div>
                     <canvas id="chartPorPrioridad" height="250"></canvas> 
                 </div>
-            </div>
+            </section>
         </div>
 
-        <div class="tab-content" id="tecnicos-tab">
-            <div class="stats-grid">
-                <div class="stat-card">
+        <div class="tab-content" id="tecnicos-tab" role="tabpanel" aria-labelledby="tecnicos-tab">
+            <section class="stats-grid"> <div class="stat-card">
                     <h3><i class="fas fa-trophy"></i> Técnico Más Eficiente</h3>
-                    <div class="stat-value">
-                        <span id="tecnicoEficiente">-</span>
-                        <i class="fas fa-crown stat-icon"></i>
-                    </div>
-                    <div class="stat-change">
-                        <span>Mayor tasa de resolución</span>
-                    </div>
+                    <div class="stat-value"><span id="tecnicoEficiente">-</span><i class="fas fa-crown stat-icon"></i></div>
+                    <div class="stat-change"><span>Mayor tasa de resolución</span></div>
                 </div>
                 <div class="stat-card">
                     <h3><i class="fas fa-bolt"></i> Técnico Más Rápido</h3>
-                    <div class="stat-value">
-                        <span id="tecnicoRapido">-</span>
-                        <i class="fas fa-bolt stat-icon"></i>
-                    </div>
-                    <div class="stat-change">
-                        <span>Menor tiempo promedio</span>
-                    </div>
+                    <div class="stat-value"><span id="tecnicoRapido">-</span><i class="fas fa-bolt stat-icon"></i></div>
+                    <div class="stat-change"><span>Menor tiempo promedio</span></div>
                 </div>
                 <div class="stat-card">
                     <h3><i class="fas fa-chart-line"></i> Técnico del Mes</h3>
-                    <div class="stat-value">
-                        <span id="tecnicoMes">-</span>
-                        <i class="fas fa-award stat-icon"></i>
-                    </div>
-                    <div class="stat-change">
-                        <span>Más incidencias resueltas</span>
-                    </div>
+                    <div class="stat-value"><span id="tecnicoMes">-</span><i class="fas fa-award stat-icon"></i></div>
+                    <div class="stat-change"><span>Más incidencias resueltas</span></div>
                 </div>
                 <div class="stat-card">
                     <h3><i class="fas fa-users"></i> Total de Técnicos</h3>
-                    <div class="stat-value">
-                        <span id="totalTecnicos">0</span>
-                        <i class="fas fa-users stat-icon"></i>
-                    </div>
-                    <div class="stat-change">
-                        <span>Activos en el sistema</span>
-                    </div>
+                    <div class="stat-value"><span id="totalTecnicos">0</span><i class="fas fa-users stat-icon"></i></div>
+                    <div class="stat-change"><span>Activos en el sistema</span></div>
                 </div>
-            </div>
+            </section>
 
-            <div class="stats-row full-width">
-                <div class="chart-container">
-                    <div class="chart-title">
-                        <span>Rendimiento de Técnicos (Incidencias Resueltas)</span>
-                    </div>
+            <section class="stats-row full-width"> <div class="chart-container">
+                    <div class="chart-title"><span>Rendimiento de Técnicos (Incidencias Resueltas)</span></div>
                     <canvas id="chartRendimiento" height="300"></canvas>
                 </div>
-            </div>
+            </section>
 
-            <div class="stats-row">
-                <div class="chart-container">
-                    <div class="chart-title">
-                        <span>Tiempos Promedio de Resolución por Técnico (en Días)</span>
-                    </div>
+            <section class="stats-row"> <div class="chart-container">
+                    <div class="chart-title"><span>Tiempos Promedio de Resolución por Técnico (en Días)</span></div>
                     <canvas id="chartTiempos" height="250"></canvas>
                 </div>
                 <div class="chart-container">
-                    <div class="chart-title">
-                        <span>Satisfacción del Cliente</span>
-                    </div>
+                    <div class="chart-title"><span>Satisfacción del Cliente</span></div>
                     <canvas id="chartSatisfaccion" height="250"></canvas>
                 </div>
-            </div>
+            </section>
         </div>
 
     </main>
@@ -737,11 +585,15 @@
             tabs.forEach(tab => {
                 tab.addEventListener('click', () => {
                     // Remover 'active' de todas las pestañas y contenidos
-                    tabs.forEach(t => t.classList.remove('active'));
+                    tabs.forEach(t => {
+                        t.classList.remove('active');
+                        t.setAttribute('aria-selected', 'false'); // Actualización de accesibilidad
+                    });
                     tabContents.forEach(tc => tc.classList.remove('active'));
 
                     // Añadir 'active' a la pestaña y contenido actual
                     tab.classList.add('active');
+                    tab.setAttribute('aria-selected', 'true'); // Actualización de accesibilidad
                     const targetId = tab.getAttribute('data-tab');
                     document.getElementById(targetId).classList.add('active');
                     
@@ -753,34 +605,42 @@
             // Lógica para mostrar/ocultar los campos de exportación
             window.toggleExportOptions = function() {
                 const exportOptions = document.getElementById('exportOptions');
-                exportOptions.style.display = exportOptions.style.display === 'flex' ? 'none' : 'flex';
+                const isHidden = exportOptions.style.display === 'none' || exportOptions.style.display === '';
+                exportOptions.style.display = isHidden ? 'flex' : 'none';
+                document.getElementById('btnExportar').setAttribute('aria-expanded', isHidden); // Actualización de accesibilidad
             }
             
-            // Lógica para mostrar/ocultar las fechas custom (duplicada para seguridad si el JS no carga)
+            // Lógica para mostrar/ocultar las fechas custom
             const rangoSelect = document.getElementById('rango');
             const customRangeDiv = document.getElementById('custom-date-range');
             
             if (rangoSelect && customRangeDiv) {
-                rangoSelect.addEventListener('change', () => {
-                    if (rangoSelect.value === 'custom') {
-                        customRangeDiv.style.display = 'flex';
-                    } else {
-                        customRangeDiv.style.display = 'none';
-                    }
-                });
+                // Función para aplicar la lógica
+                const updateCustomDateDisplay = () => {
+                     // Corregido: Si el valor es 'custom', usar 'flex', sino 'none'
+                    customRangeDiv.style.display = rangoSelect.value === 'custom' ? 'flex' : 'none';
+                };
+                
+                rangoSelect.addEventListener('change', updateCustomDateDisplay);
+                
+                // Asegurar que el estado inicial sea correcto (ej. si se refresca la página)
+                updateCustomDateDisplay(); 
             }
         });
         
         // Funciones placeholder para exportar (Deben ser implementadas en estadisticas.js)
-        function exportarPDF() { alert('Exportar a PDF no implementado.'); }
-        function exportarExcel() { alert('Exportar a Excel no implementado.'); }
-        function exportarImagen() { alert('Exportar a Imagen no implementado.'); }
+        function exportarPDF() { console.log('Exportar a PDF...'); alert('Exportar a PDF no implementado.'); }
+        function exportarExcel() { console.log('Exportar a Excel...'); alert('Exportar a Excel no implementado.'); }
+        function exportarImagen() { console.log('Exportar a Imagen...'); alert('Exportar a Imagen no implementado.'); }
+        function loadAllStatistics() { console.log('Recargando estadísticas...'); alert('Recargando estadísticas...'); } // Agregado aquí para que los botones de recarga funcionen.
         
         // Funciones placeholder para cambiar el tipo de gráfico (Deben ser implementadas en estadisticas.js)
         function toggleChartType(chartId) { 
+            console.log(`Cambiar tipo de gráfico para: ${chartId}`); 
             alert(`Cambiar tipo de gráfico para: ${chartId} (lógica en estadisticas.js)`); 
         }
         function downloadChart(chartId) {
+             console.log(`Descargar gráfico: ${chartId}`);
              alert(`Descargar gráfico: ${chartId} (lógica en estadisticas.js)`); 
         }
     </script>
