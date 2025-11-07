@@ -1,11 +1,67 @@
 // Variables globales para los charts
 let charts = {};
+let currentTab = 'overview';
 
 // Cargar estadísticas al iniciar la página
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Iniciando carga de estadísticas...');
+    inicializarInterfaz();
     cargarEstadisticas();
 });
+
+function inicializarInterfaz() {
+    // Configurar pestañas
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabId = this.getAttribute('data-tab');
+            cambiarPestaña(tabId);
+        });
+    });
+
+    // Configurar filtro de fechas personalizadas
+    const rangoFecha = document.getElementById('rangoFecha');
+    rangoFecha.addEventListener('change', function() {
+        const customDateRange = document.getElementById('customDateRange');
+        const customDateRangeEnd = document.getElementById('customDateRangeEnd');
+        
+        if (this.value === 'custom') {
+            customDateRange.style.display = 'flex';
+            customDateRangeEnd.style.display = 'flex';
+        } else {
+            customDateRange.style.display = 'none';
+            customDateRangeEnd.style.display = 'none';
+        }
+    });
+
+    // Configurar botón de exportación
+    const exportBtn = document.querySelector('.btn-outline');
+    exportBtn.addEventListener('click', function() {
+        const exportOptions = document.getElementById('exportOptions');
+        exportOptions.style.display = exportOptions.style.display === 'none' ? 'flex' : 'none';
+    });
+}
+
+function cambiarPestaña(tabId) {
+    // Actualizar pestañas activas
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+
+    // Activar pestaña seleccionada
+    document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+    document.getElementById(`${tabId}-tab`).classList.add('active');
+    
+    currentTab = tabId;
+    
+    // Cargar datos específicos de la pestaña si es necesario
+    if (tabId === 'tecnicos') {
+        cargarDatosTecnicos();
+    }
+}
 
 async function cargarEstadisticas() {
     try {
@@ -52,14 +108,44 @@ async function cargarEstadisticas() {
 function actualizarEstadisticasGenerales(data) {
     console.log('Actualizando estadísticas generales:', data);
     
-    document.getElementById('totalIncidencias').textContent = data.total_incidencias || '0';
-    document.getElementById('totalClientes').textContent = data.total_clientes || '0';
-    document.getElementById('resueltasMes').textContent = data.incidencias_resueltas_mes || '0';
-    document.getElementById('incidenciasPendientes').textContent = data.incidencias_pendientes || '0';
+    // Actualizar tarjetas principales con verificación de elementos
+    actualizarElementoSiExiste('totalIncidencias', data.total_incidencias || '0');
+    actualizarElementoSiExiste('totalClientes', data.total_clientes || '0');
+    actualizarElementoSiExiste('resueltasMes', data.incidencias_resueltas_mes || '0');
+    actualizarElementoSiExiste('incidenciasPendientes', data.incidencias_pendientes || '0');
+    
+    // Calcular y mostrar tendencias
+    const tendencia = data.tendencia_incidencias || 0;
+    const elemento = document.getElementById('tendenciaIncidencias');
+    if (elemento) {
+        elemento.textContent = `${tendencia >= 0 ? '+' : ''}${tendencia}% vs mes anterior`;
+        elemento.className = `stat-change ${tendencia >= 0 ? '' : 'negative'}`;
+    }
+    
+    // Calcular eficiencia
+    const total = data.total_incidencias || 1;
+    const resueltas = data.incidencias_resueltas_mes || 0;
+    const eficiencia = Math.round((resueltas / total) * 100);
+    actualizarElementoSiExiste('eficienciaMensual', `${eficiencia}% de eficiencia`);
+    
+    // Actualizar tiempo promedio
+    actualizarElementoSiExiste('tiempoPromedio', data.tiempo_promedio || '0d');
+    
+    // Actualizar última actualización
+    actualizarElementoSiExiste('lastUpdated', `Actualizado: ${new Date().toLocaleTimeString()}`);
     
     // Mostrar detalles de estatus en consola para debugging
     if (data.detalle_estatus) {
         console.log('Detalle de estatus:', data.detalle_estatus);
+    }
+}
+
+function actualizarElementoSiExiste(id, valor) {
+    const elemento = document.getElementById(id);
+    if (elemento) {
+        elemento.textContent = valor;
+    } else {
+        console.warn(`Elemento con ID '${id}' no encontrado`);
     }
 }
 
@@ -73,161 +159,184 @@ function crearGraficos(data) {
     
     // Colores para los gráficos
     const colores = [
-        '#007bff', '#28a745', '#dc3545', '#ffc107', '#6f42c1',
-        '#e83e8c', '#fd7e14', '#20c997', '#6610f2', '#6c757d'
+        '#4361ee', '#3a0ca3', '#4cc9f0', '#f72585', '#7209b7',
+        '#4895ef', '#560bad', '#b5179e', '#f15bb5', '#00bbf9'
     ];
     
     // Gráfico de estatus - CON VALIDACIÓN
     if (data.por_estatus && data.por_estatus.length > 0) {
-        const ctxEstatus = document.getElementById('chartEstatus').getContext('2d');
-        charts.estatus = new Chart(ctxEstatus, {
-            type: 'doughnut',
-            data: {
-                labels: data.por_estatus.map(item => item.estatus || 'Sin estatus'),
-                datasets: [{
-                    data: data.por_estatus.map(item => item.cantidad),
-                    backgroundColor: colores,
-                    borderWidth: 2,
-                    borderColor: '#fff'
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.raw || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
-                                return `${label}: ${value} (${percentage}%)`;
+        const ctxEstatus = document.getElementById('chartEstatus');
+        if (ctxEstatus) {
+            charts.estatus = new Chart(ctxEstatus, {
+                type: 'doughnut',
+                data: {
+                    labels: data.por_estatus.map(item => item.estatus || 'Sin estatus'),
+                    datasets: [{
+                        data: data.por_estatus.map(item => item.cantidad),
+                        backgroundColor: colores,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
     } else {
         console.warn('No hay datos para el gráfico de estatus');
     }
     
     // Gráfico por técnico - CON VALIDACIÓN
     if (data.por_tecnico && data.por_tecnico.length > 0) {
-        const ctxTecnico = document.getElementById('chartTecnico').getContext('2d');
-        charts.tecnico = new Chart(ctxTecnico, {
-            type: 'bar',
-            data: {
-                labels: data.por_tecnico.map(item => item.tecnico || 'Sin técnico'),
-                datasets: [{
-                    label: 'Incidencias',
-                    data: data.por_tecnico.map(item => item.cantidad),
-                    backgroundColor: '#007bff',
-                    borderColor: '#0056b3',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
+        const ctxTecnico = document.getElementById('chartTecnico');
+        if (ctxTecnico) {
+            charts.tecnico = new Chart(ctxTecnico, {
+                type: 'bar',
+                data: {
+                    labels: data.por_tecnico.map(item => item.tecnico || 'Sin técnico'),
+                    datasets: [{
+                        label: 'Incidencias',
+                        data: data.por_tecnico.map(item => item.cantidad),
+                        backgroundColor: '#4361ee',
+                        borderColor: '#3a0ca3',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
     } else {
         console.warn('No hay datos para el gráfico de técnicos');
     }
     
     // Gráfico por sucursal - CON VALIDACIÓN
     if (data.por_sucursal && data.por_sucursal.length > 0) {
-        const ctxSucursal = document.getElementById('chartSucursal').getContext('2d');
-        charts.sucursal = new Chart(ctxSucursal, {
-            type: 'pie',
-            data: {
-                labels: data.por_sucursal.map(item => item.sucursal || 'Sin sucursal'),
-                datasets: [{
-                    data: data.por_sucursal.map(item => item.cantidad),
-                    backgroundColor: colores,
-                    borderWidth: 2,
-                    borderColor: '#fff'
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
+        const ctxSucursal = document.getElementById('chartSucursal');
+        if (ctxSucursal) {
+            charts.sucursal = new Chart(ctxSucursal, {
+                type: 'pie',
+                data: {
+                    labels: data.por_sucursal.map(item => item.sucursal || 'Sin sucursal'),
+                    datasets: [{
+                        data: data.por_sucursal.map(item => item.cantidad),
+                        backgroundColor: colores,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
     } else {
         console.warn('No hay datos para el gráfico de sucursales');
     }
     
     // Gráfico mensual - CON VALIDACIÓN
     if (data.mensuales && data.mensuales.length > 0) {
-        const ctxMensual = document.getElementById('chartMensual').getContext('2d');
-        charts.mensual = new Chart(ctxMensual, {
-            type: 'line',
-            data: {
-                labels: data.mensuales.map(item => formatearMes(item.mes)),
-                datasets: [{
-                    label: 'Incidencias',
-                    data: data.mensuales.map(item => item.cantidad),
-                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                    borderColor: '#007bff',
-                    borderWidth: 2,
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
+        const ctxMensual = document.getElementById('chartMensual');
+        if (ctxMensual) {
+            charts.mensual = new Chart(ctxMensual, {
+                type: 'line',
+                data: {
+                    labels: data.mensuales.map(item => formatearMes(item.mes)),
+                    datasets: [{
+                        label: 'Incidencias',
+                        data: data.mensuales.map(item => item.cantidad),
+                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                        borderColor: '#4361ee',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
     } else {
         console.warn('No hay datos para el gráfico mensual');
     }
     
     // Gráfico top clientes - CON VALIDACIÓN
     if (data.top_clientes && data.top_clientes.length > 0) {
-        const ctxClientes = document.getElementById('chartClientes').getContext('2d');
-        charts.clientes = new Chart(ctxClientes, {
-            type: 'bar',
-            data: {
-                labels: data.top_clientes.map(item => item.cliente || 'Sin cliente'),
-                datasets: [{
-                    label: 'Número de Incidencias',
-                    data: data.top_clientes.map(item => item.cantidad),
-                    backgroundColor: colores,
-                    borderColor: colores.map(color => color),
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                indexAxis: 'y',
-                scales: {
-                    x: {
-                        beginAtZero: true
+        const ctxClientes = document.getElementById('chartClientes');
+        if (ctxClientes) {
+            charts.clientes = new Chart(ctxClientes, {
+                type: 'bar',
+                data: {
+                    labels: data.top_clientes.map(item => item.cliente || 'Sin cliente'),
+                    datasets: [{
+                        label: 'Número de Incidencias',
+                        data: data.top_clientes.map(item => item.cantidad),
+                        backgroundColor: colores,
+                        borderColor: colores.map(color => color),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
     } else {
         console.warn('No hay datos para el gráfico de clientes');
     }
+}
+
+function cargarDatosTecnicos() {
+    // Esta función cargaría datos específicos para la pestaña de técnicos
+    console.log('Cargando datos específicos de técnicos...');
+    
+    // Simular datos de técnicos (en una implementación real, harías una llamada API)
+    setTimeout(() => {
+        actualizarElementoSiExiste('tecnicoEficiente', 'Juan Pérez');
+        actualizarElementoSiExiste('tecnicoRapido', 'María García');
+        actualizarElementoSiExiste('tecnicoMes', 'Carlos López');
+        actualizarElementoSiExiste('totalTecnicos', '8');
+    }, 500);
 }
 
 function formatearMes(mesString) {
@@ -258,9 +367,10 @@ function mostrarError(mensaje) {
             background: #dc3545;
             color: white;
             padding: 15px;
-            border-radius: 5px;
+            border-radius: 8px;
             margin: 20px 0;
             text-align: center;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
         `;
         const mainContent = document.getElementById('mainContent');
         const filters = document.querySelector('.filters');
@@ -275,5 +385,69 @@ function mostrarError(mensaje) {
     }, 5000);
 }
 
+// Funciones de utilidad para gráficos
+function toggleChartType(chartId) {
+    const chart = charts[chartId];
+    if (!chart) return;
+    
+    const currentType = chart.config.type;
+    let newType = currentType;
+    
+    // Ciclo entre tipos de gráficos
+    if (currentType === 'bar') newType = 'line';
+    else if (currentType === 'line') newType = 'pie';
+    else if (currentType === 'pie') newType = 'doughnut';
+    else if (currentType === 'doughnut') newType = 'bar';
+    
+    chart.config.type = newType;
+    chart.update();
+}
+
+function downloadChart(chartId) {
+    const chart = charts[chartId];
+    if (!chart) return;
+    
+    const link = document.createElement('a');
+    link.download = `grafico-${chartId}-${new Date().toISOString().split('T')[0]}.png`;
+    link.href = chart.toBase64Image();
+    link.click();
+}
+
+function exportarDatos() {
+    // Mostrar/ocultar opciones de exportación
+    const exportOptions = document.getElementById('exportOptions');
+    exportOptions.style.display = exportOptions.style.display === 'none' ? 'flex' : 'none';
+}
+
+function exportarPDF() {
+    alert('Funcionalidad de exportación PDF - En desarrollo');
+    // En una implementación real, usarías una librería como jsPDF
+}
+
+function exportarExcel() {
+    alert('Funcionalidad de exportación Excel - En desarrollo');
+    // En una implementación real, usarías una librería como SheetJS
+}
+
+function exportarImagen() {
+    // Crear una imagen del dashboard completo
+    html2canvas(document.getElementById('mainContent')).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `dashboard-${new Date().toISOString().split('T')[0]}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+    });
+}
+
 // Actualizar cada 5 minutos
 setInterval(cargarEstadisticas, 300000);
+
+// Inicializar fecha actual para filtros personalizados
+document.addEventListener('DOMContentLoaded', function() {
+    const hoy = new Date();
+    const hace30Dias = new Date();
+    hace30Dias.setDate(hoy.getDate() - 30);
+    
+    document.getElementById('fechaInicio').value = hace30Dias.toISOString().split('T')[0];
+    document.getElementById('fechaFin').value = hoy.toISOString().split('T')[0];
+});
