@@ -6,6 +6,7 @@ header('Content-Type: application/json');
 
 // Asegúrate de que este archivo defina la variable de conexión: $conn
 // Ejemplo: $conn = new mysqli('localhost', 'usuario', 'password', 'basedatos');
+// **¡IMPORTANTE!** Asegúrate de que 'conexion.php' existe y funciona correctamente.
 require_once 'conexion.php'; 
 
 // Verifica la conexión a la base de datos
@@ -23,6 +24,7 @@ if (!isset($conn) || $conn->connect_error) {
 $tabla_incidencias = "incidencias"; 
 
 // Estatus que se consideran cerrados/finalizados para calcular resoluciones y tiempos
+// Estos estatus deben coincidir exactamente con los valores de tu columna 'estatus' en la DB
 $estatus_cerrados = "'cerrado con factura', 'cerrado sin factura', 'Completado', 'Finalizada', 'Resuelto'";
 
 
@@ -65,7 +67,7 @@ function construirFiltros($conn, $tabla_alias = 'i', $campo_fecha = 'fecha') {
         if (!empty($_GET[$campo]) && $_GET[$campo] !== 'all' && $_GET[$campo] !== '') {
             $valor = $conn->real_escape_string($_GET[$campo]);
             if ($campo === 'tecnico') {
-                // Asume que el campo 'tecnico' puede contener varios técnicos separados por coma (usando LIKE)
+                // Filtro para técnico: usa LIKE para encontrar el nombre en la cadena
                 $filtros[] = "{$tabla_alias}.{$campo} LIKE '%{$valor}%'";
             } else {
                 $filtros[] = "{$tabla_alias}.{$campo} = '{$valor}'";
@@ -73,7 +75,10 @@ function construirFiltros($conn, $tabla_alias = 'i', $campo_fecha = 'fecha') {
         }
     }
 
-    return empty($filtros) ? "" : "WHERE " . implode(" AND ", $filtros);
+    // El filtro WHERE debe ser el primer elemento si hay filtros.
+    // Si la función devuelve algo, siempre debe empezar con "WHERE " si no hay filtros.
+    // Para simplificar, la concatenación se hará en la consulta principal si es necesario.
+    return empty($filtros) ? "" : " AND " . implode(" AND ", $filtros);
 }
 
 /**
@@ -85,7 +90,7 @@ function ejecutarConsulta($conn, $sql) {
     if ($resultado === false) {
         // Registra el error en los logs del servidor
         error_log("Error SQL: " . $conn->error . "\nConsulta: " . $sql);
-        return [];
+        return ['error' => $conn->error, 'sql' => $sql]; // Devolvemos el error para depuración
     }
     if ($resultado->num_rows > 0) {
         while($fila = $resultado->fetch_assoc()) {
@@ -104,7 +109,13 @@ function format_time($segundos) {
     $d = floor($segundos / (3600*24));
     $h = floor(($segundos % (3600*24)) / 3600);
     $m = floor(($segundos % 3600) / 60);
-    return "{$d}d {$h}h {$m}m";
+    
+    $partes = [];
+    if ($d > 0) $partes[] = "{$d}d";
+    if ($h > 0 || $d > 0) $partes[] = "{$h}h"; // Muestra horas si hay días o si es la unidad más grande
+    if ($m > 0 || empty($partes)) $partes[] = "{$m}m"; // Muestra minutos si hay o si no hay nada
+    
+    return implode(' ', array_filter($partes));
 }
 
 
@@ -113,20 +124,20 @@ function format_time($segundos) {
 $action = $_GET['action'] ?? '';
 $response = ['success' => false, 'data' => [], 'error' => 'Acción no válida.'];
 
-// Filtro principal: usa 'fecha' de creación (para totales y gráficos de creación)
-$filtros_where_creacion = construirFiltros($conn, 'i', 'fecha');
-// Filtro para incidencias RESUELTAS: usa 'fecha_cierre' (para KPIs de resolución)
-$filtros_where_cierre = construirFiltros($conn, 'i', 'fecha_cierre');
+// Los filtros devuelven una cadena vacía o que comienza con " AND "
+$filtros_creacion_str = construirFiltros($conn, 'i', 'fecha');
+$filtros_cierre_str = construirFiltros($conn, 'i', 'fecha_cierre');
 
 switch ($action) {
     
     case 'estadisticas_generales':
         
         // 1. Total de incidencias CREADAS (basado en fecha de creación Y filtro)
-        $sql_total = "SELECT COUNT(id) AS total_incidencias FROM {$tabla_incidencias} i {$filtros_where_creacion}";
+        $sql_total = "SELECT COUNT(id) AS total_incidencias FROM {$tabla_incidencias} i WHERE 1=1 {$filtros_creacion_str}";
         $total_incidencias = ejecutarConsulta($conn, $sql_total)[0]['total_incidencias'] ?? 0;
 
         // 2. Incidencias ABIERTAS/PENDIENTES (ESTATUS ACTIVO - IGNORA FILTRO DE FECHA DE RANGO, es un KPI actual)
+        // Se considera toda la tabla, sin filtros de fecha
         $sql_pendientes = "SELECT COUNT(id) AS incidencias_pendientes FROM {$tabla_incidencias} WHERE estatus NOT IN ({$estatus_cerrados})";
         $pendientes = ejecutarConsulta($conn, $sql_pendientes)[0]['incidencias_pendientes'] ?? 0;
         
@@ -135,14 +146,14 @@ switch ($action) {
         $asignadas = ejecutarConsulta($conn, $sql_asignadas)[0]['incidencias_asignadas'] ?? 0;
 
         // 4. Incidencias cerradas/resueltas (basado en fecha_cierre Y filtro de rango)
-        $sql_resueltas = "SELECT COUNT(id) AS incidencias_resueltas_rango FROM {$tabla_incidencias} i {$filtros_where_cierre} AND i.estatus IN ({$estatus_cerrados})";
+        $sql_resueltas = "SELECT COUNT(id) AS incidencias_resueltas_rango FROM {$tabla_incidencias} i WHERE i.estatus IN ({$estatus_cerrados}) {$filtros_cierre_str}";
         $resueltas = ejecutarConsulta($conn, $sql_resueltas)[0]['incidencias_resueltas_rango'] ?? 0;
         
-        // 5. Incidencias Cerradas con Factura (usando el estatus de tu HTML)
-        $sql_facturadas = "SELECT COUNT(id) AS incidencias_facturadas FROM {$tabla_incidencias} i {$filtros_where_cierre} AND i.estatus = 'cerrado con factura'";
+        // 5. Incidencias Cerradas con Factura 
+        $sql_facturadas = "SELECT COUNT(id) AS incidencias_facturadas FROM {$tabla_incidencias} i WHERE i.estatus = 'cerrado con factura' {$filtros_cierre_str}";
         $facturadas = ejecutarConsulta($conn, $sql_facturadas)[0]['incidencias_facturadas'] ?? 0;
 
-        // 6. Tiempo promedio de resolución (usando TIMESTAMPDIFF) - Promedio de todas las resueltas
+        // 6. Tiempo promedio de resolución (usando TIMESTAMPDIFF) - Promedio de todas las resueltas en el rango
         $sql_tiempo = "
             SELECT 
                 AVG(TIMESTAMPDIFF(SECOND, fecha, fecha_cierre)) AS tiempo_segundos
@@ -151,12 +162,13 @@ switch ($action) {
             WHERE 
                 i.estatus IN ({$estatus_cerrados}) 
                 AND fecha_cierre IS NOT NULL
-                AND fecha_cierre > fecha -- Asegura que la fecha de cierre es posterior
+                AND fecha_cierre > fecha 
+                {$filtros_cierre_str}
         ";
         $tiempo_segundos = ejecutarConsulta($conn, $sql_tiempo)[0]['tiempo_segundos'] ?? 0;
         $tiempo_formateado = format_time($tiempo_segundos);
         
-        // 7. Total de clientes únicos (IGNORA FILTRO DE FECHA)
+        // 7. Total de clientes únicos (IGNORA FILTRO DE FECHA, es un KPI general)
         $sql_clientes = "SELECT COUNT(DISTINCT cliente) AS total_clientes FROM {$tabla_incidencias} WHERE cliente IS NOT NULL AND cliente <> ''";
         $total_clientes = ejecutarConsulta($conn, $sql_clientes)[0]['total_clientes'] ?? 0;
         
@@ -166,9 +178,10 @@ switch ($action) {
                 cliente, 
                 COUNT(id) AS cantidad 
             FROM 
-                {$tabla_incidencias} i {$filtros_where_creacion} 
+                {$tabla_incidencias} i 
             WHERE 
-                cliente IS NOT NULL AND cliente <> '' 
+                1=1 {$filtros_creacion_str}
+                AND cliente IS NOT NULL AND cliente <> '' 
             GROUP BY 
                 cliente 
             ORDER BY 
@@ -193,13 +206,16 @@ switch ($action) {
     case 'estadisticas_incidencias':
         $data_incidencias = [];
 
+        // Los gráficos usan el filtro de fecha de CREACIÓN
+        $where_creacion_graficos = "WHERE 1=1 {$filtros_creacion_str}";
+
         // Gráfico 1: Por Estatus
         $sql_estatus = "
             SELECT 
                 estatus, 
                 COUNT(id) AS cantidad 
             FROM 
-                {$tabla_incidencias} i {$filtros_where_creacion} 
+                {$tabla_incidencias} i {$where_creacion_graficos}
             GROUP BY 
                 estatus 
             ORDER BY 
@@ -213,7 +229,7 @@ switch ($action) {
                 sucursal, 
                 COUNT(id) AS cantidad 
             FROM 
-                {$tabla_incidencias} i {$filtros_where_creacion} 
+                {$tabla_incidencias} i {$where_creacion_graficos} 
             WHERE 
                 sucursal IS NOT NULL AND sucursal <> ''
             GROUP BY 
@@ -230,7 +246,7 @@ switch ($action) {
                 DATE_FORMAT(fecha, '%Y-%m') as mes, 
                 COUNT(id) AS cantidad 
             FROM 
-                {$tabla_incidencias} i {$filtros_where_creacion} 
+                {$tabla_incidencias} i {$where_creacion_graficos}
             GROUP BY 
                 mes 
             ORDER BY 
@@ -244,7 +260,7 @@ switch ($action) {
                 falla, 
                 COUNT(id) AS cantidad 
             FROM 
-                {$tabla_incidencias} i {$filtros_where_creacion} 
+                {$tabla_incidencias} i {$where_creacion_graficos} 
             WHERE 
                 falla IS NOT NULL AND falla <> ''
             GROUP BY 
@@ -261,7 +277,7 @@ switch ($action) {
                 prioridad, 
                 COUNT(id) AS cantidad 
             FROM 
-                {$tabla_incidencias} i {$filtros_where_creacion} 
+                {$tabla_incidencias} i {$where_creacion_graficos}
             WHERE 
                 prioridad IS NOT NULL AND prioridad <> ''
             GROUP BY 
@@ -277,7 +293,7 @@ switch ($action) {
                 tecnico, 
                 COUNT(id) AS cantidad 
             FROM 
-                {$tabla_incidencias} i {$filtros_where_creacion} 
+                {$tabla_incidencias} i {$where_creacion_graficos} 
             WHERE 
                 tecnico IS NOT NULL AND tecnico <> ''
             GROUP BY 
@@ -293,11 +309,12 @@ switch ($action) {
         break;
 
     case 'estadisticas_tecnicos':
-        // Filtro para rendimiento: solo incidencias CERRADAS/RESUELTAS (fecha_cierre)
-        $filtros_where_cierre_tecnicos = construirFiltros($conn, 'i', 'fecha_cierre');
-        $condicion_cerrados = " i.estatus IN ({$estatus_cerrados}) AND i.tecnico IS NOT NULL AND i.tecnico <> ''";
+        // **BLOQUE CORREGIDO PARA CONTAR MÚLTIPLES TÉCNICOS**
         
-        // 1. Rendimiento: Incidencias Resueltas por Técnico (Usa la técnica de subconsulta/JOIN para manejar múltiples técnicos)
+        // Filtro para rendimiento: solo incidencias CERRADAS/RESUELTAS (fecha_cierre)
+        $where_cierre_tecnicos = "WHERE i.estatus IN ({$estatus_cerrados}) AND i.tecnico IS NOT NULL AND i.tecnico <> '' {$filtros_cierre_str}";
+        
+        // --- 1. Rendimiento: Incidencias Resueltas por Técnico (Usa la técnica de subconsulta/JOIN para manejar múltiples técnicos)
         $sql_rendimiento = "
             SELECT 
                 TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(i.tecnico, ',', n.num), ',', -1)) AS tecnico,
@@ -306,10 +323,13 @@ switch ($action) {
                 {$tabla_incidencias} i
             JOIN 
                 (
+                    -- Generamos hasta 10 números, asumiendo que no hay más de 10 técnicos por incidencia
                     SELECT 1 AS num UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 
+                    UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10
                 ) n 
+                -- Esta condición asegura que el JOIN se haga tantas veces como comas + 1 haya en el campo tecnico
                 ON CHAR_LENGTH(i.tecnico) - CHAR_LENGTH(REPLACE(i.tecnico, ',', '')) >= n.num - 1
-            {$filtros_where_cierre_tecnicos} AND {$condicion_cerrados}
+            {$where_cierre_tecnicos}
             GROUP BY
                 tecnico
             HAVING
@@ -319,7 +339,7 @@ switch ($action) {
         ";
         $datos_rendimiento_bruto = ejecutarConsulta($conn, $sql_rendimiento);
         
-        // 2. Tiempos promedio de resolución por técnico
+        // --- 2. Tiempos promedio de resolución por técnico
         $sql_tiempos = "
             SELECT 
                 TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(i.tecnico, ',', n.num), ',', -1)) AS tecnico,
@@ -329,12 +349,15 @@ switch ($action) {
             JOIN 
                 (
                     SELECT 1 AS num UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5
+                    UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10
                 ) n 
                 ON CHAR_LENGTH(i.tecnico) - CHAR_LENGTH(REPLACE(i.tecnico, ',', '')) >= n.num - 1
             WHERE 
                 i.estatus IN ({$estatus_cerrados}) 
                 AND i.fecha_cierre IS NOT NULL
                 AND i.fecha_cierre > i.fecha
+                AND i.tecnico IS NOT NULL AND i.tecnico <> ''
+                {$filtros_cierre_str}
             GROUP BY
                 tecnico
             HAVING
@@ -344,8 +367,8 @@ switch ($action) {
         ";
         $datos_tiempos_bruto = ejecutarConsulta($conn, $sql_tiempos);
         
-        // 3. Datos de Satisfacción del Cliente (Usando datos de ejemplo ya que no hay una tabla de satisfacción)
-        // **Reemplaza esta sección con datos reales si tienes una tabla de calificaciones.**
+        // --- 3. Datos de Satisfacción del Cliente (Usando datos de ejemplo ya que no hay una tabla de satisfacción)
+        // **Reemplaza esta sección si tienes datos reales.**
         $datos_satisfaccion = [
             ['nivel' => 'Excelente', 'cantidad' => 60],
             ['nivel' => 'Bueno', 'cantidad' => 25],
@@ -353,7 +376,7 @@ switch ($action) {
             ['nivel' => 'Malo', 'cantidad' => 5],
         ];
 
-        // 4. Determinar KPI de técnicos
+        // --- 4. Determinar KPI de técnicos
         $tecnico_eficiente = $datos_rendimiento_bruto[0]['tecnico'] ?? 'N/A'; // Más resueltas
         $tecnico_rapido = $datos_tiempos_bruto[0]['tecnico'] ?? 'N/A'; // Menor tiempo
         $tecnico_mes = $tecnico_eficiente; // Usamos la eficiencia como "Técnico del Mes"
@@ -367,7 +390,7 @@ switch ($action) {
             // Convierte segundos a días (más legible en el gráfico de rendimiento)
             return round($segundos / (3600 * 24), 2); 
         }, array_column($datos_tiempos_bruto, 'tiempo_segundos'));
-
+        
         $response['success'] = true;
         $response['data'] = [
             'tecnico_eficiente' => $tecnico_eficiente,
@@ -390,3 +413,10 @@ switch ($action) {
 // Cierra la conexión y devuelve la respuesta JSON
 $conn->close();
 echo json_encode($response);
+
+// Si ocurrió un error en la ejecución, puedes añadir una depuración aquí
+if (isset($response['data']) && is_array($response['data']) && isset($response['data']['error'])) {
+    error_log("Error en la respuesta de la API: " . json_encode($response));
+}
+
+?>
