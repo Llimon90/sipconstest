@@ -6,7 +6,7 @@ header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
 // Incluir el archivo de conexión
-require_once '../../conexion.php';
+require_once 'conexion.php';
 
 try {
     // Obtener estadísticas de incidencias
