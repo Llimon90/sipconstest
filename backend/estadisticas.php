@@ -1,22 +1,22 @@
 <?php
 header('Content-Type: application/json');
 
-// --- 1. CONFIGURACIÓN DE BASE DE DATOS (AJUSTA ESTO) ---
-$servername = "localhost";
-$username = "tu_usuario"; 
-$password = "tu_contraseña"; 
-$dbname = "tu_base_de_datos";
+// --- 1. CONEXIÓN DE BASE DE DATOS ---
+// Se incluye el archivo de conexión. Este archivo debe definir la variable $conn.
+require_once 'conexion.php'; 
 
-// Nombre de tu tabla de incidencias
-$tabla_incidencias = "incidencias"; 
-
-// Intentar conexión
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    echo json_encode(['success' => false, 'error' => 'Error de conexión: ' . $conn->connect_error]);
+// Verifica si el archivo de conexión estableció la variable $conn correctamente.
+if (!isset($conn) || $conn->connect_error) {
+    // Si la conexión falló o no se estableció, devuelve un error.
+    echo json_encode([
+        'success' => false, 
+        'error' => 'Error al cargar la conexión a la base de datos. Por favor, revisa conexion.php.'
+    ]);
     exit();
 }
+
+// Nombre de la tabla de incidencias (Ajusta si es necesario)
+$tabla_incidencias = "incidencias"; 
 
 // --- 2. FUNCIONES DE UTILIDAD ---
 
@@ -95,7 +95,7 @@ $filtros_where = construirFiltros($conn, 'i');
 switch ($action) {
     
     case 'estadisticas_generales':
-        // --- CÓDIGO PARA ESTADÍSTICAS GENERALES (PLACEHOLDERS) ---
+        // --- CÓDIGO PARA ESTADÍSTICAS GENERALES ---
         $sql_total = "SELECT COUNT(id) AS total_incidencias FROM {$tabla_incidencias} i {$filtros_where}";
         $total_incidencias = ejecutarConsulta($conn, $sql_total)[0]['total_incidencias'] ?? 0;
 
@@ -106,10 +106,10 @@ switch ($action) {
         $response['data'] = [
             'total_incidencias' => (int)$total_incidencias,
             'incidencias_pendientes' => (int)$pendientes,
-            'total_clientes' => 125, // Ejemplo
-            'incidencias_resueltas_mes' => 80, // Ejemplo
-            'tiempo_promedio' => '1d 5h', // Ejemplo
-            'tendencia_incidencias' => 15 // Ejemplo
+            'total_clientes' => 125, // Placeholder/Ejemplo
+            'incidencias_resueltas_mes' => 80, // Placeholder/Ejemplo
+            'tiempo_promedio' => '1d 5h', // Placeholder/Ejemplo
+            'tendencia_incidencias' => 15 // Placeholder/Ejemplo
         ];
         break;
 
@@ -190,8 +190,8 @@ switch ($action) {
         $response['success'] = true;
         $response['data'] = [
             'tecnico_eficiente' => $tecnico_eficiente,
-            'tecnico_rapido' => 'Tomás Valdéz', // Ejemplo
-            'tecnico_mes' => 'Victor Cordoba', // Ejemplo
+            'tecnico_rapido' => 'Tomás Valdéz', // Placeholder/Ejemplo
+            'tecnico_mes' => 'Victor Cordoba', // Placeholder/Ejemplo
             'total_tecnicos' => $total_tecnicos,
             'graficos' => [
                 'rendimiento' => [
@@ -210,6 +210,8 @@ switch ($action) {
         break;
 }
 
+// Cierra la conexión. Si usas PDO, esto puede ser diferente.
+// Si $conn es una conexión mysqli:
 $conn->close();
 echo json_encode($response);
 ?>
