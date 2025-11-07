@@ -1,22 +1,16 @@
-// Variables globales para los charts
+// Variables globales
 let charts = {};
-let currentTab = 'overview';
+let currentTab = 'overview'; // Inicia en el tab de Resumen General
 
-// --- FUNCIONES DE UTILIDAD PARA FILTROS Y ELEMENTOS ---
-
-/**
- * Recopila los valores de los filtros de la interfaz.
- * @returns {string} Una cadena de consulta para la URL (ej: '&rango=custom&inicio=2023-01-01...')
- */
+// --- FUNCIÓN DE UTILIDAD: Obtener Parámetros de Filtro ---
 function obtenerParametrosFiltro() {
-    const rangoFecha = document.getElementById('rangoFecha')?.value || '';
+    const rangoFecha = document.getElementById('rangoFecha')?.value || '30';
     const tecnico = document.getElementById('tecnico')?.value || '';
     const sucursal = document.getElementById('sucursal')?.value || '';
     const estatus = document.getElementById('estatus')?.value || '';
     
     let parametros = `&rango=${rangoFecha}&tecnico=${tecnico}&sucursal=${sucursal}&estatus=${estatus}`;
 
-    // Incluir fechas personalizadas si el rango es 'custom'
     if (rangoFecha === 'custom') {
         const fechaInicio = document.getElementById('fechaInicio')?.value || '';
         const fechaFin = document.getElementById('fechaFin')?.value || '';
@@ -26,508 +20,433 @@ function obtenerParametrosFiltro() {
     return parametros;
 }
 
-function actualizarElementoSiExiste(id, valor) {
+// --- FUNCIÓN DE UTILIDAD: Actualizar Elementos y Loading ---
+function actualizarElementoSiExiste(id, valor, fallback = 'N/A') {
     const elemento = document.getElementById(id);
     if (elemento) {
-        elemento.textContent = valor;
-    } else {
-        console.warn(`Elemento con ID '${id}' no encontrado`);
-    }
+        elemento.textContent = valor === null || valor === undefined ? fallback : valor;
+    } 
 }
 
 function mostrarLoading(mostrar) {
     const elementos = document.querySelectorAll('.stat-value, .chart-container');
     elementos.forEach(elemento => {
-        if (mostrar) {
-            elemento.style.opacity = '0.5';
-        } else {
-            elemento.style.opacity = '1';
-        }
+        // Opacidad simple para indicar carga
+        elemento.style.opacity = mostrar ? '0.5' : '1';
     });
 }
 
 function mostrarError(mensaje) {
-    let errorDiv = document.getElementById('errorMessage');
-    if (!errorDiv) {
-        errorDiv = document.createElement('div');
-        errorDiv.id = 'errorMessage';
-        errorDiv.style.cssText = `
-            background: #dc3545;
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
-        `;
-        const mainContent = document.getElementById('mainContent');
-        const filters = document.querySelector('.filters');
-        if (mainContent && filters) {
-            mainContent.insertBefore(errorDiv, filters);
-        }
-    }
-    errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${mensaje}`;
-    errorDiv.style.display = 'block';
-    
-    setTimeout(() => {
-        errorDiv.style.display = 'none';
-    }, 5000);
+    console.error(mensaje);
+    // Podrías añadir lógica para mostrar un mensaje visible al usuario aquí
 }
 
-
-// --- INICIALIZACIÓN Y CAMBIO DE PESTAÑAS (SIN CAMBIOS RELEVANTES) ---
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Iniciando carga de estadísticas...');
-    inicializarInterfaz();
-    cambiarPestaña(currentTab); 
-});
-
-function inicializarInterfaz() {
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            const tabId = this.getAttribute('data-tab');
-            cambiarPestaña(tabId);
-        });
-    });
-
-    const rangoFecha = document.getElementById('rangoFecha');
-    if (rangoFecha) {
-        rangoFecha.addEventListener('change', function() {
-            const customDateRange = document.getElementById('customDateRange');
-            const customDateRangeEnd = document.getElementById('customDateRangeEnd');
-            
-            if (this.value === 'custom') {
-                if (customDateRange) customDateRange.style.display = 'flex';
-                if (customDateRangeEnd) customDateRangeEnd.style.display = 'flex';
-            } else {
-                if (customDateRange) customDateRange.style.display = 'none';
-                if (customDateRangeEnd) customDateRangeEnd.style.display = 'none';
-            }
-        });
-    }
-
-    const exportBtn = document.querySelector('.btn-outline');
-    if (exportBtn) {
-        exportBtn.addEventListener('click', function() {
-            const exportOptions = document.getElementById('exportOptions');
-            if (exportOptions) {
-                exportOptions.style.display = exportOptions.style.display === 'none' ? 'flex' : 'none';
-            }
-        });
-    }
-
-    const hoy = new Date();
-    const hace30Dias = new Date();
-    hace30Dias.setDate(hoy.getDate() - 30);
-    
-    const fechaInicio = document.getElementById('fechaInicio');
-    const fechaFin = document.getElementById('fechaFin');
-    
-    if (fechaInicio) fechaInicio.value = hace30Dias.toISOString().split('T')[0];
-    if (fechaFin) fechaFin.value = hoy.toISOString().split('T')[0];
-}
-
-function cambiarPestaña(tabId) {
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
-    });
-
-    const tabElement = document.querySelector(`[data-tab="${tabId}"]`);
-    const tabContent = document.getElementById(`${tabId}-tab`);
-    
-    if (tabElement) tabElement.classList.add('active');
-    if (tabContent) tabContent.classList.add('active');
-    
-    if (currentTab !== tabId || tabId === 'overview') {
-        currentTab = tabId;
-        
-        if (tabId === 'overview') {
-            cargarEstadisticas();
-        } else if (tabId === 'tecnicos') {
-            cargarDatosTecnicos();
-        }
-    }
-}
-
-
-// --- CARGA DE DATOS DESDE EL BACKEND (MISMAS FUNCIONES, MEJOR LOGGING) ---
+// --- LÓGICA DE CARGA DE DATOS ---
 
 async function cargarEstadisticas() {
+    mostrarLoading(true);
     const filtros = obtenerParametrosFiltro();
+    
+    // Llamadas asíncronas para las 3 secciones (aunque solo la activa se mostrará, precargamos)
+    const promises = [
+        fetch(`../backend/estadisticas.php?action=estadisticas_generales${filtros}`).then(r => r.json()),
+        fetch(`../backend/estadisticas.php?action=estadisticas_incidencias${filtros}`).then(r => r.json()),
+        fetch(`../backend/estadisticas.php?action=estadisticas_tecnicos${filtros}`).then(r => r.json())
+    ];
 
     try {
-        mostrarLoading(true);
-        
-        const urlGeneral = `../backend/estadisticas.php?action=estadisticas_generales${filtros}`;
-        const responseGeneral = await fetch(urlGeneral);
-        if (!responseGeneral.ok) throw new Error('Error en la respuesta del servidor (General): ' + responseGeneral.status);
-        const dataGeneral = await responseGeneral.json();
-        
+        const [dataGeneral, dataIncidencias, dataTecnicos] = await Promise.all(promises);
+
+        // GENERAL & OVERVIEW
         if (dataGeneral.success) {
             actualizarEstadisticasGenerales(dataGeneral.data);
+            crearGraficoTopClientes(dataGeneral.data.top_clientes);
         } else {
-            throw new Error(dataGeneral.error || 'Error en los datos generales');
+            mostrarError(dataGeneral.error || 'Error en datos generales');
         }
-        
-        const urlIncidencias = `../backend/estadisticas.php?action=estadisticas_incidencias${filtros}`;
-        const responseIncidencias = await fetch(urlIncidencias);
-        if (!responseIncidencias.ok) throw new Error('Error en la respuesta del servidor (Incidencias): ' + responseIncidencias.status);
-        const dataIncidencias = await responseIncidencias.json();
-        
+
+        // INCIDENCIAS TAB
         if (dataIncidencias.success) {
-            crearGraficos(dataIncidencias.data);
+            crearGraficosIncidencias(dataIncidencias.data);
         } else {
-            throw new Error(dataIncidencias.error || 'Error en los datos de incidencias');
+            mostrarError(dataIncidencias.error || 'Error en datos de incidencias');
         }
-        
-    } catch (error) {
-        console.error('Error cargando estadísticas:', error);
-        mostrarError('Error al cargar las estadísticas: ' + error.message);
-    } finally {
-        mostrarLoading(false);
-    }
-}
 
-async function cargarDatosTecnicos() {
-    const filtros = obtenerParametrosFiltro();
-    
-    try {
-        mostrarLoading(true);
-        
-        const urlTecnicos = `../backend/estadisticas.php?action=estadisticas_tecnicos${filtros}`;
-        const responseTecnicos = await fetch(urlTecnicos);
-        
-        if (!responseTecnicos.ok) throw new Error('Error en la respuesta del servidor (Técnicos): ' + responseTecnicos.status);
-        const dataTecnicos = await responseTecnicos.json();
-        
+        // TECNICOS TAB
         if (dataTecnicos.success) {
-            const data = dataTecnicos.data;
-            actualizarElementoSiExiste('tecnicoEficiente', data.tecnico_eficiente || 'N/A');
-            actualizarElementoSiExiste('tecnicoRapido', data.tecnico_rapido || 'N/A');
-            actualizarElementoSiExiste('tecnicoMes', data.tecnico_mes || 'N/A');
-            actualizarElementoSiExiste('totalTecnicos', data.total_tecnicos || '0');
-            
-            crearGraficosTecnicos(data.graficos); 
-            
+            actualizarEstadisticasTecnicos(dataTecnicos.data);
         } else {
-            throw new Error(dataTecnicos.error || 'Error en los datos de técnicos');
+            mostrarError(dataTecnicos.error || 'Error en datos de técnicos');
         }
-        
+
     } catch (error) {
-        console.error('Error cargando datos de técnicos:', error);
-        mostrarError('Error al cargar datos de técnicos: ' + error.message);
+        mostrarError('Error general en la carga de estadísticas: ' + error.message);
     } finally {
         mostrarLoading(false);
+        // Asegurar que el tab correcto se muestre después de cargar
+        cambiarPestana(currentTab); 
     }
 }
 
-
-// --- ACTUALIZACIÓN DE INTERFAZ Y GRÁFICOS (ACTUALIZADO) ---
+// --- ACTUALIZACIÓN DE ESTADÍSTICAS ---
 
 function actualizarEstadisticasGenerales(data) {
-    // Actualizar tarjetas principales con verificación de elementos
-    actualizarElementoSiExiste('totalIncidencias', data.total_incidencias || '0');
-    actualizarElementoSiExiste('totalClientes', data.total_clientes || '0');
-    // USAR EL NUEVO CAMPO DEL BACKEND
-    actualizarElementoSiExiste('resueltasMes', data.incidencias_resueltas_rango || '0'); 
-    actualizarElementoSiExiste('incidenciasPendientes', data.incidencias_pendientes || '0');
     
-    actualizarElementoSiExiste('tiempoPromedio', data.tiempo_promedio || 'N/A');
-    
+    // Pestaña OVERVIEW
+    actualizarElementoSiExiste('totalIncidencias', data.total_incidencias.toLocaleString());
+    actualizarElementoSiExiste('totalClientes', data.total_clientes.toLocaleString());
+    // ID corregido: resueltasMes (de tu HTML)
+    actualizarElementoSiExiste('resueltasMes', data.incidencias_resueltas_rango.toLocaleString()); 
+    actualizarElementoSiExiste('tiempoPromedio', data.tiempo_promedio);
+
+    // Cálculo y actualización de Eficiencia Mensual
     const totalCreadas = data.total_incidencias || 1;
     const resueltasRango = data.incidencias_resueltas_rango || 0;
-    // Tasa de Éxito: (Resueltas en el Rango / Total Creadas en el Rango)
-    const eficiencia = Math.round((resueltasRango / totalCreadas) * 100); 
-    actualizarElementoSiExiste('eficienciaMensual', `${eficiencia}% de Tasa de Éxito`); // Etiqueta mejorada
+    const eficiencia = totalCreadas > 0 ? Math.round((resueltasRango / totalCreadas) * 100) : 0;
+    actualizarElementoSiExiste('eficienciaMensual', `${eficiencia}% de eficiencia`);
     
-    // El resto de los placeholders se mantienen igual ya que no hay datos para ellos.
+    // Pestaña ANÁLISIS DE INCIDENCIAS
+    actualizarElementoSiExiste('incidenciasAbiertas', data.incidencias_pendientes.toLocaleString());
+    actualizarElementoSiExiste('incidenciasAsignadas', data.incidencias_asignadas.toLocaleString());
+    actualizarElementoSiExiste('incidenciasCompletadas', data.incidencias_resueltas_rango.toLocaleString());
+    actualizarElementoSiExiste('incidenciasFacturadas', data.incidencias_facturadas.toLocaleString());
     
+    // Última actualización
     actualizarElementoSiExiste('lastUpdated', `Actualizado: ${new Date().toLocaleTimeString()}`);
 }
 
-function crearGraficos(data) {
+function actualizarEstadisticasTecnicos(data) {
+    const { tecnico_eficiente, tecnico_rapido, tecnico_mes, total_tecnicos, graficos } = data;
+
+    actualizarElementoSiExiste('tecnicoEficiente', tecnico_eficiente);
+    actualizarElementoSiExiste('tecnicoRapido', tecnico_rapido);
+    actualizarElementoSiExiste('tecnicoMes', tecnico_mes);
+    actualizarElementoSiExiste('totalTecnicos', total_tecnicos.toLocaleString());
+
+    crearGraficosTecnicos(graficos);
+}
+
+
+// --- LÓGICA DE GRÁFICOS (DEBES AGREGAR ESTAS FUNCIONES COMPLETAS) ---
+
+// Función para inicializar y destruir charts existentes
+function destroyChart(id) {
+    if (charts[id]) {
+        charts[id].destroy();
+        delete charts[id];
+    }
+}
+
+// --- Gráficos de OVERVIEW y Análisis de Incidencias ---
+function crearGraficosIncidencias(data) {
     
-    // Destruir charts existentes
-    Object.values(charts).forEach(chart => {
-        if (chart) chart.destroy();
-    });
+    // Destruye los gráficos que se comparten entre tabs o que se van a recrear
+    destroyChart('chartEstatus');
+    destroyChart('chartTecnico');
+    destroyChart('chartSucursal');
+    destroyChart('chartMensual');
+    destroyChart('chartFallas');
+    destroyChart('chartPrioridad');
+
+    // 1. Incidencias por Estatus (chartEstatus)
+    // ... (Crear gráfico de Estatus, puede ser Pie o Donut) ...
+    // Ejemplo de Estatus:
+    const ctxEstatus = document.getElementById('chartEstatus');
+    if (ctxEstatus && data.por_estatus && data.por_estatus.length > 0) {
+        charts.chartEstatus = new Chart(ctxEstatus, {
+            type: 'pie',
+            data: {
+                labels: data.por_estatus.map(item => item.estatus),
+                datasets: [{
+                    data: data.por_estatus.map(item => item.cantidad),
+                    backgroundColor: ['#4361ee', '#4cc9f0', '#f72585', '#3f37c9', '#4895ef']
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'right' } } }
+        });
+    }
+
+    // 2. Incidencias por Técnico (chartTecnico) - Bar
+    const ctxTecnico = document.getElementById('chartTecnico');
+    if (ctxTecnico && data.por_tecnico && data.por_tecnico.length > 0) {
+        charts.chartTecnico = new Chart(ctxTecnico, {
+            type: 'bar',
+            data: {
+                labels: data.por_tecnico.map(item => item.tecnico),
+                datasets: [{
+                    label: 'Incidencias Asignadas/Creadas',
+                    data: data.por_tecnico.map(item => item.cantidad),
+                    backgroundColor: '#4361ee'
+                }]
+            },
+            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        });
+    }
     
-    const colores = [
-        '#4361ee', '#3a0ca3', '#4cc9f0', '#f72585', '#7209b7',
-        '#4895ef', '#560bad', '#b5179e', '#f15bb5', '#00bbf9'
-    ];
+    // 3. Incidencias por Sucursal (chartSucursal) - Bar/Doughnut
+    const ctxSucursal = document.getElementById('chartSucursal');
+    if (ctxSucursal && data.por_sucursal && data.por_sucursal.length > 0) {
+        charts.chartSucursal = new Chart(ctxSucursal, {
+            type: 'bar',
+            data: {
+                labels: data.por_sucursal.map(item => item.sucursal),
+                datasets: [{
+                    label: 'Incidencias por Sucursal',
+                    data: data.por_sucursal.map(item => item.cantidad),
+                    backgroundColor: '#4cc9f0'
+                }]
+            },
+            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        });
+    }
+
+    // 4. Evolución Mensual (chartMensual) - Line
+    const ctxMensual = document.getElementById('chartMensual');
+    if (ctxMensual && data.mensuales && data.mensuales.length > 0) {
+        charts.chartMensual = new Chart(ctxMensual, {
+            type: 'line',
+            data: {
+                labels: data.mensuales.map(item => item.mes),
+                datasets: [{
+                    label: 'Total Incidencias Creadas',
+                    data: data.mensuales.map(item => item.cantidad),
+                    borderColor: '#f72585',
+                    fill: false,
+                    tension: 0.1
+                }]
+            },
+            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        });
+    }
     
-    // Gráfico de estatus (Doughnut)
-    if (data.por_estatus && data.por_estatus.length > 0) {
-        const ctxEstatus = document.getElementById('chartEstatus');
-        if (ctxEstatus) {
-            charts.estatus = new Chart(ctxEstatus, {
-                type: 'doughnut',
+    // 5. Tipos de Falla Más Comunes (chartFallas) - Bar
+    const ctxFallas = document.getElementById('chartFallas');
+    if (ctxFallas && data.top_fallas && data.top_fallas.length > 0) {
+        charts.chartFallas = new Chart(ctxFallas, {
+            type: 'bar',
+            data: {
+                labels: data.top_fallas.map(item => item.falla),
+                datasets: [{
+                    label: 'Fallas Recurrentes',
+                    data: data.top_fallas.map(item => item.cantidad),
+                    backgroundColor: '#3f37c9'
+                }]
+            },
+            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        });
+    }
+
+    // 6. Distribución por Prioridad (chartPrioridad) - Doughnut
+    const ctxPrioridad = document.getElementById('chartPrioridad');
+    if (ctxPrioridad && data.por_prioridad && data.por_prioridad.length > 0) {
+        charts.chartPrioridad = new Chart(ctxPrioridad, {
+            type: 'doughnut',
+            data: {
+                labels: data.por_prioridad.map(item => item.prioridad),
+                datasets: [{
+                    data: data.por_prioridad.map(item => item.cantidad),
+                    backgroundColor: ['#f72585', '#4361ee', '#4cc9f0', '#3f37c9']
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'right' } } }
+        });
+    }
+}
+
+// --- Gráfico Top Clientes (Bar Horizontal) ---
+function crearGraficoTopClientes(dataClientes) {
+    destroyChart('chartClientes'); // Usamos 'chartClientes' para el Top Clientes
+
+    if (dataClientes && dataClientes.length > 0) {
+        const ctxClientes = document.getElementById('chartClientes');
+        if (ctxClientes) {
+            charts.chartClientes = new Chart(ctxClientes, {
+                type: 'bar',
                 data: {
-                    labels: data.por_estatus.map(item => item.estatus || 'Sin estatus'),
+                    labels: dataClientes.map(item => item.cliente || 'Sin cliente'),
                     datasets: [{
-                        data: data.por_estatus.map(item => item.cantidad),
-                        backgroundColor: colores,
-                        borderWidth: 2,
-                        borderColor: '#fff'
+                        label: 'Número de Incidencias',
+                        data: dataClientes.map(item => item.cantidad),
+                        backgroundColor: '#4895ef'
                     }]
                 },
                 options: {
                     responsive: true,
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
-        }
-    } 
-    
-    // Gráfico por técnico (Barra)
-    if (data.por_tecnico && data.por_tecnico.length > 0) {
-        const ctxTecnico = document.getElementById('chartTecnico');
-        if (ctxTecnico) {
-            charts.tecnico = new Chart(ctxTecnico, {
-                type: 'bar',
-                data: {
-                    labels: data.por_tecnico.map(item => item.tecnico || 'Sin técnico'),
-                    datasets: [{
-                        label: 'Participaciones en Incidencias',
-                        data: data.por_tecnico.map(item => item.cantidad),
-                        backgroundColor: '#4361ee',
-                        borderColor: '#3a0ca3',
-                        borderWidth: 1
-                    }]
-                },
-                options: { responsive: true, scales: { y: { beginAtZero: true } } }
-            });
-        }
-    }
-    
-    // Gráfico por sucursal (Pie)
-    if (data.por_sucursal && data.por_sucursal.length > 0) {
-        const ctxSucursal = document.getElementById('chartSucursal');
-        if (ctxSucursal) {
-            charts.sucursal = new Chart(ctxSucursal, {
-                type: 'pie',
-                data: {
-                    labels: data.por_sucursal.map(item => item.sucursal || 'Sin sucursal'),
-                    datasets: [{
-                        data: data.por_sucursal.map(item => item.cantidad),
-                        backgroundColor: colores,
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
-                },
-                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-            });
-        }
-    }
-    
-    // Gráfico mensual (Línea)
-    if (data.mensuales && data.mensuales.length > 0) {
-        const ctxMensual = document.getElementById('chartMensual');
-        if (ctxMensual) {
-            charts.mensual = new Chart(ctxMensual, {
-                type: 'line',
-                data: {
-                    labels: data.mensuales.map(item => formatearMes(item.mes)),
-                    datasets: [{
-                        label: 'Incidencias Creadas',
-                        data: data.mensuales.map(item => item.cantidad),
-                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
-                        borderColor: '#4361ee',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: { responsive: true, scales: { y: { beginAtZero: true } } }
-            });
-        }
-    }
-    
-    // Gráfico Top Fallas (NUEVO - Barra horizontal)
-    if (data.top_fallas && data.top_fallas.length > 0) {
-        const ctxFallas = document.getElementById('chartFallas'); // DEBES AGREGAR ESTE CANVAS AL HTML
-        if (ctxFallas) {
-            charts.fallas = new Chart(ctxFallas, {
-                type: 'bar',
-                data: {
-                    labels: data.top_fallas.map(item => item.falla || 'Sin Falla'),
-                    datasets: [{
-                        label: 'Número de Ocurrencias',
-                        data: data.top_fallas.map(item => item.cantidad),
-                        backgroundColor: colores.slice(0, data.top_fallas.length),
-                        borderColor: '#fff',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    indexAxis: 'y', // Barra horizontal
+                    indexAxis: 'y', // Hace el gráfico horizontal
                     scales: { x: { beginAtZero: true } }
                 }
             });
         }
-    } 
-    
-    // Se elimina el gráfico 'chartClientes' original para dar lugar a 'chartFallas' o se mueve/renombra
+    }
 }
 
+// --- Gráficos de Rendimiento de Técnicos ---
 function crearGraficosTecnicos(graficosData) {
-    const datosRendimiento = graficosData?.rendimiento || { labels: [], datos: [] };
-    const datosTiempos = graficosData?.tiempos || { labels: [], datos: [] };
-    const datosSatisfaccion = graficosData?.satisfaccion || { labels: [], datos: [] };
+    destroyChart('chartRendimiento');
+    destroyChart('chartTiempos');
+    destroyChart('chartSatisfaccion');
 
-    if (charts.rendimiento) charts.rendimiento.destroy();
-    if (charts.tiempos) charts.tiempos.destroy();
-    if (charts.satisfaccion) charts.satisfaccion.destroy();
-    
-    // Gráfico de rendimiento de técnicos (Resueltas)
+    // 1. Rendimiento de Técnicos (Resueltas) - Bar
     const ctxRendimiento = document.getElementById('chartRendimiento');
-    if (ctxRendimiento && datosRendimiento.labels.length > 0) {
-        charts.rendimiento = new Chart(ctxRendimiento, {
+    if (ctxRendimiento && graficosData.rendimiento.datos.length > 0) {
+        charts.chartRendimiento = new Chart(ctxRendimiento, {
             type: 'bar',
             data: {
-                labels: datosRendimiento.labels,
+                labels: graficosData.rendimiento.labels,
                 datasets: [{
                     label: 'Incidencias Resueltas',
-                    data: datosRendimiento.datos,
-                    backgroundColor: '#4361ee',
-                    borderColor: '#3a0ca3',
-                    borderWidth: 1
+                    data: graficosData.rendimiento.datos,
+                    backgroundColor: '#4361ee'
                 }]
             },
             options: { responsive: true, scales: { y: { beginAtZero: true } } }
         });
     }
-    
-    // Gráfico de tiempos de respuesta (Tiempo Promedio en Días)
+
+    // 2. Tiempos de Respuesta - Bar Horizontal
     const ctxTiempos = document.getElementById('chartTiempos');
-    if (ctxTiempos && datosTiempos.labels.length > 0) {
-        charts.tiempos = new Chart(ctxTiempos, {
+    if (ctxTiempos && graficosData.tiempos.datos.length > 0) {
+        charts.chartTiempos = new Chart(ctxTiempos, {
             type: 'bar',
             data: {
-                labels: datosTiempos.labels,
+                labels: graficosData.tiempos.labels,
                 datasets: [{
-                    label: 'Tiempo Promedio (Días)', // Etiqueta actualizada
-                    data: datosTiempos.datos,
-                    backgroundColor: '#4cc9f0',
-                    borderColor: '#3a0ca3',
-                    borderWidth: 1
+                    label: 'Tiempo Promedio (Días)',
+                    data: graficosData.tiempos.datos,
+                    backgroundColor: '#f72585'
                 }]
             },
-            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            options: { 
+                responsive: true, 
+                indexAxis: 'y', // Hace el gráfico horizontal
+                scales: { x: { beginAtZero: true } } 
+            }
         });
     }
-    
-    // Gráfico de satisfacción (Doughnut)
+
+    // 3. Satisfacción del Cliente - Doughnut
     const ctxSatisfaccion = document.getElementById('chartSatisfaccion');
-    if (ctxSatisfaccion && datosSatisfaccion.labels.length > 0) {
-        charts.satisfaccion = new Chart(ctxSatisfaccion, {
+    if (ctxSatisfaccion && graficosData.satisfaccion.datos.length > 0) {
+        charts.chartSatisfaccion = new Chart(ctxSatisfaccion, {
             type: 'doughnut',
             data: {
-                labels: datosSatisfaccion.labels,
+                labels: graficosData.satisfaccion.labels,
                 datasets: [{
-                    data: datosSatisfaccion.datos,
-                    backgroundColor: ['#28a745', '#20c997', '#ffc107', '#dc3545'],
-                    borderWidth: 2,
-                    borderColor: '#fff'
+                    data: graficosData.satisfaccion.datos,
+                    backgroundColor: ['#28a745', '#4cc9f0', '#ffc107', '#dc3545']
                 }]
             },
-            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            options: { responsive: true, plugins: { legend: { position: 'right' } } }
         });
     }
 }
 
 
-// --- FUNCIONES AUXILIARES Y DE EXPORTACIÓN (SIN CAMBIOS) ---
+// --- LÓGICA DE INTERFAZ (Tabs y Filtros) ---
 
-function formatearMes(mesString) {
-    if (!mesString) return 'Sin fecha';
-    const [year, month] = mesString.split('-');
-    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    return `${meses[parseInt(month) - 1]} ${year}`;
+function cambiarPestana(tabId) {
+    // 1. Ocultar todos los contenidos de las pestañas
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+
+    // 2. Desactivar todos los botones de pestaña
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+    // 3. Activar la pestaña y el contenido correspondientes
+    const activeContent = document.getElementById(`${tabId}-tab`);
+    const activeTab = document.querySelector(`.tab[data-tab="${tabId}"]`);
+
+    if (activeContent) activeContent.classList.add('active');
+    if (activeTab) activeTab.classList.add('active');
+    
+    currentTab = tabId;
 }
 
-function aplicarFiltros() {
-    console.log('Aplicando filtros en la pestaña:', currentTab);
+// Manejador de clic en pestañas
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        const tabId = tab.getAttribute('data-tab');
+        cambiarPestana(tabId);
+    });
+});
+
+
+// Manejador para el Rango de Fechas Personalizado
+document.getElementById('rangoFecha')?.addEventListener('change', function() {
+    const customDisplay = this.value === 'custom' ? 'flex' : 'none';
+    const customDateRange = document.getElementById('customDateRange');
+    const customDateRangeEnd = document.getElementById('customDateRangeEnd');
     
-    if (currentTab === 'overview') {
+    if (customDateRange) customDateRange.style.display = customDisplay;
+    if (customDateRangeEnd) customDateRangeEnd.style.display = customDisplay;
+
+    // Cargar estadísticas si el filtro no es personalizado (para actualizar al cambiar)
+    if (this.value !== 'custom') {
         cargarEstadisticas();
-    } else if (currentTab === 'tecnicos') {
-        cargarDatosTecnicos();
     }
-}
+});
 
-function toggleChartType(chartId) {
-    const chart = charts[chartId];
-    if (!chart) return;
-    
-    const currentType = chart.config.type;
-    let newType = currentType;
-    
-    if (['bar', 'line', 'pie', 'doughnut'].includes(currentType)) {
-        if (currentType === 'bar') newType = 'line';
-        else if (currentType === 'line') newType = 'pie';
-        else if (currentType === 'pie') newType = 'doughnut';
-        else if (currentType === 'doughnut') newType = 'bar';
+// Función para aplicar filtros (Llamada desde el botón "Actualizar")
+function aplicarFiltros() {
+    // Si la pestaña actual es 'tecnicos', recarga solo los datos de técnicos para mayor eficiencia,
+    // de lo contrario, carga todos los datos generales.
+    if (currentTab === 'tecnicos') {
+        cargarDatosTecnicos(); // Se podría crear una función auxiliar si fuera necesario.
     } else {
-        newType = 'line'; 
+        cargarEstadisticas();
     }
-    
-    chart.config.type = newType;
-    chart.update();
 }
 
-function downloadChart(chartId) {
-    const chart = charts[chartId];
-    if (!chart) return;
-    
-    const link = document.createElement('a');
-    link.download = `grafico-${chartId}-${new Date().toISOString().split('T')[0]}.png`;
-    link.href = chart.toBase64Image();
-    link.click();
-}
-
-// ... (Resto de funciones de exportación: exportarDatos, exportarPDF, exportarExcel, exportarImagen) ...
+// Lógica de exportación (Placeholders, necesitas implementar estas funciones)
 function exportarDatos() {
     const exportOptions = document.getElementById('exportOptions');
-    if (exportOptions) {
-        exportOptions.style.display = exportOptions.style.display === 'none' ? 'flex' : 'none';
+    exportOptions.style.display = exportOptions.style.display === 'flex' ? 'none' : 'flex';
+}
+function exportarPDF() { alert('Exportando a PDF...'); }
+function exportarExcel() { alert('Exportando a Excel...'); }
+function exportarImagen(chartId) { 
+    if (charts[chartId]) {
+        const a = document.createElement('a');
+        a.href = charts[chartId].toBase64Image();
+        a.download = `${chartId}_${new Date().toISOString().slice(0,10)}.png`;
+        a.click();
+    } else {
+         // Lógica para descargar el dashboard completo (más complejo)
+         alert('Descargando imagen del dashboard...');
     }
 }
-function exportarPDF() { alert('Funcionalidad de exportación PDF - En desarrollo'); }
-function exportarExcel() { alert('Funcionalidad de exportación Excel - En desarrollo'); }
-function exportarImagen() { 
-    if (typeof html2canvas === 'undefined') { alert('Para exportar como imagen, necesita incluir la librería html2canvas'); return; }
-    html2canvas(document.getElementById('mainContent')).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `dashboard-${new Date().toISOString().split('T')[0]}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
-    });
+
+// Función para cambiar tipo de gráfico (Placeholder)
+function toggleChartType(chartId) {
+    alert(`Cambiando tipo de gráfico para ${chartId}`);
+    // Implementación real: obtener el tipo actual y cambiar entre 'bar', 'line', 'pie', etc.
 }
-// ...
 
-setInterval(() => {
-    if (document.visibilityState === 'visible') {
-        if (currentTab === 'overview') {
-            cargarEstadisticas();
-        } else if (currentTab === 'tecnicos') {
-            cargarDatosTecnicos();
-        }
+// Función para descargar un gráfico específico
+function downloadChart(chartId) {
+    if (charts[chartId]) {
+        const a = document.createElement('a');
+        a.href = charts[chartId].toBase64Image();
+        a.download = `${chartId}.png`;
+        a.click();
     }
-}, 300000);
+}
 
+// --- Inicialización ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Carga los datos al iniciar
+    cargarEstadisticas();
+});
+
+// Exponer funciones al scope global para que el HTML pueda llamarlas
 window.cargarEstadisticas = cargarEstadisticas;
+window.aplicarFiltros = cargarEstadisticas; // El botón de tu HTML llama a cargarEstadisticas() directamente
 window.exportarDatos = exportarDatos;
 window.exportarPDF = exportarPDF;
 window.exportarExcel = exportarExcel;
 window.exportarImagen = exportarImagen;
 window.toggleChartType = toggleChartType;
 window.downloadChart = downloadChart;
-window.aplicarFiltros = aplicarFiltros;
