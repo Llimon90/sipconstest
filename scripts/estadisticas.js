@@ -20,26 +20,29 @@ function inicializarInterfaz() {
     });
 
     // Configurar filtro de fechas personalizadas
-    const rangoFecha = document.getElementById('rango');
+    const rangoFecha = document.getElementById('rangoFecha');
     if (rangoFecha) {
         rangoFecha.addEventListener('change', function() {
-            const customDateRange = document.getElementById('custom-date-range');
+            const customDateRange = document.getElementById('customDateRange');
+            const customDateRangeEnd = document.getElementById('customDateRangeEnd');
             
             if (this.value === 'custom') {
                 if (customDateRange) customDateRange.style.display = 'flex';
+                if (customDateRangeEnd) customDateRangeEnd.style.display = 'flex';
             } else {
                 if (customDateRange) customDateRange.style.display = 'none';
+                if (customDateRangeEnd) customDateRangeEnd.style.display = 'none';
             }
         });
     }
 
     // Configurar botón de exportación
-    const exportBtn = document.getElementById('btnExportar');
+    const exportBtn = document.querySelector('.btn-outline');
     if (exportBtn) {
         exportBtn.addEventListener('click', function() {
             const exportOptions = document.getElementById('exportOptions');
             if (exportOptions) {
-                exportOptions.style.display = exportOptions.style.display === 'flex' ? 'none' : 'flex';
+                exportOptions.style.display = exportOptions.style.display === 'none' ? 'flex' : 'none';
             }
         });
     }
@@ -67,7 +70,7 @@ function cambiarPestaña(tabId) {
 
     // Activar pestaña seleccionada
     const tabElement = document.querySelector(`[data-tab="${tabId}"]`);
-    const tabContent = document.getElementById(tabId);
+    const tabContent = document.getElementById(`${tabId}-tab`);
     
     if (tabElement) tabElement.classList.add('active');
     if (tabContent) tabContent.classList.add('active');
@@ -75,7 +78,7 @@ function cambiarPestaña(tabId) {
     currentTab = tabId;
     
     // Cargar datos específicos de la pestaña si es necesario
-    if (tabId === 'tecnicos-tab') {
+    if (tabId === 'tecnicos') {
         cargarDatosTecnicos();
     }
 }
@@ -84,11 +87,8 @@ async function cargarEstadisticas() {
     try {
         mostrarLoading(true);
         
-        // Cargar filtros primero
-        await cargarFiltros();
-        
         // Cargar estadísticas generales
-        const responseGeneral = await fetch('backend/estadisticas.php?action=estadisticas_generales');
+        const responseGeneral = await fetch('../backend/estadisticas.php?action=estadisticas_generales');
         if (!responseGeneral.ok) {
             throw new Error('Error en la respuesta del servidor: ' + responseGeneral.status);
         }
@@ -103,7 +103,7 @@ async function cargarEstadisticas() {
         }
         
         // Cargar estadísticas detalladas de incidencias
-        const responseIncidencias = await fetch('backend/estadisticas.php?action=estadisticas_incidencias');
+        const responseIncidencias = await fetch('../backend/estadisticas.php?action=estadisticas_incidencias');
         if (!responseIncidencias.ok) {
             throw new Error('Error en la respuesta del servidor: ' + responseIncidencias.status);
         }
@@ -125,45 +125,16 @@ async function cargarEstadisticas() {
     }
 }
 
-async function cargarFiltros() {
-    try {
-        const response = await fetch('backend/estadisticas.php?action=get_filtros');
-        if (!response.ok) return;
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            const tecnicoSelect = document.getElementById('tecnico');
-            const sucursalSelect = document.getElementById('sucursal');
-
-            if (tecnicoSelect) {
-                tecnicoSelect.innerHTML = '<option value="all">Todos los técnicos</option>';
-                data.data.tecnicos.forEach(t => {
-                    const option = new Option(t.nombre, t.nombre);
-                    tecnicoSelect.add(option);
-                });
-            }
-
-            if (sucursalSelect) {
-                sucursalSelect.innerHTML = '<option value="all">Todas las sucursales</option>';
-                data.data.sucursales.forEach(s => {
-                    const option = new Option(s.nombre, s.nombre);
-                    sucursalSelect.add(option);
-                });
-            }
-        }
-    } catch (error) {
-        console.error('Error cargando filtros:', error);
-    }
-}
-
 function actualizarEstadisticasGenerales(data) {
     console.log('Actualizando estadísticas generales:', data);
     
     // Actualizar tarjetas principales con verificación de elementos
     actualizarElementoSiExiste('totalIncidencias', data.total_incidencias || '0');
     actualizarElementoSiExiste('totalClientes', data.total_clientes || '0');
-    actualizarElementoSiExiste('resueltasEsteMes', data.incidencias_resueltas_mes || '0');
+    actualizarElementoSiExiste('resueltasMes', data.incidencias_resueltas_mes || '0');
+    actualizarElementoSiExiste('incidenciasPendientes', data.incidencias_pendientes || '0');
+    
+    // Actualizar tiempo promedio
     actualizarElementoSiExiste('tiempoPromedio', data.tiempo_promedio || '0d');
     
     // Calcular y mostrar tendencias
@@ -188,6 +159,11 @@ function actualizarEstadisticasGenerales(data) {
     
     // Actualizar última actualización
     actualizarElementoSiExiste('lastUpdated', `Actualizado: ${new Date().toLocaleTimeString()}`);
+    
+    // Mostrar detalles de estatus en consola para debugging
+    if (data.detalle_estatus) {
+        console.log('Detalle de estatus:', data.detalle_estatus);
+    }
 }
 
 function actualizarElementoSiExiste(id, valor) {
@@ -213,9 +189,9 @@ function crearGraficos(data) {
         '#4895ef', '#560bad', '#b5179e', '#f15bb5', '#00bbf9'
     ];
     
-    // Gráfico de estatus
+    // Gráfico de estatus - CON VALIDACIÓN
     if (data.por_estatus && data.por_estatus.length > 0) {
-        const ctxEstatus = document.getElementById('chartPorEstatus');
+        const ctxEstatus = document.getElementById('chartEstatus');
         if (ctxEstatus) {
             charts.estatus = new Chart(ctxEstatus, {
                 type: 'doughnut',
@@ -233,16 +209,29 @@ function crearGraficos(data) {
                     plugins: {
                         legend: {
                             position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
                         }
                     }
                 }
             });
         }
+    } else {
+        console.warn('No hay datos para el gráfico de estatus');
     }
     
-    // Gráfico por técnico
+    // Gráfico por técnico - CON VALIDACIÓN
     if (data.por_tecnico && data.por_tecnico.length > 0) {
-        const ctxTecnico = document.getElementById('chartRendimiento');
+        const ctxTecnico = document.getElementById('chartTecnico');
         if (ctxTecnico) {
             charts.tecnico = new Chart(ctxTecnico, {
                 type: 'bar',
@@ -266,11 +255,13 @@ function crearGraficos(data) {
                 }
             });
         }
+    } else {
+        console.warn('No hay datos para el gráfico de técnicos');
     }
     
-    // Gráfico por sucursal
+    // Gráfico por sucursal - CON VALIDACIÓN
     if (data.por_sucursal && data.por_sucursal.length > 0) {
-        const ctxSucursal = document.getElementById('chartPorSucursal');
+        const ctxSucursal = document.getElementById('chartSucursal');
         if (ctxSucursal) {
             charts.sucursal = new Chart(ctxSucursal, {
                 type: 'pie',
@@ -293,9 +284,11 @@ function crearGraficos(data) {
                 }
             });
         }
+    } else {
+        console.warn('No hay datos para el gráfico de sucursales');
     }
     
-    // Gráfico mensual
+    // Gráfico mensual - CON VALIDACIÓN
     if (data.mensuales && data.mensuales.length > 0) {
         const ctxMensual = document.getElementById('chartMensual');
         if (ctxMensual) {
@@ -323,11 +316,13 @@ function crearGraficos(data) {
                 }
             });
         }
+    } else {
+        console.warn('No hay datos para el gráfico mensual');
     }
     
-    // Gráfico top clientes
+    // Gráfico top clientes - CON VALIDACIÓN
     if (data.top_clientes && data.top_clientes.length > 0) {
-        const ctxClientes = document.getElementById('chartTopClientes');
+        const ctxClientes = document.getElementById('chartClientes');
         if (ctxClientes) {
             charts.clientes = new Chart(ctxClientes, {
                 type: 'bar',
@@ -352,17 +347,110 @@ function crearGraficos(data) {
                 }
             });
         }
+    } else {
+        console.warn('No hay datos para el gráfico de clientes');
     }
 }
 
 function cargarDatosTecnicos() {
-    // Simular datos de técnicos
+    // Esta función cargaría datos específicos para la pestaña de técnicos
+    console.log('Cargando datos específicos de técnicos...');
+    
+    // Simular datos de técnicos (en una implementación real, harías una llamada API)
     setTimeout(() => {
         actualizarElementoSiExiste('tecnicoEficiente', 'Juan Pérez');
         actualizarElementoSiExiste('tecnicoRapido', 'María García');
         actualizarElementoSiExiste('tecnicoMes', 'Carlos López');
         actualizarElementoSiExiste('totalTecnicos', '8');
+        
+        // Simular gráficos de técnicos
+        crearGraficosTecnicos();
     }, 500);
+}
+
+function crearGraficosTecnicos() {
+    // Datos de ejemplo para gráficos de técnicos
+    const datosTecnicos = {
+        labels: ['Juan Pérez', 'María García', 'Carlos López', 'Ana Martínez', 'Pedro Rodríguez'],
+        datos: [45, 38, 32, 28, 25]
+    };
+    
+    // Gráfico de rendimiento de técnicos
+    const ctxRendimiento = document.getElementById('chartRendimiento');
+    if (ctxRendimiento) {
+        charts.rendimiento = new Chart(ctxRendimiento, {
+            type: 'bar',
+            data: {
+                labels: datosTecnicos.labels,
+                datasets: [{
+                    label: 'Incidencias Resueltas',
+                    data: datosTecnicos.datos,
+                    backgroundColor: '#4361ee',
+                    borderColor: '#3a0ca3',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+    
+    // Gráfico de tiempos de respuesta
+    const ctxTiempos = document.getElementById('chartTiempos');
+    if (ctxTiempos) {
+        charts.tiempos = new Chart(ctxTiempos, {
+            type: 'bar',
+            data: {
+                labels: datosTecnicos.labels,
+                datasets: [{
+                    label: 'Tiempo Promedio (días)',
+                    data: [2.5, 3.1, 1.8, 4.2, 2.9],
+                    backgroundColor: '#4cc9f0',
+                    borderColor: '#3a0ca3',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+    
+    // Gráfico de satisfacción
+    const ctxSatisfaccion = document.getElementById('chartSatisfaccion');
+    if (ctxSatisfaccion) {
+        charts.satisfaccion = new Chart(ctxSatisfaccion, {
+            type: 'doughnut',
+            data: {
+                labels: ['Excelente', 'Bueno', 'Regular', 'Malo'],
+                datasets: [{
+                    data: [45, 35, 15, 5],
+                    backgroundColor: ['#28a745', '#20c997', '#ffc107', '#dc3545'],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
 }
 
 function formatearMes(mesString) {
@@ -384,6 +472,7 @@ function mostrarLoading(mostrar) {
 }
 
 function mostrarError(mensaje) {
+    // Crear o mostrar un mensaje de error
     let errorDiv = document.getElementById('errorMessage');
     if (!errorDiv) {
         errorDiv = document.createElement('div');
@@ -406,6 +495,7 @@ function mostrarError(mensaje) {
     errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${mensaje}`;
     errorDiv.style.display = 'block';
     
+    // Ocultar después de 5 segundos
     setTimeout(() => {
         errorDiv.style.display = 'none';
     }, 5000);
@@ -419,6 +509,7 @@ function toggleChartType(chartId) {
     const currentType = chart.config.type;
     let newType = currentType;
     
+    // Ciclo entre tipos de gráficos
     if (currentType === 'bar') newType = 'line';
     else if (currentType === 'line') newType = 'pie';
     else if (currentType === 'pie') newType = 'doughnut';
@@ -438,23 +529,62 @@ function downloadChart(chartId) {
     link.click();
 }
 
+function exportarDatos() {
+    // Mostrar/ocultar opciones de exportación
+    const exportOptions = document.getElementById('exportOptions');
+    if (exportOptions) {
+        exportOptions.style.display = exportOptions.style.display === 'none' ? 'flex' : 'none';
+    }
+}
+
 function exportarPDF() {
     alert('Funcionalidad de exportación PDF - En desarrollo');
+    // En una implementación real, usarías una librería como jsPDF
 }
 
 function exportarExcel() {
     alert('Funcionalidad de exportación Excel - En desarrollo');
+    // En una implementación real, usarías una librería como SheetJS
 }
 
 function exportarImagen() {
-    alert('Funcionalidad de exportación imagen - En desarrollo');
+    // Verificar si html2canvas está disponible
+    if (typeof html2canvas === 'undefined') {
+        alert('Para exportar como imagen, necesita incluir la librería html2canvas');
+        return;
+    }
+    
+    // Crear una imagen del dashboard completo
+    html2canvas(document.getElementById('mainContent')).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `dashboard-${new Date().toISOString().split('T')[0]}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+    });
 }
 
-// Hacer funciones globales
+// Función para aplicar filtros
+function aplicarFiltros() {
+    const rangoFecha = document.getElementById('rangoFecha').value;
+    const tecnico = document.getElementById('tecnico').value;
+    const sucursal = document.getElementById('sucursal').value;
+    const estatus = document.getElementById('estatus').value;
+    
+    console.log('Aplicando filtros:', { rangoFecha, tecnico, sucursal, estatus });
+    
+    // Aquí podrías recargar los datos con los filtros aplicados
+    cargarEstadisticas();
+}
+
+// Actualizar cada 5 minutos
+setInterval(cargarEstadisticas, 300000);
+
+// Hacer funciones globales para los botones HTML
 window.cargarEstadisticas = cargarEstadisticas;
-window.loadAllStatistics = cargarEstadisticas;
-window.toggleChartType = toggleChartType;
-window.downloadChart = downloadChart;
+window.exportarDatos = exportarDatos;
 window.exportarPDF = exportarPDF;
 window.exportarExcel = exportarExcel;
 window.exportarImagen = exportarImagen;
+window.toggleChartType = toggleChartType;
+window.downloadChart = downloadChart;
+window.aplicarFiltros = aplicarFiltros;

@@ -133,7 +133,7 @@ try {
         ");
         $stats['incidencias_pendientes'] = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
         
-        // Estadísticas detalladas por estatus
+        // Estadísticas adicionales por estatus
         $stmt = $pdo->query("
             SELECT estatus, COUNT(*) as cantidad 
             FROM incidencias 
@@ -141,7 +141,9 @@ try {
         ");
         $stats['detalle_estatus'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Tiempo promedio de resolución (en días) - estimado
+        // Tiempo promedio de resolución (en días) - CORREGIDO: usar solo fecha ya que no hay fecha_cierre
+        // Para incidencias completadas o cerradas, asumimos que la fecha de cierre es la fecha de modificación
+        // o simplemente calculamos basado en la fecha de creación para todas las incidencias
         $stmt = $pdo->query("
             SELECT AVG(DATEDIFF(CURDATE(), fecha)) as tiempo_promedio 
             FROM incidencias 
@@ -183,7 +185,7 @@ try {
         $stmt = $pdo->query("
             SELECT COUNT(*) as cantidad 
             FROM incidencias 
-            WHERE estatus IN ('abierto', 'asignado', 'pendiente')
+            WHERE estatus = 'abierto' OR estatus = 'asignado' OR estatus = 'pendiente'
         ");
         $stats['incidencias_activas'] = $stmt->fetch(PDO::FETCH_ASSOC)['cantidad'];
         
@@ -204,34 +206,6 @@ try {
         echo json_encode([
             'success' => true,
             'data' => $stats
-        ]);
-        
-    } elseif ($_GET['action'] == 'get_filtros') {
-        
-        // Obtener técnicos únicos
-        $stmt = $pdo->query("
-            SELECT DISTINCT tecnico as nombre 
-            FROM incidencias 
-            WHERE tecnico IS NOT NULL AND tecnico != ''
-            ORDER BY tecnico
-        ");
-        $tecnicos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        // Obtener sucursales únicas
-        $stmt = $pdo->query("
-            SELECT DISTINCT sucursal as nombre 
-            FROM incidencias 
-            WHERE sucursal IS NOT NULL AND sucursal != ''
-            ORDER BY sucursal
-        ");
-        $sucursales = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        echo json_encode([
-            'success' => true,
-            'data' => [
-                'tecnicos' => $tecnicos,
-                'sucursales' => $sucursales
-            ]
         ]);
         
     }
