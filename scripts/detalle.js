@@ -227,7 +227,7 @@ function createFormHTML(data) {
                             <option value="Mr. Tienda/Mr. Chef" ${data.equipo && data.equipo.trim() === 'Mr. Tienda/Mr. Chef' ? 'selected' : ''}>Mr. Tienda/Mr. Chef</option>
                             <option value="Otros" ${data.equipo && data.equipo.trim() === 'Otros' ? 'selected' : ''}>Otros</option>
                         </select>
-                    </div>
+                    
                 </div>
 
 
