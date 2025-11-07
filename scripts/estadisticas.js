@@ -1,319 +1,347 @@
 /**
- * estadísticas.js
- * Script para manejar los filtros, peticiones AJAX y renderizado de gráficos y KPIs
- * en el panel de estadísticas.
+ * Archivo: ../scripts/estadisticas.js
+ * Descripción: Maneja la lógica de filtros, carga de datos desde el backend, y renderizado de gráficos.
  */
 
-// URL base de la API PHP
-const API_URL = 'estadisticas.php';
+// 🛑 RUTA CORREGIDA: Desde ../scripts/ necesitas subir un nivel (..) y entrar a backend/
+const API_URL = '../backend/estadisticas.php'; 
 
-// --- 1. FUNCIÓN PRINCIPAL DE CARGA Y FILTRADO ---
+let charts = {}; // Objeto para almacenar instancias de Chart.js
+let initialLoadDone = false;
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Inicializar listeners para los filtros
-    setupFilterListeners();
-    // Cargar los datos iniciales
-    loadAllStatistics();
-});
+// ===================================================================
+// 1. FUNCIONES AUXILIARES DE MANEJO DE PETICIONES
+// ===================================================================
 
-/**
- * Configura los event listeners para todos los elementos de filtro.
- */
-function setupFilterListeners() {
-    const filters = document.querySelectorAll(
-        '#rango, #tecnico, #sucursal, #estatus, #fechaInicio, #fechaFin'
-    );
-    filters.forEach(filter => {
-        filter.addEventListener('change', () => {
-            handleDateRangeChange(); // Maneja la visibilidad de las fechas personalizadas
-            loadAllStatistics();
+async function fetchData(action, filters) {
+    const url = new URL(API_URL, window.location.origin);
+    url.searchParams.set('action', action);
+    
+    // Añadir todos los filtros a los parámetros de la URL
+    for (const key in filters) {
+        if (filters[key] !== null) {
+            url.searchParams.set(key, filters[key]);
+        }
+    }
+
+    try {
+        // 
+        const response = await fetch(url.toString());
+        
+        // Manejo de error de red o de HTTP (ej. 404, 500)
+        if (!response.ok) {
+            const errorText = await response.text(); 
+            // Esto captura el error 404 o cualquier otro error de HTTP
+            throw new Error(`Error HTTP ${response.status}: El servidor respondió de forma inesperada. Detalles: ${errorText.substring(0, 50)}...`);
+        }
+        
+        const jsonResponse = await response.json();
+
+        // Manejo de error lógico (si PHP devuelve success: false)
+        if (!jsonResponse.success) {
+            throw new Error(`Error en la API: ${jsonResponse.error}`);
+        }
+        
+        return jsonResponse.data;
+
+    } catch (error) {
+        console.error(`Error al cargar datos para ${action}:`, error);
+        // Muestra el error al usuario
+        alert(`Error al cargar datos de estadísticas: ${error.message}`);
+        return null; 
+    }
+}
+
+// ===================================================================
+// 2. FUNCIÓN DE FILTROS Y CONTROLES
+// ===================================================================
+
+function getFilters() {
+    const rango = document.getElementById('rango').value;
+    const tecnico = document.getElementById('tecnico').value;
+    const sucursal = document.getElementById('sucursal').value;
+    const estatus = document.getElementById('estatus').value;
+    
+    let fechaInicio = null;
+    let fechaFin = null;
+
+    if (rango === 'custom') {
+        fechaInicio = document.getElementById('fechaInicio').value;
+        fechaFin = document.getElementById('fechaFin').value;
+        if (!fechaInicio || !fechaFin) {
+            alert("Debes seleccionar un rango de fechas personalizado.");
+            return null; // Indica un error de filtro
+        }
+    }
+
+    return { rango, tecnico, sucursal, estatus, fechaInicio, fechaFin };
+}
+
+/** Carga y rellena los selectores de Técnico y Sucursal. */
+async function loadFilterOptions() {
+    const data = await fetchData('get_filtros', {}); // Petición específica para filtros
+    
+    if (data) {
+        const tecnicoSelect = document.getElementById('tecnico');
+        const sucursalSelect = document.getElementById('sucursal');
+
+        // Limpiar selectores antes de rellenar
+        tecnicoSelect.innerHTML = '<option value="all">Todos los Técnicos</option>';
+        sucursalSelect.innerHTML = '<option value="all">Todas las Sucursales</option>';
+
+        // Rellenar Técnicos
+        data.tecnicos.forEach(t => {
+            const option = new Option(t.nombre, t.id);
+            tecnicoSelect.add(option);
         });
+
+        // Rellenar Sucursales
+        data.sucursales.forEach(s => {
+            const option = new Option(s.nombre, s.id);
+            sucursalSelect.add(option);
+        });
+    }
+}
+
+
+// ===================================================================
+// 3. FUNCIONES DE CARGA POR SECCIÓN
+// ===================================================================
+
+async function loadGeneralStatistics() {
+    const filters = getFilters();
+    if (!filters) return;
+    
+    const data = await fetchData('estadisticas_generales', filters);
+    
+    if (data) {
+        // 1. Actualización de KPIs
+        document.getElementById('totalIncidencias').textContent = data.total_incidencias || 'N/A';
+        document.getElementById('totalClientes').textContent = data.total_clientes || 'N/A';
+        document.getElementById('resueltasEsteMes').textContent = data.incidencias_resueltas_rango || 'N/A';
+        document.getElementById('tiempoPromedio').textContent = data.tiempo_promedio || 'N/A';
+        document.getElementById('lastUpdated').textContent = `Última actualización: ${new Date().toLocaleTimeString()}`;
+        
+        // 2. Actualizar gráficos
+        drawChart('chartTopClientes', data.top_clientes, 'bar', 'Incidencias', 'Top Clientes');
+        drawChart('chartMensual', data.evolucion_mensual, 'line', 'Incidencias', 'Evolución Mensual');
+    }
+}
+
+async function loadIncidenceAnalysis() {
+    const filters = getFilters();
+    if (!filters) return;
+
+    const data = await fetchData('estadisticas_incidencias', filters);
+    
+    if (data) {
+        // 1. Actualización de KPIs
+        document.getElementById('incidenciasAbiertas').textContent = data.incidencias_abiertas_kpi || 'N/A';
+        document.getElementById('incidenciasAsignadas').textContent = data.incidencias_asignadas_kpi || 'N/A';
+        document.getElementById('incidenciasCompletadas').textContent = data.incidencias_resueltas_rango || 'N/A';
+        document.getElementById('incidenciasFacturadas').textContent = data.incidencias_facturadas_kpi || 'N/A';
+
+        // 2. Actualizar gráficos de incidencias
+        drawChart('chartPorEstatus', data.incidencias_por_estatus, 'doughnut', 'Cantidad', 'Incidencias por Estatus');
+        drawChart('chartPorSucursal', data.incidencias_por_sucursal, 'bar', 'Cantidad', 'Incidencias por Sucursal');
+        drawChart('chartTopFallas', data.top_fallas_recurrentes, 'horizontalBar', 'Cantidad', 'Top 5 Fallas Recurrentes'); 
+        drawChart('chartPorPrioridad', data.incidencias_por_prioridad, 'pie', 'Cantidad', 'Distribución por Prioridad');
+    }
+}
+
+async function loadTechnicianPerformance() {
+    const filters = getFilters();
+    if (!filters) return;
+    
+    const data = await fetchData('estadisticas_tecnicos', filters);
+    
+    if (data) {
+        // 1. Actualización de KPIs
+        document.getElementById('tecnicoEficiente').textContent = data.tecnico_mas_eficiente || 'N/A';
+        document.getElementById('tecnicoRapido').textContent = data.tecnico_mas_rapido || 'N/A';
+        document.getElementById('tecnicoMes').textContent = data.tecnico_del_mes || 'N/A';
+        document.getElementById('totalTecnicos').textContent = data.total_tecnicos_activos || 'N/A';
+
+        // 2. Actualizar gráficos de técnicos
+        drawChart('chartRendimiento', data.rendimiento_tecnicos, 'bar', 'Resueltas', 'Rendimiento por Técnico');
+        drawChart('chartTiempos', data.tiempos_respuesta, 'bar', 'Días', 'Tiempos Promedio por Técnico');
+        drawChart('chartSatisfaccion', data.satisfaccion_cliente, 'doughnut', 'Puntuación', 'Satisfacción del Cliente');
+    }
+}
+
+// ===================================================================
+// 4. FUNCIÓN MAESTRA DE CARGA
+// ===================================================================
+
+/** Carga todas las estadísticas */
+function loadAllStatistics() {
+    // Si no es la carga inicial, ejecuta las cargas de datos
+    if (initialLoadDone) {
+        loadGeneralStatistics();
+        loadIncidenceAnalysis();
+        loadTechnicianPerformance();
+    }
+}
+
+/** Configura los eventos de escucha para los filtros */
+function setupFilterListeners() {
+    const filterElements = ['rango', 'tecnico', 'sucursal', 'estatus'];
+    filterElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('change', loadAllStatistics);
+        }
+    });
+
+    // Listener para el rango de fechas personalizado
+    const customRangeDiv = document.getElementById('custom-date-range');
+    const rangoSelect = document.getElementById('rango');
+    
+    if (rangoSelect) {
+        rangoSelect.addEventListener('change', () => {
+            if (rangoSelect.value === 'custom') {
+                customRangeDiv.style.display = 'flex';
+            } else {
+                customRangeDiv.style.display = 'none';
+            }
+        });
+        // Configuración inicial de visibilidad del rango personalizado
+        if (rangoSelect.value === 'custom') {
+            customRangeDiv.style.display = 'flex';
+        } else {
+            customRangeDiv.style.display = 'none';
+        }
+    }
+    
+    // Listener para los campos de fecha (para que cargue al cambiar la fecha)
+    document.getElementById('fechaInicio')?.addEventListener('change', () => {
+        if (document.getElementById('rango').value === 'custom') loadAllStatistics();
+    });
+    document.getElementById('fechaFin')?.addEventListener('change', () => {
+        if (document.getElementById('rango').value === 'custom') loadAllStatistics();
     });
 }
 
-/**
- * Maneja el cambio del selector de rango de fecha para mostrar u ocultar
- * los campos de fecha de inicio y fin.
- */
-function handleDateRangeChange() {
-    const rango = document.getElementById('rango').value;
-    const customDateContainer = document.getElementById('custom-date-range');
-    
-    if (customDateContainer) {
-        if (rango === 'custom') {
-            customDateContainer.style.display = 'flex';
-        } else {
-            customDateContainer.style.display = 'none';
-        }
-    }
-}
+// ===================================================================
+// 5. MANEJO DE GRÁFICOS (Chart.js)
+// ===================================================================
 
 /**
- * Recolecta todos los valores de los filtros actuales en un objeto.
- * @returns {URLSearchParams} Parámetros de consulta listos para ser usados en la URL.
+ * Función genérica para dibujar y actualizar gráficos.
  */
-function getFilterParams() {
-    const params = new URLSearchParams();
-    
-    // Obtener valores de los filtros principales
-    const rango = document.getElementById('rango')?.value || '30';
-    params.set('rango', rango);
-    params.set('tecnico', document.getElementById('tecnico')?.value || 'all');
-    params.set('sucursal', document.getElementById('sucursal')?.value || 'all');
-    params.set('estatus', document.getElementById('estatus')?.value || 'all');
-    
-    // Si el rango es 'custom', añadir las fechas específicas
-    if (rango === 'custom') {
-        params.set('fechaInicio', document.getElementById('fechaInicio')?.value || '');
-        params.set('fechaFin', document.getElementById('fechaFin')?.value || '');
+function drawChart(chartId, dataArray, type, yLabel, title) {
+    const ctx = document.getElementById(chartId);
+    if (!ctx || !dataArray || dataArray.length === 0) {
+        // Opcional: Mostrar un mensaje de "Sin datos" en el contenedor
+        if (charts[chartId]) charts[chartId].destroy();
+        return;
+    }
+
+    // Destruir la instancia anterior si existe
+    if (charts[chartId]) {
+        charts[chartId].destroy();
     }
     
-    return params;
-}
+    // Preparar datos
+    const labels = dataArray.map(item => item.label || item.cliente || item.tecnico || 'N/A');
+    const values = dataArray.map(item => item.value || item.cantidad || item.resueltas || item.tiempo || 0);
 
+    const isBar = (type === 'bar' || type === 'horizontalBar');
+    // Definición de colores
+    const primaryColor = '#4361ee'; 
+    const secondaryColors = ['#4895ef', '#4cc9f0', '#b5179e', '#f72585', '#7209b7', '#3f37c9', '#4d908e'];
 
-/**
- * Carga todos los datos de las estadísticas desde la API.
- */
-function loadAllStatistics() {
-    // Usamos Promesas para cargar todos los datos en paralelo
-    const params = getFilterParams().toString();
-
-    // 1. Cargar KPIs y Top Clientes (Resumen General)
-    const p1 = fetch(`${API_URL}?action=estadisticas_generales&${params}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                updateGeneralKPIs(data.data);
-                renderTopClientsChart(data.data.top_clientes);
-            } else {
-                console.error("Error en estadísticas generales:", data.error);
-            }
-        });
-
-    // 2. Cargar Gráficos de Incidencias (Gráficos)
-    const p2 = fetch(`${API_URL}?action=estadisticas_incidencias&${params}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                renderIncidenciaCharts(data.data);
-            } else {
-                console.error("Error en estadísticas de incidencias:", data.error);
-            }
-        });
-        
-    // 3. Cargar KPIs y Gráficos de Técnicos (Pestaña Técnicos)
-    const p3 = fetch(`${API_URL}?action=estadisticas_tecnicos&${params}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                updateTechnicianKPIs(data.data);
-                renderTechnicianCharts(data.data.graficos);
-            } else {
-                console.error("Error en estadísticas de técnicos:", data.error);
-            }
-        });
-        
-    // Opcional: Mostrar un spinner mientras cargan todas las promesas
-    // Promise.all([p1, p2, p3]).then(() => { /* Ocultar spinner */ });
-}
-
-
-// --- 2. ACTUALIZACIÓN DE KPIS (Cifras Grandes) ---
-
-/**
- * Actualiza los valores de los indicadores clave generales.
- * @param {object} data - Datos recibidos de la API.
- */
-function updateGeneralKPIs(data) {
-    document.getElementById('totalIncidencias').textContent = data.total_incidencias || 0;
-    document.getElementById('totalClientes').textContent = data.total_clientes || 0;
-    document.getElementById('resueltasEsteMes').textContent = data.incidencias_resueltas_rango || 0; // Usado para "Completadas" o "Resueltas" en el rango
-    document.getElementById('tiempoPromedio').textContent = data.tiempo_promedio || 'N/A';
-    
-    // Fila inferior
-    document.getElementById('incidenciasAbiertas').textContent = data.incidencias_pendientes || 0;
-    document.getElementById('incidenciasAsignadas').textContent = data.incidencias_asignadas || 0;
-    document.getElementById('incidenciasCompletadas').textContent = data.incidencias_resueltas_rango || 0;
-    document.getElementById('cerradasFactura').textContent = data.incidencias_facturadas || 0;
-}
-
-/**
- * Actualiza los valores de los indicadores clave de técnicos.
- * @param {object} data - Datos recibidos de la API.
- */
-function updateTechnicianKPIs(data) {
-    // El id del técnico más eficiente (mayor tasa de resolución)
-    document.getElementById('tecnicoEficiente').textContent = data.tecnico_eficiente || 'N/A'; 
-    // El id del técnico más rápido (menor tiempo promedio)
-    document.getElementById('tecnicoRapido').textContent = data.tecnico_rapido || 'N/A'; 
-    // El id del técnico del mes (puede ser el eficiente)
-    document.getElementById('tecnicoMes').textContent = data.tecnico_mes || 'N/A'; 
-    // El total de técnicos
-    document.getElementById('totalTecnicos').textContent = data.total_tecnicos || 0;
-}
-
-
-// --- 3. FUNCIONES DE RENDERIZADO DE GRÁFICOS (CHART.JS) ---
-
-// Inicializamos las variables de los gráficos fuera de la función para poder destruirlos y recrearlos
-let chartPorEstatus;
-let chartPorSucursal;
-let chartTopClientes;
-let chartRendimientoTecnicos;
-let chartTiemposTecnicos;
-let chartSatisfaccion;
-
-
-/**
- * Dibuja un gráfico de barras/doughnut genérico.
- * @param {string} canvasId - ID del elemento <canvas>.
- * @param {string} type - Tipo de gráfico ('bar', 'doughnut', etc.).
- * @param {Array} labels - Etiquetas del eje X o secciones.
- * @param {Array} data - Valores de los datos.
- * @param {string} label - Etiqueta del conjunto de datos.
- * @param {object} existingChart - Referencia al objeto Chart existente para destruirlo.
- */
-function renderChart(canvasId, type, labels, data, label, existingChart) {
-    const ctx = document.getElementById(canvasId);
-    if (!ctx) return;
-    
-    // Si el gráfico existe, destrúyelo para evitar superposiciones
-    if (existingChart) {
-        existingChart.destroy();
-    }
-    
-    const isDoughnut = type === 'doughnut';
-    const isHorizontalBar = type === 'horizontalBar';
+    const backgroundColors = isBar 
+        ? [primaryColor, ...secondaryColors] 
+        : secondaryColors; 
 
     const chartConfig = {
-        type: isHorizontalBar ? 'bar' : type,
+        type: type === 'horizontalBar' ? 'bar' : type,
         data: {
             labels: labels,
             datasets: [{
-                label: label,
-                data: data,
-                backgroundColor: isDoughnut ? [
-                    '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
-                    '#858796', '#f8f9fc', '#3b5998', '#55acee', '#ff6384'
-                ] : '#4e73df',
-                hoverBackgroundColor: isDoughnut ? [
-                    '#2e59d9', '#17a673', '#2c9faf', '#dda200', '#be2617',
-                    '#6e707e', '#d1d3e2', '#2d4373', '#3c93d5', '#cc416d'
-                ] : '#2e59d9',
-                borderColor: '#fff',
-                borderWidth: 1,
+                label: title,
+                data: values,
+                backgroundColor: isBar ? backgroundColors : backgroundColors.slice(0, values.length),
+                borderColor: isBar ? primaryColor : 'white',
+                borderWidth: isBar ? 1 : 2,
+                tension: type === 'line' ? 0.4 : undefined,
+                fill: type === 'line' ? true : false,
+                borderColor: type === 'line' ? primaryColor : undefined,
             }]
         },
         options: {
-            maintainAspectRatio: false,
             responsive: true,
-            layout: { padding: { left: 10, right: 25, top: 25, bottom: 0 } },
-            tooltips: {
-                backgroundColor: "rgb(255,255,255)",
-                bodyFontColor: "#858796",
-                borderColor: '#dddfeb',
-                borderWidth: 1,
-                cornerRadius: 3,
-                displayColors: false,
+            maintainAspectRatio: false,
+            indexAxis: type === 'horizontalBar' ? 'y' : 'x', 
+            plugins: {
+                legend: {
+                    display: type !== 'bar' && type !== 'horizontalBar' && type !== 'line',
+                    position: 'bottom',
+                },
+                title: {
+                    display: false, 
+                }
             },
-            legend: { display: isDoughnut },
-            scales: {
-                xAxes: [{
-                    stacked: false,
-                    display: !isDoughnut,
-                    gridLines: { display: false, drawBorder: false },
-                    ticks: { beginAtZero: true },
-                    // Si es barra horizontal, invertir el eje X y Y (para Chart.js 2.x)
-                    // Para Chart.js 3+, se usa el indexAxis: 'y' en la config principal
-                }],
-                yAxes: [{
-                    stacked: false,
-                    display: !isDoughnut,
-                    gridLines: { color: "rgb(234, 236, 244)", zeroLineColor: "rgb(234, 236, 244)", drawBorder: false, borderDash: [2], zeroLineBorderDash: [2] },
-                    ticks: { beginAtZero: true },
-                }],
-            },
-            indexAxis: isHorizontalBar ? 'y' : 'x', // Para Charts.js 3+
+            scales: isBar || type === 'line' ? {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: isBar,
+                        text: yLabel
+                    }
+                }
+            } : {}
         }
     };
     
-    // Crea el nuevo gráfico y retorna la referencia
-    return new Chart(ctx, chartConfig);
+    charts[chartId] = new Chart(ctx, chartConfig);
 }
 
-/**
- * Renderiza todos los gráficos de la pestaña Incidencias.
- */
-function renderIncidenciaCharts(data) {
-    // Incidencias por Estatus (Doughnut)
-    const estatusLabels = data.por_estatus.map(item => item.estatus);
-    const estatusData = data.por_estatus.map(item => item.cantidad);
-    chartPorEstatus = renderChart('chartPorEstatus', 'doughnut', estatusLabels, estatusData, 'Incidencias por Estatus', chartPorEstatus);
+// ===================================================================
+// 6. INICIALIZACIÓN
+// ===================================================================
 
-    // Incidencias por Sucursal (Barra)
-    const sucursalLabels = data.por_sucursal.map(item => item.sucursal);
-    const sucursalData = data.por_sucursal.map(item => item.cantidad);
-    chartPorSucursal = renderChart('chartPorSucursal', 'bar', sucursalLabels, sucursalData, 'Incidencias por Sucursal', chartPorSucursal);
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Configurar listeners de filtros (para que reaccionen a los cambios)
+    setupFilterListeners();
     
-    // Top 5 Falla/Causa Raíz (Barra Horizontal)
-    const fallaLabels = data.top_fallas.map(item => item.falla);
-    const fallaData = data.top_fallas.map(item => item.cantidad);
-    chartTopFallas = renderChart('chartTopFallas', 'horizontalBar', fallaLabels, fallaData, 'Incidencias por Falla', chartTopFallas);
+    // 2. Cargar opciones de filtros (Técnicos, Sucursales)
+    await loadFilterOptions();
+
+    // 3. Marcar la carga inicial como completada para activar los listeners
+    initialLoadDone = true;
     
-    // Distribución por Prioridad (Pie)
-    const prioridadLabels = data.por_prioridad.map(item => item.prioridad);
-    const prioridadData = data.por_prioridad.map(item => item.cantidad);
-    chartPorPrioridad = renderChart('chartPorPrioridad', 'doughnut', prioridadLabels, prioridadData, 'Incidencias por Prioridad', chartPorPrioridad);
-    
-    // Histórico Mensual (Línea)
-    const mensualLabels = data.mensuales.map(item => item.mes);
-    const mensualData = data.mensuales.map(item => item.cantidad);
-    chartMensual = renderChart('chartMensual', 'line', mensualLabels, mensualData, 'Incidencias Creadas', chartMensual);
+    // 4. Cargar datos iniciales (la primera carga)
+    loadAllStatistics();
+});
+
+// ===================================================================
+// 7. FUNCIONES DE EXPORTACIÓN (Placeholder)
+// ===================================================================
+
+function downloadChart(chartId) {
+    const chart = charts[chartId];
+    if (chart) {
+        const a = document.createElement('a');
+        a.href = chart.toBase64Image();
+        a.download = `${chartId}_${new Date().toISOString()}.png`;
+        a.click();
+    } else {
+        alert("Gráfico no encontrado para descargar.");
+    }
 }
 
-/**
- * Renderiza el gráfico Top 10 Clientes (Pestaña Resumen General).
- */
-function renderTopClientsChart(top_clientes) {
-    const labels = top_clientes.map(item => item.cliente);
-    const data = top_clientes.map(item => item.cantidad);
-    
-    // Usamos 'horizontalBar' para mejor lectura de nombres largos
-    chartTopClientes = renderChart('chartTopClientes', 'horizontalBar', labels, data, 'Incidencias por Cliente', chartTopClientes);
+function exportarPDF() {
+    alert('Función de exportar a PDF no implementada. Requiere librerías como jsPDF o FPDF.');
 }
 
-/**
- * Renderiza los gráficos de la pestaña Técnicos.
- */
-function renderTechnicianCharts(graficos) {
-    // Rendimiento de Técnicos (Resueltas)
-    chartRendimientoTecnicos = renderChart(
-        'chartRendimientoTecnicos', 
-        'bar', 
-        graficos.rendimiento.labels, 
-        graficos.rendimiento.datos, 
-        'Incidencias Resueltas', 
-        chartRendimientoTecnicos
-    );
-    
-    // Tiempos Promedio por Técnico (Barras, mostrando días)
-    chartTiemposTecnicos = renderChart(
-        'chartTiemposTecnicos', 
-        'bar', 
-        graficos.tiempos.labels, 
-        graficos.tiempos.datos, 
-        'Tiempo Promedio (Días)', 
-        chartTiemposTecnicos
-    );
-    
-    // Satisfacción del Cliente (Doughnut)
-    chartSatisfaccion = renderChart(
-        'chartSatisfaccion', 
-        'doughnut', 
-        graficos.satisfaccion.labels, 
-        graficos.satisfaccion.datos, 
-        'Nivel de Satisfacción', 
-        chartSatisfaccion
-    );
+function exportarExcel() {
+    alert('Función de exportar a Excel no implementada. Requiere manipular datos en el DOM o usar librerías como SheetJS.');
+}
+
+function toggleExportOptions() {
+    const exportOptions = document.getElementById('exportOptions');
+    // Asume que exportOptions es un div con display: flex o none en tu CSS
+    exportOptions.style.display = exportOptions.style.display === 'flex' ? 'none' : 'flex';
 }
