@@ -1,10 +1,10 @@
 /**
  * Archivo: ../scripts/estadisticas.js
- * Descripción: Maneja la lógica de filtros, carga de datos desde el backend, y renderizado de gráficos.
  */
 
-// 🛑 RUTA CORREGIDA: Desde ../scripts/ necesitas subir un nivel (..) y entrar a backend/
-const API_URL = '../backend/estadisticas.php'; 
+// 🛑 RUTA ACTUALIZADA: Probamos la ruta relativa directa 'backend/'
+// Esto asume que el HTML que carga este JS está en el directorio superior al de 'backend'.
+const API_URL = 'backend/estadisticas.php'; 
 
 let charts = {}; // Objeto para almacenar instancias de Chart.js
 let initialLoadDone = false;
@@ -14,10 +14,11 @@ let initialLoadDone = false;
 // ===================================================================
 
 async function fetchData(action, filters) {
+    // La URL se construye basada en window.location.origin
     const url = new URL(API_URL, window.location.origin);
     url.searchParams.set('action', action);
     
-    // Añadir todos los filtros a los parámetros de la URL
+    // Añadir filtros
     for (const key in filters) {
         if (filters[key] !== null) {
             url.searchParams.set(key, filters[key]);
@@ -25,10 +26,8 @@ async function fetchData(action, filters) {
     }
 
     try {
-        // 
         const response = await fetch(url.toString());
         
-        // Manejo de error de red o de HTTP (ej. 404, 500)
         if (!response.ok) {
             const errorText = await response.text(); 
             // Esto captura el error 404 o cualquier otro error de HTTP
@@ -37,7 +36,6 @@ async function fetchData(action, filters) {
         
         const jsonResponse = await response.json();
 
-        // Manejo de error lógico (si PHP devuelve success: false)
         if (!jsonResponse.success) {
             throw new Error(`Error en la API: ${jsonResponse.error}`);
         }
@@ -46,7 +44,6 @@ async function fetchData(action, filters) {
 
     } catch (error) {
         console.error(`Error al cargar datos para ${action}:`, error);
-        // Muestra el error al usuario
         alert(`Error al cargar datos de estadísticas: ${error.message}`);
         return null; 
     }
@@ -70,7 +67,7 @@ function getFilters() {
         fechaFin = document.getElementById('fechaFin').value;
         if (!fechaInicio || !fechaFin) {
             alert("Debes seleccionar un rango de fechas personalizado.");
-            return null; // Indica un error de filtro
+            return null;
         }
     }
 
@@ -79,23 +76,20 @@ function getFilters() {
 
 /** Carga y rellena los selectores de Técnico y Sucursal. */
 async function loadFilterOptions() {
-    const data = await fetchData('get_filtros', {}); // Petición específica para filtros
+    const data = await fetchData('get_filtros', {}); 
     
     if (data) {
         const tecnicoSelect = document.getElementById('tecnico');
         const sucursalSelect = document.getElementById('sucursal');
 
-        // Limpiar selectores antes de rellenar
         tecnicoSelect.innerHTML = '<option value="all">Todos los Técnicos</option>';
         sucursalSelect.innerHTML = '<option value="all">Todas las Sucursales</option>';
 
-        // Rellenar Técnicos
         data.tecnicos.forEach(t => {
             const option = new Option(t.nombre, t.id);
             tecnicoSelect.add(option);
         });
 
-        // Rellenar Sucursales
         data.sucursales.forEach(s => {
             const option = new Option(s.nombre, s.id);
             sucursalSelect.add(option);
@@ -173,9 +167,7 @@ async function loadTechnicianPerformance() {
 // 4. FUNCIÓN MAESTRA DE CARGA
 // ===================================================================
 
-/** Carga todas las estadísticas */
 function loadAllStatistics() {
-    // Si no es la carga inicial, ejecuta las cargas de datos
     if (initialLoadDone) {
         loadGeneralStatistics();
         loadIncidenceAnalysis();
@@ -183,7 +175,6 @@ function loadAllStatistics() {
     }
 }
 
-/** Configura los eventos de escucha para los filtros */
 function setupFilterListeners() {
     const filterElements = ['rango', 'tecnico', 'sucursal', 'estatus'];
     filterElements.forEach(id => {
@@ -193,7 +184,6 @@ function setupFilterListeners() {
         }
     });
 
-    // Listener para el rango de fechas personalizado
     const customRangeDiv = document.getElementById('custom-date-range');
     const rangoSelect = document.getElementById('rango');
     
@@ -205,7 +195,6 @@ function setupFilterListeners() {
                 customRangeDiv.style.display = 'none';
             }
         });
-        // Configuración inicial de visibilidad del rango personalizado
         if (rangoSelect.value === 'custom') {
             customRangeDiv.style.display = 'flex';
         } else {
@@ -213,7 +202,6 @@ function setupFilterListeners() {
         }
     }
     
-    // Listener para los campos de fecha (para que cargue al cambiar la fecha)
     document.getElementById('fechaInicio')?.addEventListener('change', () => {
         if (document.getElementById('rango').value === 'custom') loadAllStatistics();
     });
@@ -232,22 +220,18 @@ function setupFilterListeners() {
 function drawChart(chartId, dataArray, type, yLabel, title) {
     const ctx = document.getElementById(chartId);
     if (!ctx || !dataArray || dataArray.length === 0) {
-        // Opcional: Mostrar un mensaje de "Sin datos" en el contenedor
         if (charts[chartId]) charts[chartId].destroy();
         return;
     }
 
-    // Destruir la instancia anterior si existe
     if (charts[chartId]) {
         charts[chartId].destroy();
     }
     
-    // Preparar datos
     const labels = dataArray.map(item => item.label || item.cliente || item.tecnico || 'N/A');
     const values = dataArray.map(item => item.value || item.cantidad || item.resueltas || item.tiempo || 0);
 
     const isBar = (type === 'bar' || type === 'horizontalBar');
-    // Definición de colores
     const primaryColor = '#4361ee'; 
     const secondaryColors = ['#4895ef', '#4cc9f0', '#b5179e', '#f72585', '#7209b7', '#3f37c9', '#4d908e'];
 
@@ -303,16 +287,12 @@ function drawChart(chartId, dataArray, type, yLabel, title) {
 // ===================================================================
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Configurar listeners de filtros (para que reaccionen a los cambios)
     setupFilterListeners();
     
-    // 2. Cargar opciones de filtros (Técnicos, Sucursales)
     await loadFilterOptions();
 
-    // 3. Marcar la carga inicial como completada para activar los listeners
     initialLoadDone = true;
     
-    // 4. Cargar datos iniciales (la primera carga)
     loadAllStatistics();
 });
 
@@ -333,15 +313,14 @@ function downloadChart(chartId) {
 }
 
 function exportarPDF() {
-    alert('Función de exportar a PDF no implementada. Requiere librerías como jsPDF o FPDF.');
+    alert('Función de exportar a PDF no implementada.');
 }
 
 function exportarExcel() {
-    alert('Función de exportar a Excel no implementada. Requiere manipular datos en el DOM o usar librerías como SheetJS.');
+    alert('Función de exportar a Excel no implementada.');
 }
 
 function toggleExportOptions() {
     const exportOptions = document.getElementById('exportOptions');
-    // Asume que exportOptions es un div con display: flex o none en tu CSS
     exportOptions.style.display = exportOptions.style.display === 'flex' ? 'none' : 'flex';
 }
