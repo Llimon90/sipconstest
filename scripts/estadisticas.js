@@ -630,18 +630,3 @@ window.toggleChartType = toggleChartType;
 window.downloadChart = downloadChart;
 window.aplicarFiltros = aplicarFiltros;
 
-// ... (resto de tu código JavaScript) ...
-
-// Función para aplicar filtros (Llama a la carga de datos de la pestaña actual)
-function aplicarFiltros() {
-    console.log('Aplicando filtros en la pestaña:', currentTab);
-    
-    // Recarga los datos de la pestaña que esté activa
-    if (currentTab === 'overview') {
-        cargarEstadisticas();
-    } else if (currentTab === 'tecnicos') {
-        cargarDatosTecnicos();
-    }
-}
-
-// ... (resto de tu código JavaScript) ...
