@@ -179,64 +179,74 @@ $filtros_where = construirFiltros($conn, 'i', 'fecha');
 
 switch ($action) {
     
-    case 'estadisticas_generales':
-        
-        // 1. Total de incidencias
-        $sql_total = "SELECT COUNT(id) AS total_incidencias FROM {$tabla_incidencias} i {$filtros_where}";
-        $total_incidencias = ejecutarConsulta($conn, $sql_total)[0]['total_incidencias'] ?? 0;
 
-        // 2. Incidencias por estatus
-        $sql_abiertas = "SELECT COUNT(id) AS count FROM {$tabla_incidencias} i {$filtros_where} AND estatus IN ('abierto', 'pendiente')";
-        $abiertas = ejecutarConsulta($conn, $sql_abiertas)[0]['count'] ?? 0;
-        
-        $sql_asignadas = "SELECT COUNT(id) AS count FROM {$tabla_incidencias} i {$filtros_where} AND estatus = 'asignado'";
-        $asignadas = ejecutarConsulta($conn, $sql_asignadas)[0]['count'] ?? 0;
-        
-        $sql_completadas = "SELECT COUNT(id) AS count FROM {$tabla_incidencias} i {$filtros_where} AND estatus = 'completado'";
-        $completadas = ejecutarConsulta($conn, $sql_completadas)[0]['count'] ?? 0;
-        
-        $sql_cerradas_factura = "SELECT COUNT(id) AS count FROM {$tabla_incidencias} i {$filtros_where} AND estatus = 'cerrado con factura'";
-        $cerradas_factura = ejecutarConsulta($conn, $sql_cerradas_factura)[0]['count'] ?? 0;
-        
-        $sql_cerradas_sin_factura = "SELECT COUNT(id) AS count FROM {$tabla_incidencias} i {$filtros_where} AND estatus = 'cerrado sin factura'";
-        $cerradas_sin_factura = ejecutarConsulta($conn, $sql_cerradas_sin_factura)[0]['count'] ?? 0;
 
-        // 3. Total de resueltas (completadas + cerradas)
-        $resueltas_totales = $completadas + $cerradas_factura + $cerradas_sin_factura;
-        
-        // 4. Total de clientes únicos
-        $sql_clientes = "SELECT COUNT(DISTINCT cliente) AS total_clientes FROM {$tabla_incidencias} i {$filtros_where} WHERE cliente IS NOT NULL AND cliente <> ''";
-        $total_clientes_result = ejecutarConsulta($conn, $sql_clientes);
-        $total_clientes = $total_clientes_result[0]['total_clientes'] ?? 0;
-        
-        // 5. Eficiencia (resueltas vs total)
-        $eficiencia_total = $total_incidencias > 0 ? round(($resueltas_totales / $total_incidencias) * 100, 1) : 0;
-        
-        // 6. Estadísticas de equipos
-        $sql_equipos = "SELECT COUNT(DISTINCT equipo) AS total_equipos FROM {$tabla_incidencias} i {$filtros_where} WHERE equipo IS NOT NULL AND equipo <> ''";
-        $total_equipos = ejecutarConsulta($conn, $sql_equipos)[0]['total_equipos'] ?? 0;
-        
-        // 7. Top tipos de falla
-        $sql_fallas = "SELECT falla, COUNT(*) as cantidad FROM {$tabla_incidencias} i {$filtros_where} WHERE falla IS NOT NULL AND falla != '' GROUP BY falla ORDER BY cantidad DESC LIMIT 5";
-        $top_fallas = ejecutarConsulta($conn, $sql_fallas);
-        
-        $response['success'] = true;
-        $response['data'] = [
-            'total_incidencias' => (int)$total_incidencias,
-            'incidencias_abiertas' => (int)$abiertas,
-            'incidencias_asignadas' => (int)$asignadas,
-            'incidencias_completadas' => (int)$completadas,
-            'incidencias_cerradas_factura' => (int)$cerradas_factura,
-            'incidencias_cerradas_sin_factura' => (int)$cerradas_sin_factura,
-            'incidencias_resueltas' => (int)$resueltas_totales,
-            'total_clientes' => (int)$total_clientes,
-            'total_equipos' => (int)$total_equipos,
-            'eficiencia_total' => $eficiencia_total,
-            'top_fallas' => $top_fallas,
-            'tendencia_incidencias' => 0, // Se calcularía con datos históricos
-            'last_updated' => date('H:i:s')
-        ];
-        break;
+case 'estadisticas_generales':
+    
+    // 1. Total de incidencias
+    $sql_total = "SELECT COUNT(id) AS total_incidencias FROM {$tabla_incidencias} i {$filtros_where}";
+    $total_incidencias = ejecutarConsulta($conn, $sql_total)[0]['total_incidencias'] ?? 0;
+
+    // 2. Incidencias por estatus
+    $sql_abiertas = "SELECT COUNT(id) AS count FROM {$tabla_incidencias} i {$filtros_where} AND estatus IN ('abierto', 'pendiente')";
+    $abiertas = ejecutarConsulta($conn, $sql_abiertas)[0]['count'] ?? 0;
+    
+    $sql_asignadas = "SELECT COUNT(id) AS count FROM {$tabla_incidencias} i {$filtros_where} AND estatus = 'asignado'";
+    $asignadas = ejecutarConsulta($conn, $sql_asignadas)[0]['count'] ?? 0;
+    
+    $sql_completadas = "SELECT COUNT(id) AS count FROM {$tabla_incidencias} i {$filtros_where} AND estatus = 'completado'";
+    $completadas = ejecutarConsulta($conn, $sql_completadas)[0]['count'] ?? 0;
+    
+    $sql_cerradas_factura = "SELECT COUNT(id) AS count FROM {$tabla_incidencias} i {$filtros_where} AND estatus = 'cerrado con factura'";
+    $cerradas_factura = ejecutarConsulta($conn, $sql_cerradas_factura)[0]['count'] ?? 0;
+    
+    $sql_cerradas_sin_factura = "SELECT COUNT(id) AS count FROM {$tabla_incidencias} i {$filtros_where} AND estatus = 'cerrado sin factura'";
+    $cerradas_sin_factura = ejecutarConsulta($conn, $sql_cerradas_sin_factura)[0]['count'] ?? 0;
+
+    // 3. Total de resueltas (completadas + cerradas)
+    $resueltas_totales = $completadas + $cerradas_factura + $cerradas_sin_factura;
+    
+    // 4. Total de clientes únicos - CORREGIDO
+    $sql_clientes = "SELECT COUNT(DISTINCT cliente) AS total_clientes FROM {$tabla_incidencias} i {$filtros_where} AND cliente IS NOT NULL AND cliente <> ''";
+    $total_clientes_result = ejecutarConsulta($conn, $sql_clientes);
+    $total_clientes = $total_clientes_result[0]['total_clientes'] ?? 0;
+    
+    // 5. Debug: Ver qué clientes hay en la base de datos
+    $sql_clientes_debug = "SELECT DISTINCT cliente FROM {$tabla_incidencias} i {$filtros_where} LIMIT 10";
+    $clientes_debug = ejecutarConsulta($conn, $sql_clientes_debug);
+    error_log("Clientes encontrados: " . print_r($clientes_debug, true));
+    
+    // 6. Eficiencia (resueltas vs total)
+    $eficiencia_total = $total_incidencias > 0 ? round(($resueltas_totales / $total_incidencias) * 100, 1) : 0;
+    
+    // 7. Estadísticas de equipos
+    $sql_equipos = "SELECT COUNT(DISTINCT equipo) AS total_equipos FROM {$tabla_incidencias} i {$filtros_where} AND equipo IS NOT NULL AND equipo <> ''";
+    $total_equipos = ejecutarConsulta($conn, $sql_equipos)[0]['total_equipos'] ?? 0;
+    
+    // 8. Top tipos de falla
+    $sql_fallas = "SELECT falla, COUNT(*) as cantidad FROM {$tabla_incidencias} i {$filtros_where} WHERE falla IS NOT NULL AND falla != '' GROUP BY falla ORDER BY cantidad DESC LIMIT 5";
+    $top_fallas = ejecutarConsulta($conn, $sql_fallas);
+
+    $response['success'] = true;
+    $response['data'] = [
+        'total_incidencias' => (int)$total_incidencias,
+        'incidencias_abiertas' => (int)$abiertas,
+        'incidencias_asignadas' => (int)$asignadas,
+        'incidencias_completadas' => (int)$completadas,
+        'incidencias_cerradas_factura' => (int)$cerradas_factura,
+        'incidencias_cerradas_sin_factura' => (int)$cerradas_sin_factura,
+        'incidencias_resueltas' => (int)$resueltas_totales,
+        'total_clientes' => (int)$total_clientes,
+        'total_equipos' => (int)$total_equipos,
+        'eficiencia_total' => $eficiencia_total,
+        'top_fallas' => $top_fallas,
+        'debug_clientes' => $clientes_debug, // Para debugging
+        'tendencia_incidencias' => 0,
+        'last_updated' => date('H:i:s')
+    ];
+    break;
+
+
 
     case 'estadisticas_incidencias':
         $data_incidencias = [];
