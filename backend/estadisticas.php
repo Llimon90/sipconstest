@@ -21,16 +21,46 @@ try {
         $stmt = $pdo->query("SELECT COUNT(*) as total FROM incidencias");
         $total_incidencias = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        // Incidencias por estatus
-        $stmt = $pdo->query("SELECT estatus, COUNT(*) as cantidad FROM incidencias GROUP BY estatus");
+        // Incidencias por estatus - CORREGIDO: incluir todos los registros
+        $stmt = $pdo->query("
+            SELECT 
+                CASE 
+                    WHEN estatus IS NULL OR estatus = '' THEN 'Sin estatus'
+                    ELSE estatus
+                END as estatus, 
+                COUNT(*) as cantidad 
+            FROM incidencias 
+            GROUP BY estatus
+            ORDER BY cantidad DESC
+        ");
         $incidencias_estatus = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Incidencias por técnico
-        $stmt = $pdo->query("SELECT tecnico, COUNT(*) as cantidad FROM incidencias WHERE tecnico IS NOT NULL GROUP BY tecnico");
+        // Incidencias por técnico - CORREGIDO: incluir todos los registros
+        $stmt = $pdo->query("
+            SELECT 
+                CASE 
+                    WHEN tecnico IS NULL OR tecnico = '' THEN 'Sin técnico'
+                    ELSE tecnico
+                END as tecnico, 
+                COUNT(*) as cantidad 
+            FROM incidencias 
+            GROUP BY tecnico
+            ORDER BY cantidad DESC
+        ");
         $incidencias_tecnico = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Incidencias por sucursal
-        $stmt = $pdo->query("SELECT sucursal, COUNT(*) as cantidad FROM incidencias WHERE sucursal IS NOT NULL GROUP BY sucursal");
+        // Incidencias por sucursal - CORREGIDO: incluir todos los registros
+        $stmt = $pdo->query("
+            SELECT 
+                CASE 
+                    WHEN sucursal IS NULL OR sucursal = '' THEN 'Sin sucursal'
+                    ELSE sucursal
+                END as sucursal, 
+                COUNT(*) as cantidad 
+            FROM incidencias 
+            GROUP BY sucursal
+            ORDER BY cantidad DESC
+        ");
         $incidencias_sucursal = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         // Incidencias por mes (últimos 6 meses)
@@ -45,11 +75,15 @@ try {
         ");
         $incidencias_mensuales = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Top 5 clientes con más incidencias
+        // Top 5 clientes con más incidencias - CORREGIDO: incluir todos los registros
         $stmt = $pdo->query("
-            SELECT cliente, COUNT(*) as cantidad 
+            SELECT 
+                CASE 
+                    WHEN cliente IS NULL OR cliente = '' THEN 'Sin cliente'
+                    ELSE cliente
+                END as cliente, 
+                COUNT(*) as cantidad 
             FROM incidencias 
-            WHERE cliente IS NOT NULL 
             GROUP BY cliente 
             ORDER BY cantidad DESC 
             LIMIT 5
@@ -81,23 +115,36 @@ try {
         $stmt = $pdo->query("SELECT COUNT(*) as total FROM usuarios");
         $stats['total_usuarios'] = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
         
-        // Incidencias resueltas este mes
+        // Total de incidencias - CORREGIDO
+        $stmt = $pdo->query("SELECT COUNT(*) as total FROM incidencias");
+        $stats['total_incidencias'] = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+        
+        // Incidencias completadas este mes - CORREGIDO: usar 'completado' en lugar de 'Resuelto'
         $stmt = $pdo->query("
             SELECT COUNT(*) as total 
             FROM incidencias 
-            WHERE estatus = 'Resuelto' 
+            WHERE estatus = 'completado' 
             AND MONTH(fecha) = MONTH(CURDATE()) 
             AND YEAR(fecha) = YEAR(CURDATE())
         ");
         $stats['incidencias_resueltas_mes'] = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
         
-        // Incidencias pendientes
+        // Incidencias pendientes - CORREGIDO: usar los estatus correctos
         $stmt = $pdo->query("
             SELECT COUNT(*) as total 
             FROM incidencias 
-            WHERE estatus NOT IN ('Resuelto', 'Cerrado')
+            WHERE estatus NOT IN ('completado', 'cerrado con factura', 'cerrado sin factura')
+            OR estatus IS NULL
         ");
         $stats['incidencias_pendientes'] = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+        
+        // Estadísticas detalladas por estatus para debugging
+        $stmt = $pdo->query("
+            SELECT estatus, COUNT(*) as cantidad 
+            FROM incidencias 
+            GROUP BY estatus
+        ");
+        $stats['detalle_estatus'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         echo json_encode([
             'success' => true,
