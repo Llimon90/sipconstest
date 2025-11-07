@@ -1,219 +1,223 @@
 <?php
-// Configuración de conexión
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
+header('Content-Type: application/json');
 
-// Incluir el archivo de conexión
-require_once 'conexion.php';
+// --- 1. CONFIGURACIÓN DE BASE DE DATOS ---
+$servername = "localhost";
+$username = "tu_usuario"; 
+$password = "tu_contraseña"; 
+$dbname = "tu_base_de_datos";
 
-try {
-    // Obtener estadísticas de incidencias
-    if ($_GET['action'] == 'estadisticas_incidencias') {
-        
-        // Total de incidencias
-        $stmt = $pdo->query("SELECT COUNT(*) as total FROM incidencias");
-        $total_incidencias = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        // Incidencias por estatus
-        $stmt = $pdo->query("
-            SELECT 
-                CASE 
-                    WHEN estatus IS NULL OR estatus = '' THEN 'Sin estatus'
-                    ELSE estatus
-                END as estatus, 
-                COUNT(*) as cantidad 
-            FROM incidencias 
-            GROUP BY estatus
-            ORDER BY cantidad DESC
-        ");
-        $incidencias_estatus = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        // Incidencias por técnico
-        $stmt = $pdo->query("
-            SELECT 
-                CASE 
-                    WHEN tecnico IS NULL OR tecnico = '' THEN 'Sin técnico'
-                    ELSE tecnico
-                END as tecnico, 
-                COUNT(*) as cantidad 
-            FROM incidencias 
-            GROUP BY tecnico
-            ORDER BY cantidad DESC
-        ");
-        $incidencias_tecnico = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        // Incidencias por sucursal
-        $stmt = $pdo->query("
-            SELECT 
-                CASE 
-                    WHEN sucursal IS NULL OR sucursal = '' THEN 'Sin sucursal'
-                    ELSE sucursal
-                END as sucursal, 
-                COUNT(*) as cantidad 
-            FROM incidencias 
-            GROUP BY sucursal
-            ORDER BY cantidad DESC
-        ");
-        $incidencias_sucursal = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        // Incidencias por mes (últimos 6 meses)
-        $stmt = $pdo->query("
-            SELECT 
-                DATE_FORMAT(fecha, '%Y-%m') as mes,
-                COUNT(*) as cantidad 
-            FROM incidencias 
-            WHERE fecha >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
-            GROUP BY DATE_FORMAT(fecha, '%Y-%m')
-            ORDER BY mes
-        ");
-        $incidencias_mensuales = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        // Top 5 clientes con más incidencias
-        $stmt = $pdo->query("
-            SELECT 
-                CASE 
-                    WHEN cliente IS NULL OR cliente = '' THEN 'Sin cliente'
-                    ELSE cliente
-                END as cliente, 
-                COUNT(*) as cantidad 
-            FROM incidencias 
-            GROUP BY cliente 
-            ORDER BY cantidad DESC 
-            LIMIT 5
-        ");
-        $top_clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        echo json_encode([
-            'success' => true,
-            'data' => [
-                'total_incidencias' => $total_incidencias['total'],
-                'por_estatus' => $incidencias_estatus,
-                'por_tecnico' => $incidencias_tecnico,
-                'por_sucursal' => $incidencias_sucursal,
-                'mensuales' => $incidencias_mensuales,
-                'top_clientes' => $top_clientes
-            ]
-        ]);
-        
-    } elseif ($_GET['action'] == 'estadisticas_generales') {
-        
-        // Estadísticas generales del sistema
-        $stats = [];
-        
-        // Total de clientes
-        $stmt = $pdo->query("SELECT COUNT(*) as total FROM clientes");
-        $stats['total_clientes'] = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-        
-        // Total de usuarios
-        $stmt = $pdo->query("SELECT COUNT(*) as total FROM usuarios");
-        $stats['total_usuarios'] = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-        
-        // Total de incidencias
-        $stmt = $pdo->query("SELECT COUNT(*) as total FROM incidencias");
-        $stats['total_incidencias'] = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-        
-        // Incidencias completadas este mes
-        $stmt = $pdo->query("
-            SELECT COUNT(*) as total 
-            FROM incidencias 
-            WHERE estatus = 'completado' 
-            AND MONTH(fecha) = MONTH(CURDATE()) 
-            AND YEAR(fecha) = YEAR(CURDATE())
-        ");
-        $stats['incidencias_resueltas_mes'] = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-        
-        // Incidencias pendientes
-        $stmt = $pdo->query("
-            SELECT COUNT(*) as total 
-            FROM incidencias 
-            WHERE estatus NOT IN ('completado', 'cerrado con factura', 'cerrado sin factura')
-            OR estatus IS NULL
-        ");
-        $stats['incidencias_pendientes'] = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-        
-        // Estadísticas adicionales por estatus
-        $stmt = $pdo->query("
-            SELECT estatus, COUNT(*) as cantidad 
-            FROM incidencias 
-            GROUP BY estatus
-        ");
-        $stats['detalle_estatus'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        // Tiempo promedio de resolución (en días) - CORREGIDO: usar solo fecha ya que no hay fecha_cierre
-        // Para incidencias completadas o cerradas, asumimos que la fecha de cierre es la fecha de modificación
-        // o simplemente calculamos basado en la fecha de creación para todas las incidencias
-        $stmt = $pdo->query("
-            SELECT AVG(DATEDIFF(CURDATE(), fecha)) as tiempo_promedio 
-            FROM incidencias 
-            WHERE fecha IS NOT NULL 
-            AND estatus IN ('completado', 'cerrado con factura', 'cerrado sin factura')
-        ");
-        $tiempo_promedio = $stmt->fetch(PDO::FETCH_ASSOC);
-        $stats['tiempo_promedio'] = round($tiempo_promedio['tiempo_promedio'] ?? 0) . 'd';
-        
-        // Si no hay incidencias completadas, mostrar 0
-        if (!$stats['tiempo_promedio'] || $stats['tiempo_promedio'] == '0d') {
-            $stats['tiempo_promedio'] = '0d';
-        }
-        
-        // Tendencia vs mes anterior
-        $stmt = $pdo->query("
-            SELECT 
-                COUNT(*) as actual,
-                (SELECT COUNT(*) FROM incidencias 
-                 WHERE MONTH(fecha) = MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)) 
-                 AND YEAR(fecha) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)))
-                as anterior
-            FROM incidencias 
-            WHERE MONTH(fecha) = MONTH(CURDATE()) 
-            AND YEAR(fecha) = YEAR(CURDATE())
-        ");
-        $tendencia = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        $actual = $tendencia['actual'] ?? 0;
-        $anterior = $tendencia['anterior'] ?? 0;
-        
-        if ($anterior > 0) {
-            $stats['tendencia_incidencias'] = round((($actual - $anterior) / $anterior) * 100);
-        } else {
-            $stats['tendencia_incidencias'] = $actual > 0 ? 100 : 0;
-        }
-        
-        // Estadísticas adicionales por tipo de estatus
-        $stmt = $pdo->query("
-            SELECT COUNT(*) as cantidad 
-            FROM incidencias 
-            WHERE estatus = 'abierto' OR estatus = 'asignado' OR estatus = 'pendiente'
-        ");
-        $stats['incidencias_activas'] = $stmt->fetch(PDO::FETCH_ASSOC)['cantidad'];
-        
-        $stmt = $pdo->query("
-            SELECT COUNT(*) as cantidad 
-            FROM incidencias 
-            WHERE estatus = 'completado'
-        ");
-        $stats['incidencias_completadas'] = $stmt->fetch(PDO::FETCH_ASSOC)['cantidad'];
-        
-        $stmt = $pdo->query("
-            SELECT COUNT(*) as cantidad 
-            FROM incidencias 
-            WHERE estatus = 'cerrado con factura'
-        ");
-        $stats['incidencias_facturadas'] = $stmt->fetch(PDO::FETCH_ASSOC)['cantidad'];
-        
-        echo json_encode([
-            'success' => true,
-            'data' => $stats
-        ]);
-        
+// Nombre de la tabla de incidencias
+$tabla_incidencias = "incidencias"; 
+
+// Intentar conexión
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+    echo json_encode(['success' => false, 'error' => 'Error de conexión: ' . $conn->connect_error]);
+    exit();
+}
+
+// --- 2. FUNCIONES DE UTILIDAD ---
+
+/**
+ * Recopila y sanea los parámetros de filtro de la URL.
+ * @param mysqli $conn La conexión a la base de datos.
+ * @return string La cadena de la cláusula WHERE.
+ */
+function construirFiltros($conn, $tabla_alias = 'i') {
+    $filtros = [];
+    
+    // Rango de fechas
+    $rango = $_GET['rango'] ?? 'last30days';
+    $campo_fecha = $tabla_alias . ".fecha_cierre"; // Ajusta el nombre de tu campo de fecha
+    
+    // Obtener las fechas de inicio y fin basadas en el rango
+    $fecha_actual = new DateTime();
+    $fecha_inicio = null;
+    $fecha_fin = $fecha_actual->format('Y-m-d'); // Hoy
+    
+    if ($rango === 'custom' && !empty($_GET['fechaInicio']) && !empty($_GET['fechaFin'])) {
+        $fecha_inicio = $_GET['fechaInicio'];
+        $fecha_fin = $_GET['fechaFin'];
+    } elseif ($rango === 'last7days') {
+        $fecha_inicio = (clone $fecha_actual)->modify('-7 days')->format('Y-m-d');
+    } elseif ($rango === 'last30days') {
+        $fecha_inicio = (clone $fecha_actual)->modify('-30 days')->format('Y-m-d');
+    } elseif ($rango === 'currentmonth') {
+        $fecha_inicio = (clone $fecha_actual)->modify('first day of this month')->format('Y-m-d');
     }
     
-} catch (PDOException $e) {
-    echo json_encode([
-        'success' => false,
-        'error' => 'Error de base de datos: ' . $e->getMessage()
-    ]);
+    if ($fecha_inicio && $fecha_fin) {
+        $filtros[] = "{$campo_fecha} BETWEEN '{$conn->real_escape_string($fecha_inicio)} 00:00:00' AND '{$conn->real_escape_string($fecha_fin)} 23:59:59'";
+    }
+
+    // Filtros por selección (tecnico, sucursal, estatus)
+    $campos_filtro = ['tecnico', 'sucursal', 'estatus']; // Ajusta los nombres de tus columnas si es necesario
+    foreach ($campos_filtro as $campo) {
+        if (!empty($_GET[$campo]) && $_GET[$campo] !== 'all') {
+            $valor = $conn->real_escape_string($_GET[$campo]);
+            // Para el filtro de técnico, usamos LIKE para buscar dentro de la cadena
+            if ($campo === 'tecnico') {
+                $filtros[] = "{$tabla_alias}.{$campo} LIKE '%{$valor}%'";
+            } else {
+                $filtros[] = "{$tabla_alias}.{$campo} = '{$valor}'";
+            }
+        }
+    }
+
+    return empty($filtros) ? "" : "WHERE " . implode(" AND ", $filtros);
 }
+
+/**
+ * Ejecuta una consulta y devuelve los resultados como un array asociativo.
+ */
+function ejecutarConsulta($conn, $sql) {
+    $resultado = $conn->query($sql);
+    $data = [];
+    if ($resultado && $resultado->num_rows > 0) {
+        while($fila = $resultado->fetch_assoc()) {
+            $data[] = $fila;
+        }
+    }
+    return $data;
+}
+
+// --- 3. LÓGICA DE ACCIONES ---
+
+$action = $_GET['action'] ?? '';
+$response = ['success' => false, 'data' => [], 'error' => 'Acción no válida.'];
+$filtros_where = construirFiltros($conn, 'i');
+
+switch ($action) {
+    
+    // --- ACCIÓN 1: DATOS GENERALES (OVERVIEW CARDS) ---
+    case 'estadisticas_generales':
+        // 1. Total de incidencias
+        $sql_total = "SELECT COUNT(id) AS total_incidencias FROM {$tabla_incidencias} i {$filtros_where}";
+        $total_incidencias = ejecutarConsulta($conn, $sql_total)[0]['total_incidencias'] ?? 0;
+
+        // 2. Otras estadísticas (ejemplo)
+        $sql_pendientes = "SELECT COUNT(id) AS incidencias_pendientes FROM {$tabla_incidencias} i {$filtros_where} AND i.estatus NOT IN ('Cerrado', 'Resuelto')";
+        $pendientes = ejecutarConsulta($conn, $sql_pendientes)[0]['incidencias_pendientes'] ?? 0;
+
+        // Aquí deberías agregar tus propias consultas para: total_clientes, resueltas_mes, tiempo_promedio, etc.
+
+        $response['success'] = true;
+        $response['data'] = [
+            'total_incidencias' => (int)$total_incidencias,
+            'incidencias_pendientes' => (int)$pendientes,
+            'total_clientes' => 0, // Placeholder
+            'incidencias_resueltas_mes' => 0, // Placeholder
+            'tiempo_promedio' => 'N/A', // Placeholder
+            'tendencia_incidencias' => 0 // Placeholder
+        ];
+        break;
+
+    // --- ACCIÓN 2: GRÁFICOS DE INCIDENCIAS (OVERVIEW CHARTS) ---
+    case 'estadisticas_incidencias':
+        $data_incidencias = [];
+
+        // Gráfico por estatus
+        $sql_estatus = "SELECT estatus, COUNT(id) AS cantidad FROM {$tabla_incidencias} i {$filtros_where} GROUP BY estatus ORDER BY cantidad DESC";
+        $data_incidencias['por_estatus'] = ejecutarConsulta($conn, $sql_estatus);
+
+        // Gráfico por sucursal
+        $sql_sucursal = "SELECT sucursal, COUNT(id) AS cantidad FROM {$tabla_incidencias} i {$filtros_where} GROUP BY sucursal ORDER BY cantidad DESC LIMIT 5";
+        $data_incidencias['por_sucursal'] = ejecutarConsulta($conn, $sql_sucursal);
+        
+        // Gráfico por mes (ejemplo)
+        $sql_mensual = "SELECT DATE_FORMAT(fecha_cierre, '%Y-%m') as mes, COUNT(id) AS cantidad FROM {$tabla_incidencias} i {$filtros_where} GROUP BY mes ORDER BY mes ASC";
+        $data_incidencias['mensuales'] = ejecutarConsulta($conn, $sql_mensual);
+
+        // *** LÓGICA PRINCIPAL: CONTABILIZAR TÉCNICOS POR PARTICIPACIÓN (SIN TABLA PIVOTE) ***
+        // Se asume que los nombres de los técnicos están separados por comas (',')
+        
+        /* * NOTA IMPORTANTE: Esta subconsulta (n) debe contener números hasta 
+         * la cantidad máxima de técnicos que pueden aparecer en una sola incidencia. 
+         */
+        $sql_tecnicos = "
+            SELECT 
+                TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(i.tecnico, ',', n.num), ',', -1)) AS tecnico,
+                COUNT(i.id) AS cantidad
+            FROM 
+                {$tabla_incidencias} i
+            JOIN 
+                (
+                    SELECT 1 AS num UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5
+                    -- AGREGAR MÁS UNION ALL SELECT num SI ES NECESARIO (ej: 6, 7, etc.)
+                ) n 
+                ON CHAR_LENGTH(i.tecnico) - CHAR_LENGTH(REPLACE(i.tecnico, ',', '')) >= n.num - 1
+            {$filtros_where}
+            GROUP BY
+                tecnico
+            HAVING
+                tecnico <> ''
+            ORDER BY 
+                cantidad DESC;
+        ";
+        $data_incidencias['por_tecnico'] = ejecutarConsulta($conn, $sql_tecnicos);
+        // *********************************************************************************
+        
+        $response['success'] = true;
+        $response['data'] = $data_incidencias;
+        break;
+
+    // --- ACCIÓN 3: DATOS DE TÉCNICOS (TABS) ---
+    case 'estadisticas_tecnicos':
+        // *** IMPORTANTE: Usa la misma consulta de técnicos para el gráfico de rendimiento ***
+        $sql_tecnicos = "
+            SELECT 
+                TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(i.tecnico, ',', n.num), ',', -1)) AS tecnico,
+                COUNT(i.id) AS cantidad
+            FROM 
+                {$tabla_incidencias} i
+            JOIN 
+                (
+                    SELECT 1 AS num UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5
+                ) n 
+                ON CHAR_LENGTH(i.tecnico) - CHAR_LENGTH(REPLACE(i.tecnico, ',', '')) >= n.num - 1
+            {$filtros_where}
+            GROUP BY
+                tecnico
+            HAVING
+                tecnico <> ''
+            ORDER BY 
+                cantidad DESC;
+        ";
+        $datos_rendimiento_bruto = ejecutarConsulta($conn, $sql_tecnicos);
+        
+        // Determinar el técnico más eficiente/rápido (ejemplo simple)
+        $tecnico_eficiente = $datos_rendimiento_bruto[0]['tecnico'] ?? 'N/A';
+        $total_tecnicos = count($datos_rendimiento_bruto);
+
+        // Formatear los datos para los gráficos de la pestaña 'tecnicos'
+        $labels_rendimiento = array_column($datos_rendimiento_bruto, 'tecnico');
+        $datos_rendimiento = array_column($datos_rendimiento_bruto, 'cantidad');
+
+        $response['success'] = true;
+        $response['data'] = [
+            'tecnico_eficiente' => $tecnico_eficiente,
+            'tecnico_rapido' => 'N/A', // Placeholder
+            'tecnico_mes' => 'N/A', // Placeholder
+            'total_tecnicos' => $total_tecnicos,
+            'graficos' => [
+                'rendimiento' => [
+                    'labels' => $labels_rendimiento,
+                    'datos' => $datos_rendimiento,
+                ],
+                // Aquí deberías agregar tus propios datos para 'tiempos' y 'satisfaccion'
+                'tiempos' => ['labels' => ['Técnico A', 'Técnico B'], 'datos' => [2.5, 3.1]], // Placeholder
+                'satisfaccion' => ['labels' => ['Excelente', 'Bueno', 'Regular', 'Malo'], 'datos' => [60, 25, 10, 5]], // Placeholder
+            ]
+        ];
+        break;
+
+    default:
+        // Mensaje de error por defecto ya está establecido.
+        break;
+}
+
+$conn->close();
+echo json_encode($response);
 ?>
