@@ -19,7 +19,7 @@ async function cargarEstadisticas() {
         }
         
         // Cargar estadísticas detalladas de incidencias
-        const responseIncidencias = await fetch('estadisticas.php?action=estadisticas_incidencias');
+        const responseIncidencias = await fetch('../backend/estadisticas.php?action=estadisticas_incidencias');
         const dataIncidencias = await responseIncidencias.json();
         
         if (dataIncidencias.success) {
