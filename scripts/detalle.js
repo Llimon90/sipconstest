@@ -282,14 +282,14 @@ ${tecnicosIniciales.length === 0 ? `
 ` : ''}
                 </div>
                 <button type="button" id="agregar-tecnico" style="margin-top: 5px; padding: 5px 10px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                    + Agregar técnico
+                    + Agregar técnico 
                 </button>
             </div>
             
-            
+            </div>
 
             <div style="margin-bottom: 15px;">
-                <label>ESTATUS:</label>
+                <label><br>ESTATUS:</label>
                 <select id="estatus" style="width: 100%;">
                     <option value="Abierto" ${data.estatus === "Abierto" ? 'selected' : ''}>Abierto</option>
                     <option value="Asignado" ${data.estatus === "Asignado" ? 'selected' : ''}>Asignado</option>
