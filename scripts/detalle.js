@@ -286,7 +286,7 @@ ${tecnicosIniciales.length === 0 ? `
                 </button>
             </div>
             
-            </div>
+            
 
             <div style="margin-bottom: 15px;">
                 <label>ESTATUS:</label>
