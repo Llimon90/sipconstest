@@ -11,7 +11,7 @@ async function cargarEstadisticas() {
         mostrarLoading(true);
         
         // Cargar estadísticas generales
-        const responseGeneral = await fetch('estadisticas.php?action=estadisticas_generales');
+        const responseGeneral = await fetch('../backend/estadisticas.php?action=estadisticas_generales');
         const dataGeneral = await responseGeneral.json();
         
         if (dataGeneral.success) {
