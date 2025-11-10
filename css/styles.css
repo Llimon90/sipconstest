@@ -2035,3 +2035,8 @@ main.contraido {
     margin: 0;
     padding: 0;
 }
+
+/* Ejemplo de estilo en styles.css */
+.alerta-rojo-suave {
+    background-color: #ffe0e0 !important; /* Rojo muy claro */
+}
