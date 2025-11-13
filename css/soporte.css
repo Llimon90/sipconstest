@@ -646,35 +646,3 @@ main {
 .fa-microchip { color: #34495e; }
 .fa-desktop { color: #2980b9; }
 .fa-file { color: #7f8c8d; }
-
-
-
-/* Agrega o modifica esto en tu archivo CSS */
-.model-card {
-    /* (otras propiedades como display, padding, etc.) */
-    position: relative; /* Importante para la capa de clic */
-    cursor: pointer; /* Muestra al usuario que es clickeable */
-    /* ... */
-}
-/* Asegúrate de que los botones de acción no cubran toda el área */
-.model-actions {
-    position: absolute; /* O usa flexbox/grid para moverlos al final */
-    bottom: 10px;
-    right: 10px;
-}
-
-/* Agrega esto a tu archivo CSS */
-.model-content-clickable {
-    /* Asegura que ocupe casi todo el espacio */
-    padding: 15px; 
-    cursor: pointer; /* ESENCIAL: Indica que es clickeable */
-    /* Usar flex para que el contenido se organice */
-    display: flex;
-    flex-direction: column;
-    /* Necesitas margen/espacio para que los botones de acción no lo cubran */
-    margin-bottom: 40px; 
-}
-
-.model-card {
-    position: relative; /* Necesario para posicionar acciones si es el caso */
-}

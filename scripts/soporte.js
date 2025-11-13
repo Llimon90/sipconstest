@@ -83,8 +83,6 @@ async function cargarMarcas() {
     }
 }
 
-
-// Mostrar marcas en el grid
 // Mostrar marcas en el grid
 function mostrarMarcas(marcas) {
     const container = document.getElementById('marcas-container');
@@ -103,17 +101,17 @@ function mostrarMarcas(marcas) {
     }
     
     container.innerHTML = marcas.map(marca => `
-        <div class="model-card">
-            <div class="model-content-clickable" onclick="cargarModelos(${marca.id}, '${marca.nombre.replace(/'/g, "\\'")}')">
-                <div class="model-icon">
-                    <i class="fas fa-industry"></i>
-                </div>
-                <h3>${marca.nombre}</h3>
-                <p>Ver modelos</p>
+        <div class="model-card" onclick="abrirCarpetaMarca(${marca.id}, '${marca.nombre.replace(/'/g, "\\'")}', event)">
+            <div class="model-icon">
+                <i class="fas fa-industry"></i>
             </div>
-            
+            <h3>${marca.nombre}</h3>
+            <p>Ver modelos</p>
             <div class="model-actions">
-                <button class="btn-small btn-danger" onclick="event.stopPropagation(); eliminarMarca(${marca.id}, '${marca.nombre.replace(/'/g, "\\'")}')">
+                <button class="btn-small btn-primary" onclick="cargarModelos(${marca.id}, '${marca.nombre.replace(/'/g, "\\'")}')">
+                    <i class="fas fa-folder-open"></i>
+                </button>
+                <button class="btn-small btn-danger" onclick="eliminarMarca(${marca.id}, '${marca.nombre.replace(/'/g, "\\'")}')">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -121,6 +119,56 @@ function mostrarMarcas(marcas) {
     `).join('');
     
     console.log(`Mostrando ${marcas.length} marcas`);
+}
+
+// Función para abrir carpeta de marca al hacer clic en el contenedor
+function abrirCarpetaMarca(marcaId, marcaNombre, event) {
+    // Prevenir que se active si se hizo clic en un botón de acción
+    if (event.target.closest('.model-actions')) {
+        return;
+    }
+    
+    // Abrir la carpeta de la marca
+    cargarModelos(marcaId, marcaNombre);
+}
+
+// Cargar modelos de una marca
+async function cargarModelos(marcaId, marcaNombre) {
+    console.log(`Cargando modelos para marca ${marcaId}: ${marcaNombre}`);
+    currentMarcaId = marcaId;
+    
+    const modelosContainer = document.getElementById('modelos-container');
+    modelosContainer.innerHTML = '<div class="loading">Cargando modelos...</div>';
+    
+    try {
+        const response = await fetch(`../backend/soporte_backend.php?action=get_modelos&marca_id=${marcaId}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log(`Modelos cargados: ${data.count}`);
+            mostrarModelos(data.modelos, marcaNombre);
+            actualizarBreadcrumb(marcaNombre);
+        } else {
+            throw new Error(data.message || 'Error desconocido al cargar modelos');
+        }
+    } catch (error) {
+        console.error('Error al cargar modelos:', error);
+        modelosContainer.innerHTML = `
+            <div class="error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Error al cargar los modelos</p>
+                <small>${error.message}</small>
+                <button class="btn-secondary" onclick="volverAMarcas()">
+                    <i class="fas fa-arrow-left"></i> Volver a Marcas
+                </button>
+            </div>
+        `;
+    }
 }
 
 // Mostrar modelos en el grid
@@ -159,20 +207,20 @@ function mostrarModelos(modelos, marcaNombre) {
         </div>
         <div class="model-grid-content">
             ${modelos.map(modelo => `
-                <div class="model-card">
-                    <div class="model-content-clickable" onclick="cargarDocumentos(${modelo.id}, '${modelo.nombre.replace(/'/g, "\\'")}')">
-                        <div class="model-icon">
-                            <i class="fas fa-laptop"></i>
-                        </div>
-                        <h3>${modelo.nombre}</h3>
-                        <p>${modelo.tipo_equipo}</p>
+                <div class="model-card" onclick="abrirCarpetaModelo(${modelo.id}, '${modelo.nombre.replace(/'/g, "\\'")}', event)">
+                    <div class="model-icon">
+                        <i class="fas fa-laptop"></i>
                     </div>
-
+                    <h3>${modelo.nombre}</h3>
+                    <p>${modelo.tipo_equipo}</p>
                     <div class="model-actions">
-                        <button class="btn-small btn-warning" onclick="event.stopPropagation(); editarModelo(${modelo.id})">
+                        <button class="btn-small btn-primary" onclick="cargarDocumentos(${modelo.id}, '${modelo.nombre.replace(/'/g, "\\'")}')">
+                            <i class="fas fa-folder-open"></i>
+                        </button>
+                        <button class="btn-small btn-warning" onclick="editarModelo(${modelo.id})">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn-small btn-danger" onclick="event.stopPropagation(); eliminarModelo(${modelo.id}, '${modelo.nombre.replace(/'/g, "\\'")}')">
+                        <button class="btn-small btn-danger" onclick="eliminarModelo(${modelo.id}, '${modelo.nombre.replace(/'/g, "\\'")}')">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -180,6 +228,17 @@ function mostrarModelos(modelos, marcaNombre) {
             `).join('')}
         </div>
     `;
+}
+
+// Función para abrir carpeta de modelo al hacer clic en el contenedor
+function abrirCarpetaModelo(modeloId, modeloNombre, event) {
+    // Prevenir que se active si se hizo clic en un botón de acción
+    if (event.target.closest('.model-actions')) {
+        return;
+    }
+    
+    // Abrir la carpeta del modelo
+    cargarDocumentos(modeloId, modeloNombre);
 }
 
 // Cargar documentos de un modelo
@@ -385,6 +444,7 @@ async function eliminarDocumento(documentoId, nombreArchivo) {
         alert('Error al eliminar el documento: ' + error.message);
     }
 }
+
 // Funciones de búsqueda
 function buscarContenido() {
     const searchTerm = document.getElementById('searchInput').value.trim();
@@ -476,13 +536,21 @@ function mostrarResultadosBusqueda(resultados, termino) {
                 <h4><i class="fas fa-industry"></i> Marcas (${marcas.length})</h4>
                 <div class="model-grid-content">
                     ${marcas.map(marca => `
-                        <div class="model-card" onclick="cargarModelos(${marca.id}, '${(marca.nombre || '').replace(/'/g, "\\'")}')">
+                        <div class="model-card" onclick="abrirCarpetaMarca(${marca.id}, '${(marca.nombre || '').replace(/'/g, "\\'")}', event)">
                             <div class="model-icon">
                                 <i class="fas fa-industry"></i>
                             </div>
                             <h3>${resaltarTexto(marca.nombre || '', termino)}</h3>
                             <p>Ver modelos de la marca</p>
                             <div class="search-badge">Marca</div>
+                            <div class="model-actions">
+                                <button class="btn-small btn-primary" onclick="cargarModelos(${marca.id}, '${(marca.nombre || '').replace(/'/g, "\\'")}')">
+                                    <i class="fas fa-folder-open"></i>
+                                </button>
+                                <button class="btn-small btn-danger" onclick="eliminarMarca(${marca.id}, '${(marca.nombre || '').replace(/'/g, "\\'")}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
                     `).join('')}
                 </div>
@@ -496,7 +564,7 @@ function mostrarResultadosBusqueda(resultados, termino) {
                 <h4><i class="fas fa-laptop"></i> Modelos (${modelos.length})</h4>
                 <div class="model-grid-content">
                     ${modelos.map(modelo => `
-                        <div class="model-card" onclick="cargarModelos(${modelo.marca_id || modelo.id}, '${(modelo.marca_nombre || '').replace(/'/g, "\\'")}')">
+                        <div class="model-card" onclick="abrirCarpetaModelo(${modelo.id}, '${(modelo.nombre || '').replace(/'/g, "\\'")}', event)">
                             <div class="model-icon">
                                 <i class="fas fa-laptop"></i>
                             </div>
@@ -504,6 +572,17 @@ function mostrarResultadosBusqueda(resultados, termino) {
                             <p>${resaltarTexto(modelo.tipo_equipo || '', termino)}</p>
                             <small>Marca: ${modelo.marca_nombre || 'N/A'}</small>
                             <div class="search-badge">Modelo</div>
+                            <div class="model-actions">
+                                <button class="btn-small btn-primary" onclick="cargarDocumentos(${modelo.id}, '${(modelo.nombre || '').replace(/'/g, "\\'")}')">
+                                    <i class="fas fa-folder-open"></i>
+                                </button>
+                                <button class="btn-small btn-warning" onclick="editarModelo(${modelo.id})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-small btn-danger" onclick="eliminarModelo(${modelo.id}, '${(modelo.nombre || '').replace(/'/g, "\\'")}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
                     `).join('')}
                 </div>
@@ -817,5 +896,7 @@ window.soporteApp = {
     editarModelo,
     eliminarModelo,
     eliminarMarca,
-    eliminarDocumento
+    eliminarDocumento,
+    abrirCarpetaMarca,
+    abrirCarpetaModelo
 };
