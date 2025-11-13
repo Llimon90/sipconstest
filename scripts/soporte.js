@@ -109,9 +109,6 @@ function mostrarMarcas(marcas) {
             <h3>${marca.nombre}</h3>
             <p>Ver modelos</p>
             <div class="model-actions">
-                <button class="btn-small btn-primary" onclick="event.stopPropagation(); cargarModelos(${marca.id}, '${marca.nombre.replace(/'/g, "\\'")}')">
-                    <i class="fas fa-folder-open"></i>
-                </button>
                 <button class="btn-small btn-danger" onclick="event.stopPropagation(); eliminarMarca(${marca.id}, '${marca.nombre.replace(/'/g, "\\'")}')">
                     <i class="fas fa-trash"></i>
                 </button>
@@ -166,9 +163,6 @@ function mostrarModelos(modelos, marcaNombre) {
                     <h3>${modelo.nombre}</h3>
                     <p>${modelo.tipo_equipo}</p>
                     <div class="model-actions">
-                        <button class="btn-small btn-primary" onclick="event.stopPropagation(); cargarDocumentos(${modelo.id}, '${modelo.nombre.replace(/'/g, "\\'")}')">
-                            <i class="fas fa-folder-open"></i>
-                        </button>
                         <button class="btn-small btn-warning" onclick="event.stopPropagation(); editarModelo(${modelo.id})">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -181,7 +175,6 @@ function mostrarModelos(modelos, marcaNombre) {
         </div>
     `;
 }
-
 // Cargar documentos de un modelo
 async function cargarDocumentos(modeloId, modeloNombre) {
     console.log(`Cargando documentos para modelo ${modeloId}: ${modeloNombre}`);
