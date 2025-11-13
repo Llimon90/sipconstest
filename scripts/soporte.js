@@ -85,6 +85,7 @@ async function cargarMarcas() {
 
 
 // Mostrar marcas en el grid
+// Mostrar marcas en el grid
 function mostrarMarcas(marcas) {
     const container = document.getElementById('marcas-container');
     
@@ -102,12 +103,15 @@ function mostrarMarcas(marcas) {
     }
     
     container.innerHTML = marcas.map(marca => `
-        <div class="model-card" onclick="cargarModelos(${marca.id}, '${marca.nombre.replace(/'/g, "\\'")}')">
-            <div class="model-icon">
-                <i class="fas fa-industry"></i>
+        <div class="model-card">
+            <div class="model-content-clickable" onclick="cargarModelos(${marca.id}, '${marca.nombre.replace(/'/g, "\\'")}')">
+                <div class="model-icon">
+                    <i class="fas fa-industry"></i>
+                </div>
+                <h3>${marca.nombre}</h3>
+                <p>Ver modelos</p>
             </div>
-            <h3>${marca.nombre}</h3>
-            <p>Ver modelos</p>
+            
             <div class="model-actions">
                 <button class="btn-small btn-danger" onclick="event.stopPropagation(); eliminarMarca(${marca.id}, '${marca.nombre.replace(/'/g, "\\'")}')">
                     <i class="fas fa-trash"></i>
@@ -155,16 +159,16 @@ function mostrarModelos(modelos, marcaNombre) {
         </div>
         <div class="model-grid-content">
             ${modelos.map(modelo => `
-                <div class="model-card" onclick="cargarDocumentos(${modelo.id}, '${modelo.nombre.replace(/'/g, "\\'")}')">
-                    <div class="model-icon">
-                        <i class="fas fa-laptop"></i>
+                <div class="model-card">
+                    <div class="model-content-clickable" onclick="cargarDocumentos(${modelo.id}, '${modelo.nombre.replace(/'/g, "\\'")}')">
+                        <div class="model-icon">
+                            <i class="fas fa-laptop"></i>
+                        </div>
+                        <h3>${modelo.nombre}</h3>
+                        <p>${modelo.tipo_equipo}</p>
                     </div>
-                    <h3>${modelo.nombre}</h3>
-                    <p>${modelo.tipo_equipo}</p>
+
                     <div class="model-actions">
-                        <button class="btn-small btn-primary" onclick="event.stopPropagation(); cargarDocumentos(${modelo.id}, '${modelo.nombre.replace(/'/g, "\\'")}')">
-                            <i class="fas fa-folder-open"></i>
-                        </button>
                         <button class="btn-small btn-warning" onclick="event.stopPropagation(); editarModelo(${modelo.id})">
                             <i class="fas fa-edit"></i>
                         </button>
