@@ -853,7 +853,7 @@ async function mostrarModalSubirDocumentos(modeloId) {
                                 <input type="hidden" name="modelo_id" value="${modeloId}">
                                 
                                 <div class="form-group">
-                                    <label for="manual_file">Manual de Usuario:</label>
+                                    <label for="manual_file">Manual de Usuario (opcional):</label>
                                     <input type="file" id="manual_file" name="manual_file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
                                     <small>Formatos aceptados: PDF, Word, JPG, PNG</small>
                                 </div>
@@ -866,7 +866,7 @@ async function mostrarModalSubirDocumentos(modeloId) {
                                 <div class="form-separator"></div>
                                 
                                 <div class="form-group">
-                                    <label for="partes_file">Lista de Partes:</label>
+                                    <label for="partes_file">Lista de Partes (opcional):</label>
                                     <input type="file" id="partes_file" name="partes_file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
                                     <small>Formatos aceptados: PDF, Word, JPG, PNG</small>
                                 </div>
@@ -879,7 +879,7 @@ async function mostrarModalSubirDocumentos(modeloId) {
                                 <div class="form-separator"></div>
                                 
                                 <div class="form-group">
-                                    <label for="otros_documentos">Otros Documentos:</label>
+                                    <label for="otros_documentos">Otros Documentos (opcional):</label>
                                     <input type="file" id="otros_documentos" name="otros_documentos[]" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip,.rar">
                                     <small>Puede seleccionar múltiples archivos. Formatos: PDF, Word, imágenes, ZIP, RAR</small>
                                 </div>
@@ -888,12 +888,16 @@ async function mostrarModalSubirDocumentos(modeloId) {
                                     <label for="otros_descripcion">Descripción para Otros Documentos (opcional):</label>
                                     <textarea id="otros_descripcion" name="otros_descripcion" placeholder="Descripción general para los documentos adicionales..."></textarea>
                                 </div>
+                                
+                                <div class="form-info">
+                                    <p><i class="fas fa-info-circle"></i> Puede subir uno, varios o todos los tipos de documentos. No es obligatorio subir todos.</p>
+                                </div>
                             </form>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn-secondary" onclick="cerrarModalSubirDocumentos()">Cancelar</button>
                             <button type="button" class="btn-primary" onclick="subirDocumentos(${modeloId})">
-                                <i class="fas fa-upload"></i> Subir Documentos
+                                <i class="fas fa-upload"></i> Subir Documentos Seleccionados
                             </button>
                         </div>
                     </div>
@@ -949,7 +953,9 @@ async function subirDocumentos(modeloId) {
     
     try {
         console.log('Enviando documentos al servidor...');
-        const response = await fetch('../backend/soporte_backend.php?action=subir_documentos', {
+        
+        // CORRECCIÓN: Usar la acción correcta "upload_documentos" en lugar de "subir_documentos"
+        const response = await fetch('../backend/soporte_backend.php?action=upload_documentos', {
             method: 'POST',
             body: formData
         });
