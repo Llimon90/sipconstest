@@ -761,9 +761,11 @@ async function guardarModelo(e) {
     // Agregar archivos si están seleccionados
     if (manual_file) {
         formData.append('manual_file', manual_file);
+        formData.append('manual_tipo', 'manual');
     }
     if (partes_file) {
         formData.append('partes_file', partes_file);
+        formData.append('partes_tipo', 'lista_partes');
     }
 
     // Mostrar loading
@@ -826,6 +828,184 @@ function cerrarModalAgregarModelo() {
     document.getElementById('modelForm').reset();
 }
 
+// Modal para subir documentos
+async function mostrarModalSubirDocumentos(modeloId) {
+    console.log('Mostrando modal para subir documentos para modelo:', modeloId);
+    
+    try {
+        // Obtener información del modelo
+        const response = await fetch(`../backend/soporte_backend.php?action=get_modelo_info&modelo_id=${modeloId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const modelo = data.modelo;
+            
+            // Crear el contenido del modal
+            const modalContent = `
+                <div class="modal" id="uploadDocsModal" style="display: block;">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Subir Documentos - ${modelo.nombre}</h3>
+                            <span class="close-modal">&times;</span>
+                        </div>
+                        <div class="modal-body">
+                            <form id="uploadDocsForm" enctype="multipart/form-data">
+                                <input type="hidden" name="modelo_id" value="${modeloId}">
+                                
+                                <div class="form-group">
+                                    <label for="manual_file">Manual de Usuario:</label>
+                                    <input type="file" id="manual_file" name="manual_file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                                    <small>Formatos aceptados: PDF, Word, JPG, PNG</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="manual_descripcion">Descripción del Manual (opcional):</label>
+                                    <textarea id="manual_descripcion" name="manual_descripcion" placeholder="Descripción del manual..."></textarea>
+                                </div>
+                                
+                                <div class="form-separator"></div>
+                                
+                                <div class="form-group">
+                                    <label for="partes_file">Lista de Partes:</label>
+                                    <input type="file" id="partes_file" name="partes_file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                                    <small>Formatos aceptados: PDF, Word, JPG, PNG</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="partes_descripcion">Descripción de Lista de Partes (opcional):</label>
+                                    <textarea id="partes_descripcion" name="partes_descripcion" placeholder="Descripción de la lista de partes..."></textarea>
+                                </div>
+                                
+                                <div class="form-separator"></div>
+                                
+                                <div class="form-group">
+                                    <label for="otros_documentos">Otros Documentos:</label>
+                                    <input type="file" id="otros_documentos" name="otros_documentos[]" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip,.rar">
+                                    <small>Puede seleccionar múltiples archivos. Formatos: PDF, Word, imágenes, ZIP, RAR</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="otros_descripcion">Descripción para Otros Documentos (opcional):</label>
+                                    <textarea id="otros_descripcion" name="otros_descripcion" placeholder="Descripción general para los documentos adicionales..."></textarea>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn-secondary" onclick="cerrarModalSubirDocumentos()">Cancelar</button>
+                            <button type="button" class="btn-primary" onclick="subirDocumentos(${modeloId})">
+                                <i class="fas fa-upload"></i> Subir Documentos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Agregar el modal al body si no existe
+            let modal = document.getElementById('uploadDocsModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.innerHTML = modalContent;
+                document.body.appendChild(modal);
+                
+                // Agregar event listener para cerrar modal
+                modal.querySelector('.close-modal').addEventListener('click', cerrarModalSubirDocumentos);
+            } else {
+                modal.style.display = 'block';
+                modal.querySelector('h3').textContent = `Subir Documentos - ${modelo.nombre}`;
+                modal.querySelector('input[name="modelo_id"]').value = modeloId;
+            }
+            
+        } else {
+            throw new Error(data.message || 'Error al cargar información del modelo');
+        }
+    } catch (error) {
+        console.error('Error al mostrar modal de subir documentos:', error);
+        alert('Error al cargar información del modelo: ' + error.message);
+    }
+}
+
+// Función para subir documentos
+async function subirDocumentos(modeloId) {
+    console.log('Subiendo documentos para modelo:', modeloId);
+    
+    const form = document.getElementById('uploadDocsForm');
+    const formData = new FormData(form);
+    
+    // Verificar que al menos un archivo fue seleccionado
+    const manualFile = document.getElementById('manual_file').files[0];
+    const partesFile = document.getElementById('partes_file').files[0];
+    const otrosFiles = document.getElementById('otros_documentos').files;
+    
+    if (!manualFile && !partesFile && otrosFiles.length === 0) {
+        alert('Por favor seleccione al menos un documento para subir.');
+        return;
+    }
+    
+    // Mostrar loading
+    const submitBtn = document.querySelector('#uploadDocsModal .btn-primary');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo...';
+    submitBtn.disabled = true;
+    
+    try {
+        console.log('Enviando documentos al servidor...');
+        const response = await fetch('../backend/soporte_backend.php?action=subir_documentos', {
+            method: 'POST',
+            body: formData
+        });
+        
+        console.log('Respuesta del servidor recibida, status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+        
+        const text = await response.text();
+        console.log('Respuesta del servidor:', text);
+        
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (parseError) {
+            console.error('Error parseando JSON:', parseError);
+            throw new Error('Respuesta del servidor no es JSON válido: ' + text);
+        }
+        
+        if (data.success) {
+            alert('✅ Documentos subidos correctamente');
+            cerrarModalSubirDocumentos();
+            
+            // Recargar los documentos
+            if (currentModeloId === modeloId) {
+                const modeloNombre = document.getElementById('modelo-title').textContent.replace('Documentos - ', '');
+                cargarDocumentos(modeloId, modeloNombre);
+            }
+        } else {
+            throw new Error(data.message || 'Error desconocido al subir documentos');
+        }
+    } catch (error) {
+        console.error('Error al subir documentos:', error);
+        alert('❌ Error al subir los documentos: ' + error.message);
+    } finally {
+        // Restaurar botón
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }
+}
+
+// Cerrar modal de subir documentos
+function cerrarModalSubirDocumentos() {
+    const modal = document.getElementById('uploadDocsModal');
+    if (modal) {
+        modal.style.display = 'none';
+        // Limpiar el formulario
+        const form = document.getElementById('uploadDocsForm');
+        if (form) {
+            form.reset();
+        }
+    }
+}
+
 // Actualizar breadcrumb
 function actualizarBreadcrumb(marcaNombre = '') {
     const breadcrumb = document.getElementById('breadcrumb');
@@ -871,6 +1051,9 @@ window.onclick = function(event) {
     modals.forEach(modal => {
         if (event.target === modal) {
             modal.style.display = 'none';
+            if (modal.id === 'uploadDocsModal') {
+                cerrarModalSubirDocumentos();
+            }
         }
     });
 }
@@ -881,11 +1064,6 @@ function mostrarModalEditarModelo(modelo) {
     // Aquí iría el código para mostrar un modal de edición
 }
 
-function mostrarModalSubirDocumentos(modeloId) {
-    alert('Funcionalidad para subir documentos en desarrollo para el modelo ID: ' + modeloId);
-    // Aquí iría el código para mostrar un modal de subida de documentos
-}
-
 // Exportar funciones para debugging
 window.soporteApp = {
     cargarMarcas,
@@ -893,6 +1071,8 @@ window.soporteApp = {
     cargarDocumentos,
     mostrarModalAgregarMarca,
     mostrarModalAgregarModelo,
+    mostrarModalSubirDocumentos,
+    subirDocumentos,
     editarModelo,
     eliminarModelo,
     eliminarMarca,
