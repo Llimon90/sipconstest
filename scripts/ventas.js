@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 3. CARGAR VENTAS (Para la tabla) ---
     const cargarVentas = async () => {
         try {
-            const resp = await fetch('../php/obtener-ventas.php');
+            const resp = await fetch('../backend/obtener-ventas.php');
             const data = await resp.json();
             renderizarTabla(data.ventas);
         } catch (error) {
@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btnRegistrar.disabled = true;
             btnRegistrar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
 
-            const resp = await fetch('../php/registro_ventas.php', {
+            const resp = await fetch('../backend/registro_ventas.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
