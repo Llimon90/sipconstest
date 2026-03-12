@@ -1,6 +1,7 @@
 /**
  * scripts/ventas.js
  * Sistema de Control de Incidencias - Módulo de Ventas (SIPCONS)
+ * Versión Final con Guardia de Integridad y Validación Detallada
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -13,50 +14,85 @@ document.addEventListener('DOMContentLoaded', () => {
     const clienteSelect = document.getElementById('cliente');
     const mensajeDiv = document.getElementById('mensaje');
 
-    // --- 2. VALIDACIÓN DE SERIES DUPLICADAS ---
-    const validarSeriesDuplicadas = () => {
+    // Variable para rastrear el valor previo y evitar borrados accidentales
+    let valorPrevioQty = 0;
+
+    // --- 2. VALIDACIÓN DE SERIES (DUPLICADOS Y MENSAJES) ---
+    const validarSeries = () => {
         const inputs = document.querySelectorAll('.serie-input');
         const valores = Array.from(inputs).map(i => i.value.trim().toUpperCase());
-        let hayDuplicados = false;
+        let duplicadosEncontrados = new Set();
+        let hayErrores = false;
+        let hayVacios = false;
 
-        inputs.forEach((input, index) => {
-            const valorActual = input.value.trim().toUpperCase();
-            
-            if (valorActual === "") {
-                input.classList.remove('input-error');
-                return;
+        // Identificar duplicados y vacíos
+        valores.forEach((valor, index) => {
+            if (valor !== "" && valores.indexOf(valor) !== index) {
+                duplicadosEncontrados.add(valor);
             }
+            if (valor === "") hayVacios = true;
+        });
 
-            // Verificar si el valor se repite en el array de valores capturados
-            const esDuplicado = valores.some((v, i) => v === valorActual && i !== index);
+        // Gestionar el contenedor de mensaje de error en el DOM
+        let errorMsgArea = document.getElementById('error-series-msg');
+        if (!errorMsgArea && duplicadosEncontrados.size > 0) {
+            errorMsgArea = document.createElement('div');
+            errorMsgArea.id = 'error-series-msg';
+            errorMsgArea.className = 'mensaje-error-input'; // Asegúrate de tener este estilo en CSS
+            seriesContainer.prepend(errorMsgArea);
+        }
 
-            if (esDuplicado) {
+        // Marcar inputs visualmente
+        inputs.forEach(input => {
+            const val = input.value.trim().toUpperCase();
+            if (val !== "" && duplicadosEncontrados.has(val)) {
                 input.classList.add('input-error');
-                hayDuplicados = true;
+                hayErrores = true;
             } else {
                 input.classList.remove('input-error');
             }
         });
 
-        // Bloquear/Desbloquear botón de registro
-        if (hayDuplicados) {
+        // Actualizar mensaje y estado del botón
+        if (hayErrores) {
+            errorMsgArea.style.display = "block";
+            errorMsgArea.innerHTML = `<i class="fas fa-exclamation-circle"></i> <strong>Series duplicadas detectadas:</strong> ${Array.from(duplicadosEncontrados).join(', ')}`;
             btnRegistrar.disabled = true;
             btnRegistrar.style.opacity = "0.5";
-            btnRegistrar.title = "Hay números de serie duplicados";
         } else {
+            if (errorMsgArea) errorMsgArea.style.display = "none";
             btnRegistrar.disabled = false;
             btnRegistrar.style.opacity = "1";
-            btnRegistrar.title = "";
         }
+
+        return { hayErrores, hayVacios };
     };
 
-    // --- 3. GENERACIÓN DINÁMICA CON PRESERVACIÓN DE DATOS ---
+    // --- 3. GENERACIÓN DINÁMICA CON GUARDIA DE INTEGRIDAD ---
     const actualizarCamposSerie = () => {
         const cantidadDeseada = parseInt(qtyInput.value) || 0;
-        
-        // Buscamos el grid existente o lo creamos
+        const inputsActuales = seriesContainer.querySelectorAll('.serie-input');
+        const cantidadActual = inputsActuales.length;
+
+        // --- GUARDIA DE INTEGRIDAD ---
+        if (cantidadDeseada < cantidadActual) {
+            let datosEnRiesgo = 0;
+            // Revisar si los campos que se van a eliminar tienen texto
+            for (let i = cantidadDeseada; i < cantidadActual; i++) {
+                if (inputsActuales[i].value.trim() !== "") datosEnRiesgo++;
+            }
+
+            if (datosEnRiesgo > 0) {
+                const confirmar = confirm(`¡Atención! Estás intentando reducir la cantidad, pero hay ${datosEnRiesgo} serie(s) ya capturada(s) que se borrarán. ¿Deseas continuar?`);
+                if (!confirmar) {
+                    qtyInput.value = valorPrevioQty; // Revertir
+                    return;
+                }
+            }
+        }
+
+        // --- PROCESO DE RENDERIZADO ---
         let grid = document.getElementById('grid-series');
-        
         if (cantidadDeseada > 0 && !grid) {
             seriesContainer.innerHTML = `
                 <h3 style="margin-top:20px;"><i class="fas fa-barcode"></i> Números de Serie</h3>
@@ -65,11 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
             grid = document.getElementById('grid-series');
         }
 
-        const itemsActuales = grid ? grid.querySelectorAll('.serie-item') : [];
-        const cantidadActual = itemsActuales.length;
-
         if (cantidadDeseada > cantidadActual) {
-            // AGREGAR CAMPOS NUEVOS
+            // AGREGAR SIN BORRAR LO ANTERIOR
             for (let i = cantidadActual + 1; i <= cantidadDeseada; i++) {
                 const div = document.createElement('div');
                 div.className = 'serie-item filtro-item';
@@ -77,13 +110,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <label>Equipo ${i}:</label>
                     <input type="text" name="serie[]" class="serie-input" placeholder="Serie..." required>
                 `;
-                
                 const nuevoInput = div.querySelector('input');
-                nuevoInput.addEventListener('input', validarSeriesDuplicadas);
+                nuevoInput.addEventListener('input', validarSeries);
                 grid.appendChild(div);
             }
         } else if (cantidadDeseada < cantidadActual) {
-            // QUITAR CAMPOS SOBRANTES (sin borrar los primeros)
+            // QUITAR SOLO LOS SOBRANTES
             for (let i = cantidadActual; i > cantidadDeseada; i--) {
                 grid.lastElementChild.remove();
             }
@@ -93,13 +125,13 @@ document.addEventListener('DOMContentLoaded', () => {
             seriesContainer.innerHTML = '';
         }
 
-        validarSeriesDuplicadas();
+        valorPrevioQty = qtyInput.value;
+        validarSeries();
     };
 
-    // --- 4. CARGA DE DATOS (CLIENTES Y VENTAS) ---
+    // --- 4. CARGA DE DATOS ---
     const cargarClientes = async () => {
         try {
-            // Ajustar ruta según tu estructura (php/ o backend/)
             const resp = await fetch('../backend/obtener-clientes.php');
             const data = await resp.json();
             if (data.exito) {
@@ -126,7 +158,6 @@ document.addEventListener('DOMContentLoaded', () => {
             cuerpoTabla.innerHTML = '<tr><td colspan="9" class="no-data">No hay ventas registradas</td></tr>';
             return;
         }
-
         cuerpoTabla.innerHTML = ventas.map(v => `
             <tr>
                 <td>${v.fecha_registro}</td>
@@ -149,7 +180,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 5. REGISTRO DE VENTA ---
     btnRegistrar.addEventListener('click', async () => {
-        if (!formVenta.checkValidity()) {
+        const { hayErrores, hayVacios } = validarSeries();
+
+        if (hayVacios && parseInt(qtyInput.value) > 0) {
+            alert("⚠️ Por favor, completa todos los números de serie antes de continuar.");
+            return;
+        }
+
+        if (!formVenta.checkValidity() || hayErrores) {
             formVenta.reportValidity();
             return;
         }
@@ -157,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const series = Array.from(document.querySelectorAll('.serie-input')).map(i => i.value.trim());
 
         const payload = {
-            folio: document.getElementById('sucursal').value.substring(0,3).toUpperCase() + Date.now().toString().slice(-4),
+            folio: "VT-" + Date.now().toString().slice(-6),
             cliente: clienteSelect.value,
             sucursal: document.getElementById('sucursal').value,
             equipo: document.getElementById('equipo').value,
@@ -171,9 +209,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             btnRegistrar.disabled = true;
-            btnRegistrar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+            btnRegistrar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
 
-            const resp = await fetch('../php/registro_ventas.php', {
+            const resp = await fetch('../backend/registro_ventas.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -181,37 +219,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const res = await resp.json();
             if (res.exito) {
-                mostrarMensaje('Venta registrada correctamente', 'success');
-                formVenta.reset();
-                actualizarCamposSerie();
-                cargarVentas();
+                alert('✅ Venta registrada correctamente');
+                location.reload(); 
             } else {
-                mostrarMensaje('Error: ' + res.mensaje, 'error');
+                alert('❌ Error: ' + res.mensaje);
             }
         } catch (e) {
-            mostrarMensaje('Error de conexión', 'error');
+            alert('❌ Error de conexión con el servidor');
         } finally {
             btnRegistrar.disabled = false;
             btnRegistrar.innerHTML = '<i class="fas fa-save"></i> Registrar Venta';
         }
     });
 
-    const mostrarMensaje = (texto, tipo) => {
-        mensajeDiv.textContent = texto;
-        mensajeDiv.className = `mensaje ${tipo}`;
-        setTimeout(() => { mensajeDiv.className = 'mensaje'; }, 4000);
-    };
+    // --- INICIALIZACIÓN ---
+    qtyInput.value = 0; // Iniciar en cero
+    valorPrevioQty = 0;
 
-    // --- LISTENERS INICIALES ---
-    qtyInput.addEventListener('input', actualizarCamposSerie);
-    
-    // Carga inicial
+    qtyInput.addEventListener('change', actualizarCamposSerie);
+    qtyInput.addEventListener('keyup', (e) => {
+        if(e.key === "Enter") actualizarCamposSerie();
+    });
+
     cargarClientes();
     cargarVentas();
 });
 
-// Funciones globales para botones de tabla
+// Funciones globales
 window.editarVenta = (id) => console.log("Editar ID:", id);
 window.borrarVenta = (id) => {
-    if(confirm('¿Eliminar este registro?')) console.log("Borrar ID:", id);
+    if(confirm('¿Deseas eliminar este registro de venta permanentemente?')) {
+        // Aquí iría tu fetch de borrado
+        console.log("Borrando ID:", id);
+    }
 };
