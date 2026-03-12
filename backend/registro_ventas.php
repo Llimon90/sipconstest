@@ -1,69 +1,56 @@
 <?php
-/**
- * backend/registro_ventas.php
- * Proceso: Generar Folio -> Subir Archivos -> Insertar Cabecera -> Insertar Detalles
- */
-
 header('Content-Type: application/json');
-require_once 'conexion.php'; // Tu archivo con $pdo
+require_once 'conexion.php';
 
 try {
     $pdo->beginTransaction();
 
-    // 1. Validar datos mínimos
-    $cliente = $_POST['cliente'] ?? throw new Exception("Selecciona un cliente.");
+    $cliente = $_POST['cliente'] ?? throw new Exception("Cliente no especificado");
     $series = json_decode($_POST['series'], true);
-    if (empty($series)) throw new Exception("No hay números de serie para registrar.");
 
-    // 2. Generar Folio VT-00000
-    $stmtF = $pdo->query("SELECT folio FROM ventas WHERE folio LIKE 'VT-%' ORDER BY id DESC LIMIT 1");
+    // 1. Generar Folio
+    $stmtF = $pdo->query("SELECT folio FROM ventas ORDER BY id DESC LIMIT 1");
     $uFolio = $stmtF->fetchColumn();
     $nFolio = "VT-" . str_pad($uFolio ? (int)substr($uFolio, 3) + 1 : 1, 5, "0", STR_PAD_LEFT);
 
-    // 3. Procesar Archivos (Uploads)
-    $caminosFinales = [];
+    // 2. Insertar Cabecera (Venta)
+    $sqlV = "INSERT INTO ventas (folio, cliente, sucursal, fecha_registro) VALUES (?, ?, ?, NOW())";
+    $stmtV = $pdo->prepare($sqlV);
+    $stmtV->execute([$nFolio, $cliente, $_POST['sucursal']]);
+    $venta_id = $pdo->lastInsertId();
+
+    // 3. PROCESAR ARCHIVOS E INSERTAR EN venta_archivos
     if (isset($_FILES['facturas']) && !empty($_FILES['facturas']['name'][0])) {
-        // Sanitizar nombre de cliente para carpeta
         $carpetaLimpia = preg_replace('/[^A-Za-z0-9_\-]/', '_', $cliente);
-        $rutaBase = "../uploads/ventas/{$carpetaLimpia}/";
+        $uploadDir = "../uploads/ventas/{$carpetaLimpia}/";
 
-        if (!is_dir($rutaBase)) mkdir($rutaBase, 0777, true);
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
 
-        foreach ($_FILES['facturas']['name'] as $k => $nom) {
+        $sqlArch = "INSERT INTO venta_archivos (venta_id, nombre_archivo, ruta_archivo, tipo_archivo) VALUES (?, ?, ?, ?)";
+        $stmtArch = $pdo->prepare($sqlArch);
+
+        foreach ($_FILES['facturas']['name'] as $k => $nomOriginal) {
             if ($_FILES['facturas']['error'][$k] === UPLOAD_ERR_OK) {
-                $ext = pathinfo($nom, PATHINFO_EXTENSION);
-                $nomArchivo = "{$nFolio}_" . time() . "_{$k}.{$ext}";
-                $destino = $rutaBase . $nomArchivo;
+                $ext = pathinfo($nomOriginal, PATHINFO_EXTENSION);
+                $tipo = $_FILES['facturas']['type'][$k];
+                $nuevoNombre = "{$nFolio}_" . time() . "_{$k}.{$ext}";
+                $rutaCompleta = $uploadDir . $nuevoNombre;
 
-                if (move_uploaded_file($_FILES['facturas']['tmp_name'][$k], $destino)) {
-                    $caminosFinales[] = $destino;
+                if (move_uploaded_file($_FILES['facturas']['tmp_name'][$k], $rutaCompleta)) {
+                    // AQUÍ se llena tu tabla venta_archivos
+                    $stmtArch->execute([$venta_id, $nomOriginal, $rutaCompleta, $tipo]);
                 }
             }
         }
     }
-    $pathDB = !empty($caminosFinales) ? implode(',', $caminosFinales) : null;
 
-    // 4. Insertar Cabecera (Tabla: ventas)
-    $sqlV = "INSERT INTO ventas (folio, cliente, sucursal, factura_path, fecha_registro) VALUES (?, ?, ?, ?, NOW())";
-    $stmtV = $pdo->prepare($sqlV);
-    $stmtV->execute([$nFolio, $cliente, $_POST['sucursal'], $pathDB]);
-    $idVenta = $pdo->lastInsertId();
-
-    // 5. Insertar Detalle (Tabla: venta_detalles)
-    $sqlD = "INSERT INTO venta_detalles (venta_id, equipo, marca, modelo, numero_serie, garantia, servicio, notas) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    // 4. Insertar Detalles (Series)
+    $sqlD = "INSERT INTO venta_detalles (venta_id, equipo, marca, modelo, numero_serie, garantia, servicio, notas) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
     $stmtD = $pdo->prepare($sqlD);
-
     foreach ($series as $s) {
         $stmtD->execute([
-            $idVenta,
-            $_POST['equipo'],
-            $_POST['marca'],
-            $_POST['modelo'],
-            $s,
-            $_POST['garantia'],
-            $_POST['servicio'],
-            $_POST['notas']
+            $venta_id, $_POST['equipo'], $_POST['marca'], $_POST['modelo'], 
+            $s, $_POST['garantia'], $_POST['servicio'], $_POST['notas']
         ]);
     }
 
