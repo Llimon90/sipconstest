@@ -2040,3 +2040,17 @@ main.contraido {
 .alerta-rojo-suave {
     background-color: #ffe0e0 !important; /* Rojo muy claro */
 }
+}
+
+
+/*VEBTAS*/
+.series-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 10px;
+    padding: 15px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 8px;
+}
+
