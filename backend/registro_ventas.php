@@ -1,74 +1,75 @@
 <?php
-header_remove();
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST");
-header("Access-Control-Allow-Headers: Content-Type");
+require_once 'conexion.php';
 
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
-function sendResponse($success, $message, $data = [], $statusCode = 200) {
-    http_response_code($statusCode);
-    echo json_encode(['exito'=>$success,'mensaje'=>$message,'data'=>$data,'timestamp'=>date('Y-m-d H:i:s')]);
-    exit;
+// Función para limpiar nombres de carpetas
+function limpiarNombreCarpeta($nombre) {
+    return preg_replace('/[^A-Za-z0-9_\-]/', '_', $nombre);
 }
 
 try {
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        sendResponse(false, 'Método no permitido', [], 405);
-    }
-
-    $jsonInput = file_get_contents('php://input');
-    $data = json_decode($jsonInput, true);
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        sendResponse(false, 'JSON inválido: '.json_last_error_msg(), [], 400);
-    }
-
-    // Validar campos
-    foreach (['cliente','equipo','garantia','numero_series'] as $campo) {
-        if (empty($data[$campo]) || ($campo === 'numero_series' && !is_array($data[$campo]))) {
-            sendResponse(false, "Falta o es inválido el campo: $campo", [], 400);
-        }
-    }
-
-    require_once 'conexion.php';
-
-    $sql = "INSERT INTO ventas (
-                folio, cliente, sucursal, equipo, marca, modelo, numero_serie,
-                garantia, servicio, notas, fecha_registro
-            ) VALUES (
-                :folio, :cliente, :sucursal, :equipo, :marca, :modelo, :numero_serie,
-                :garantia, :servicio, :notas, NOW()
-            )";
-
-    $stmt = $pdo->prepare($sql);
     $pdo->beginTransaction();
 
-    foreach ($data['numero_series'] as $serie) {
-        $stmt->execute([
-            ':folio'        => trim($data['folio']),
-            ':cliente'      => trim($data['cliente']),
-            ':sucursal'     => trim($data['sucursal'] ?? ''),
-            ':equipo'       => trim($data['equipo']),
-            ':marca'        => trim($data['marca'] ?? ''),
-            ':modelo'       => trim($data['modelo'] ?? ''),
-            ':numero_serie' => trim($serie),
-            ':garantia'     => (int)$data['garantia'],
-            ':servicio'     => !empty($data['servicio']) ? 1 : 0,
-            ':notas'        => trim($data['notas'] ?? '')
+    // 1. Insertar en tabla 'ventas' (Cabecera)
+    $sqlVenta = "INSERT INTO ventas (folio, cliente, sucursal, servicio, notas) 
+                 VALUES (:folio, :cliente, :sucursal, :servicio, :notas)";
+    $stmtVenta = $pdo->prepare($sqlVenta);
+    $stmtVenta->execute([
+        ':folio'    => $_POST['folio'],
+        ':cliente'  => $_POST['cliente'],
+        ':sucursal' => $_POST['sucursal'],
+        ':servicio' => isset($_POST['servicio']) ? 1 : 0,
+        ':notas'    => $_POST['notas']
+    ]);
+    $ventaId = $pdo->lastInsertId();
+
+    // 2. Insertar Detalles (Series)
+    // Convertimos el string de series (enviado desde JS) de vuelta a array
+    $series = json_decode($_POST['numero_series'], true);
+    $sqlDetalle = "INSERT INTO venta_detalles (venta_id, equipo, marca, modelo, numero_serie, garantia) 
+                   VALUES (:v_id, :eq, :ma, :mo, :sn, :ga)";
+    $stmtDetalle = $pdo->prepare($sqlDetalle);
+
+    foreach ($series as $sn) {
+        $stmtDetalle->execute([
+            ':v_id' => $ventaId,
+            ':eq'   => $_POST['equipo'],
+            ':ma'   => $_POST['marca'],
+            ':mo'   => $_POST['modelo'],
+            ':sn'   => trim($sn),
+            ':ga'   => (int)$_POST['garantia']
         ]);
     }
 
-    $pdo->commit();
-    sendResponse(true, 'Ventas registradas: '.count($data['numero_series']), ['insertados'=>count($data['numero_series'])]);
+    // 3. Manejo de Archivos y Carpetas por Cliente
+    if (!empty($_FILES['archivos']['name'][0])) {
+        $clienteCarpeta = limpiarNombreCarpeta($_POST['cliente']);
+        $targetDir = "../uploads/ventas/" . $clienteCarpeta . "/";
 
-} catch (PDOException $e) {
-    if ($pdo->inTransaction()) $pdo->rollBack();
-    error_log("Error PDO: ".$e->getMessage());
-    sendResponse(false, 'Error en BD: '.$e->getMessage(), [], 500);
+        if (!file_exists($targetDir)) {
+            mkdir($targetDir, 0777, true);
+        }
+
+        foreach ($_FILES['archivos']['tmp_name'] as $key => $tmpName) {
+            $fileName = time() . "_" . basename($_FILES['archivos']['name'][$key]);
+            $targetFilePath = $targetDir . $fileName;
+
+            if (move_uploaded_file($tmpName, $targetFilePath)) {
+                $sqlFile = "INSERT INTO venta_archivos (venta_id, ruta_archivo, nombre_original, tipo_archivo) 
+                            VALUES (?, ?, ?, ?)";
+                $pdo->prepare($sqlFile)->execute([
+                    $ventaId, 
+                    "uploads/ventas/$clienteCarpeta/$fileName", 
+                    $_FILES['archivos']['name'][$key],
+                    $_FILES['archivos']['type'][$key]
+                ]);
+            }
+        }
+    }
+
+    $pdo->commit();
+    echo json_encode(['exito' => true, 'mensaje' => 'Venta y archivos registrados correctamente']);
+
 } catch (Exception $e) {
-    if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
-    error_log("Error general: ".$e->getMessage());
-    sendResponse(false, 'Error del servidor', [], 500);
+    if ($pdo->inTransaction()) $pdo->rollBack();
+    echo json_encode(['exito' => false, 'mensaje' => $e->getMessage()]);
 }

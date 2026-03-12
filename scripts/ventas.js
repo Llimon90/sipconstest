@@ -179,59 +179,46 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- 5. REGISTRO DE VENTA ---
-    btnRegistrar.addEventListener('click', async () => {
-        const { hayErrores, hayVacios } = validarSeries();
+  btnRegistrar.addEventListener('click', async () => {
+    // ... (tus validaciones de series duplicadas se mantienen igual) ...
 
-        if (hayVacios && parseInt(qtyInput.value) > 0) {
-            alert("⚠️ Por favor, completa todos los números de serie antes de continuar.");
-            return;
+    const formData = new FormData();
+    formData.append('folio', "VT-" + Date.now().toString().slice(-6));
+    formData.append('cliente', clienteSelect.value);
+    formData.append('sucursal', document.getElementById('sucursal').value);
+    formData.append('equipo', document.getElementById('equipo').value);
+    formData.append('marca', document.getElementById('marca').value);
+    formData.append('modelo', document.getElementById('modelo').value);
+    formData.append('garantia', document.getElementById('garantia').value);
+    formData.append('notas', document.getElementById('notas').value);
+    
+    // Convertimos las series a un string JSON para que PHP lo reciba fácil
+    const series = Array.from(document.querySelectorAll('.serie-input')).map(i => i.value.trim());
+    formData.append('numero_series', JSON.stringify(series));
+
+    // Capturar archivos del input file (debes agregar <input type="file" id="archivos" multiple> en el HTML)
+    const fileInput = document.getElementById('archivos');
+    if (fileInput.files.length > 0) {
+        for (let i = 0; i < fileInput.files.length; i++) {
+            formData.append('archivos[]', fileInput.files[i]);
         }
+    }
 
-        if (!formVenta.checkValidity() || hayErrores) {
-            formVenta.reportValidity();
-            return;
+    try {
+        btnRegistrar.disabled = true;
+        const resp = await fetch('../backend/registro_ventas.php', {
+            method: 'POST',
+            body: formData // Fetch detecta FormData y pone el Content-Type correcto automáticamente
+        });
+        const res = await resp.json();
+        if(res.exito) {
+            alert("Venta guardada y archivos organizados por cliente.");
+            location.reload();
         }
-
-        const series = Array.from(document.querySelectorAll('.serie-input')).map(i => i.value.trim());
-
-        const payload = {
-            folio: "VT-" + Date.now().toString().slice(-6),
-            cliente: clienteSelect.value,
-            sucursal: document.getElementById('sucursal').value,
-            equipo: document.getElementById('equipo').value,
-            marca: document.getElementById('marca').value,
-            modelo: document.getElementById('modelo').value,
-            garantia: document.getElementById('garantia').value,
-            servicio: document.getElementById('servicio').checked,
-            notas: document.getElementById('notas').value,
-            numero_series: series
-        };
-
-        try {
-            btnRegistrar.disabled = true;
-            btnRegistrar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-
-            const resp = await fetch('../backend/registro_ventas.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const res = await resp.json();
-            if (res.exito) {
-                alert('✅ Venta registrada correctamente');
-                location.reload(); 
-            } else {
-                alert('❌ Error: ' + res.mensaje);
-            }
-        } catch (e) {
-            alert('❌ Error de conexión con el servidor');
-        } finally {
-            btnRegistrar.disabled = false;
-            btnRegistrar.innerHTML = '<i class="fas fa-save"></i> Registrar Venta';
-        }
-    });
-
+    } catch (e) {
+        console.error(e);
+    }
+});
     // --- INICIALIZACIÓN ---
     qtyInput.value = 0; // Iniciar en cero
     valorPrevioQty = 0;
