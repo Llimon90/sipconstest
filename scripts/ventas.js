@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const cargarVentas = async () => {
         try {
-            const resp = await fetch('../php/obtener-ventas.php');
+            const resp = await fetch('../backend/obtener-ventas.php');
             const data = await resp.json();
             renderizarTabla(data.ventas);
         } catch (e) { console.error("Error ventas:", e); }
