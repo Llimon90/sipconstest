@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Inicializar datos
-    cargarClientes();
+   
     cargarVentas();
 });
 
