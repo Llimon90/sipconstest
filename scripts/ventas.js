@@ -153,3 +153,81 @@ window.borrarVenta = (id) => {
         console.log("Borrando:", id);
     }
 };
+
+/**
+ * Nueva lógica para validar series duplicadas
+ */
+
+// --- Función para validar si hay duplicados en los inputs ---
+const validarSeriesDuplicadas = () => {
+    const inputs = document.querySelectorAll('.serie-input');
+    const valores = Array.from(inputs).map(i => i.value.trim().toUpperCase());
+    let hayDuplicados = false;
+
+    inputs.forEach((input, index) => {
+        const valorActual = input.value.trim().toUpperCase();
+        
+        // Si el campo está vacío, quitamos el error y saltamos
+        if (valorActual === "") {
+            input.classList.remove('input-error');
+            return;
+        }
+
+        // Buscamos si el valor actual existe en otra posición del array
+        const esDuplicado = valores.some((v, i) => v === valorActual && i !== index);
+
+        if (esDuplicado) {
+            input.classList.add('input-error'); // Clase CSS para poner borde rojo
+            hayDuplicados = true;
+        } else {
+            input.classList.remove('input-error');
+        }
+    });
+
+    // Deshabilitar el botón de registro si hay duplicados
+    const btnRegistrar = document.getElementById('btn-registrar-venta');
+    if (hayDuplicados) {
+        btnRegistrar.disabled = true;
+        btnRegistrar.title = "No se permiten números de serie duplicados";
+    } else {
+        btnRegistrar.disabled = false;
+        btnRegistrar.title = "";
+    }
+
+    return hayDuplicados;
+};
+
+// --- Modificación en la generación de campos ---
+const actualizarCamposSerie = () => {
+    const cantidad = parseInt(qtyInput.value) || 0;
+    seriesContainer.innerHTML = '';
+
+    if (cantidad > 0) {
+        const titulo = document.createElement('h3');
+        titulo.innerHTML = `<i class="fas fa-barcode"></i> Números de Serie (${cantidad})`;
+        seriesContainer.appendChild(titulo);
+
+        const grid = document.createElement('div');
+        grid.className = 'series-grid';
+
+        for (let i = 1; i <= cantidad; i++) {
+            const div = document.createElement('div');
+            div.className = 'filtro-item';
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.name = 'serie[]';
+            input.className = 'serie-input';
+            input.placeholder = `Serie ${i}...`;
+            input.required = true;
+
+            // EVENTO CLAVE: Validar cada vez que el usuario escribe
+            input.addEventListener('input', validarSeriesDuplicadas);
+
+            div.innerHTML = `<label>Equipo ${i}:</label>`;
+            div.appendChild(input);
+            grid.appendChild(div);
+        }
+        seriesContainer.appendChild(grid);
+    }
+};
