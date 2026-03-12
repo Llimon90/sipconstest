@@ -2058,3 +2058,15 @@ main.contraido {
 .btn-edit:hover, .btn-delete:hover {
     transform: scale(1.05);
 }
+
+.input-error {
+    border: 2px solid #e74c3c !important;
+    background-color: #fceae9 !important;
+}
+.mensaje-error-input {
+    background: #e74c3c;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}

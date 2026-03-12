@@ -1,60 +1,64 @@
 <?php
-/**
- * backend/registro_ventas.php
- * Generación de Folio VT-00000 y Registro en DB
- */
-
 header('Content-Type: application/json');
-require_once 'conexion.php'; // Tu archivo de conexión PDO
+require_once 'conexion.php';
 
 try {
-    // 1. Obtener JSON
-    $json = file_get_contents('php://input');
-    $data = json_decode($json, true);
-
-    if (!$data) throw new Exception("No se recibieron datos válidos.");
-
     $pdo->beginTransaction();
 
-    // 2. GENERAR FOLIO (VT-00001)
-    // Buscamos el último folio de la tabla ventas
-    $stmtFolio = $pdo->query("SELECT folio FROM ventas WHERE folio LIKE 'VT-%' ORDER BY id DESC LIMIT 1");
-    $ultimoFolio = $stmtFolio->fetchColumn();
+    // 1. Recoger datos de $_POST (porque ahora es FormData)
+    $cliente = $_POST['cliente'] ?? throw new Exception("Cliente requerido");
+    $series = json_decode($_POST['series'], true);
 
-    if ($ultimoFolio) {
-        $numero = (int)substr($ultimoFolio, 3);
-        $nuevoNumero = $numero + 1;
-    } else {
-        $nuevoNumero = 1;
+    // 2. Generar Folio VT-00000
+    $stmtF = $pdo->query("SELECT folio FROM ventas ORDER BY id DESC LIMIT 1");
+    $uFolio = $stmtF->fetchColumn();
+    $nFolio = "VT-" . str_pad($uFolio ? (int)substr($uFolio, 3) + 1 : 1, 5, "0", STR_PAD_LEFT);
+
+    // 3. Gestión de Archivo (Factura)
+    $rutaFactura = null;
+    if (isset($_FILES['factura']) && $_FILES['factura']['error'] === UPLOAD_ERR_OK) {
+        // Sanitizar nombre de carpeta (quitar espacios y caracteres raros)
+        $folderName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $cliente);
+        $uploadDir = "../uploads/ventas/{$folderName}/";
+
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        $ext = pathinfo($_FILES['factura']['name'], PATHINFO_EXTENSION);
+        $fileName = "{$nFolio}_" . time() . ".{$ext}";
+        $fullPath = $uploadDir . $fileName;
+
+        if (move_uploaded_file($_FILES['factura']['tmp_name'], $fullPath)) {
+            $rutaFactura = $fullPath;
+        }
     }
-    $folioGenerado = "VT-" . str_pad($nuevoNumero, 5, "0", STR_PAD_LEFT);
 
-    // 3. INSERTAR VENTA
-    // Asumimos que guardas una fila por cada número de serie para trazabilidad
-    $sql = "INSERT INTO ventas (
-        folio, cliente, sucursal, equipo, marca, modelo, 
-        numero_serie, garantia, servicio, notas, fecha_registro
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+    // 4. Insertar Cabecera (Tabla: ventas)
+    $sqlVenta = "INSERT INTO ventas (folio, cliente, sucursal, factura_path, fecha_registro) VALUES (?, ?, ?, ?, NOW())";
+    $stmtV = $pdo->prepare($sqlVenta);
+    $stmtV->execute([$nFolio, $cliente, $_POST['sucursal'], $rutaFactura]);
+    $venta_id = $pdo->lastInsertId();
 
-    $stmtInsert = $pdo->prepare($sql);
+    // 5. Insertar Detalles (Tabla: venta_detalles)
+    $sqlDetalle = "INSERT INTO venta_detalles (venta_id, equipo, marca, modelo, numero_serie, garantia, servicio, notas) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    $stmtD = $pdo->prepare($sqlDetalle);
 
-    foreach ($data['series'] as $serie) {
-        $stmtInsert->execute([
-            $folioGenerado,
-            $data['cliente'],
-            $data['sucursal'],
-            $data['equipo'],
-            $data['marca'],
-            $data['modelo'],
-            $serie,
-            $data['garantia'],
-            $data['servicio'] ? 1 : 0,
-            $data['notas']
+    foreach ($series as $s) {
+        $stmtD->execute([
+            $venta_id,
+            $_POST['equipo'],
+            $_POST['marca'],
+            $_POST['modelo'],
+            $s,
+            $_POST['garantia'],
+            $_POST['servicio'],
+            $_POST['notas']
         ]);
     }
 
     $pdo->commit();
-    echo json_encode(['exito' => true, 'folio' => $folioGenerado]);
+    echo json_encode(['exito' => true, 'folio' => $nFolio]);
 
 } catch (Exception $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();
