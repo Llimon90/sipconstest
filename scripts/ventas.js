@@ -197,37 +197,61 @@ const validarSeriesDuplicadas = () => {
     return hayDuplicados;
 };
 
-// --- Modificación en la generación de campos ---
+/**
+ * Actualiza los inputs de serie sin borrar los datos existentes
+ */
 const actualizarCamposSerie = () => {
-    const cantidad = parseInt(qtyInput.value) || 0;
-    seriesContainer.innerHTML = '';
+    const cantidadDeseada = parseInt(qtyInput.value) || 0;
+    
+    // 1. Obtener los contenedores actuales (cada uno tiene su label e input)
+    let itemsActuales = seriesContainer.querySelectorAll('.serie-item');
+    const cantidadActual = itemsActuales.length;
 
-    if (cantidad > 0) {
-        const titulo = document.createElement('h3');
-        titulo.innerHTML = `<i class="fas fa-barcode"></i> Números de Serie (${cantidad})`;
-        seriesContainer.appendChild(titulo);
+    // Si no hay nada y hay cantidad, creamos el título y el grid una sola vez
+    if (cantidadActual === 0 && cantidadDeseada > 0) {
+        seriesContainer.innerHTML = `
+            <h3><i class="fas fa-barcode"></i> Números de Serie</h3>
+            <div id="grid-series" class="series-grid"></div>
+        `;
+    }
 
-        const grid = document.createElement('div');
-        grid.className = 'series-grid';
+    const grid = document.getElementById('grid-series');
+    if (!grid && cantidadDeseada > 0) return; // Seguridad
 
-        for (let i = 1; i <= cantidad; i++) {
+    if (cantidadDeseada > cantidadActual) {
+        // --- AGREGAR CAMPOS ---
+        for (let i = cantidadActual + 1; i <= cantidadDeseada; i++) {
             const div = document.createElement('div');
-            div.className = 'filtro-item';
+            div.className = 'serie-item filtro-item'; // Clase para identificarlo
+            div.innerHTML = `
+                <label>Equipo ${i}:</label>
+                <input type="text" name="serie[]" class="serie-input" 
+                       placeholder="Serie..." required>
+            `;
             
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.name = 'serie[]';
-            input.className = 'serie-input';
-            input.placeholder = `Serie ${i}...`;
-            input.required = true;
-
-            // EVENTO CLAVE: Validar cada vez que el usuario escribe
-            input.addEventListener('input', validarSeriesDuplicadas);
-
-            div.innerHTML = `<label>Equipo ${i}:</label>`;
-            div.appendChild(input);
+            // Asignar validación de duplicados al nuevo input
+            const nuevoInput = div.querySelector('input');
+            nuevoInput.addEventListener('input', validarSeriesDuplicadas);
+            
             grid.appendChild(div);
         }
-        seriesContainer.appendChild(grid);
+    } else if (cantidadDeseada < cantidadActual) {
+        // --- QUITAR CAMPOS SOBRANTES ---
+        // Quitamos desde el último hacia atrás para no perder los primeros
+        for (let i = cantidadActual; i > cantidadDeseada; i--) {
+            grid.lastElementChild.remove();
+        }
     }
+
+    // Si la cantidad llega a 0, limpiamos todo el contenedor
+    if (cantidadDeseada === 0) {
+        seriesContainer.innerHTML = '';
+    }
+
+    // Ejecutar validación por si al quitar campos se eliminó un duplicado
+    validarSeriesDuplicadas();
 };
+
+// Asegúrate de actualizar el listener inicial
+qtyInput.addEventListener('change', actualizarCamposSerie); 
+// Nota: Usar 'change' en lugar de 'input' para que solo dispare al terminar de escribir la cantidad

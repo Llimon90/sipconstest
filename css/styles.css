@@ -2043,14 +2043,17 @@ main.contraido {
 }
 
 
-/*VEBTAS*/
 .series-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 15px;
-    margin-top: 10px;
     padding: 15px;
-    background: rgba(0,0,0,0.05);
+    background: var(--bg-secondary); /* O un gris claro */
     border-radius: 8px;
+    margin-top: 10px;
 }
 
+.serie-item {
+    display: flex;
+    flex-direction: column;
+}
