@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cargarClientes = async () => {
         try {
             // Ajustar ruta según tu estructura (php/ o backend/)
-            const resp = await fetch('../php/obtener-clientes.php');
+            const resp = await fetch('../backend/obtener-clientes.php');
             const data = await resp.json();
             if (data.exito) {
                 data.clientes.forEach(c => {
