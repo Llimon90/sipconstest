@@ -1,73 +1,60 @@
 <?php
-require_once 'conexion.php';
+/**
+ * backend/registro_ventas.php
+ * Generación de Folio VT-00000 y Registro en DB
+ */
 
-// Función para limpiar nombres de carpetas
-function limpiarNombreCarpeta($nombre) {
-    return preg_replace('/[^A-Za-z0-9_\-]/', '_', $nombre);
-}
+header('Content-Type: application/json');
+require_once 'conexion.php'; // Tu archivo de conexión PDO
 
 try {
+    // 1. Obtener JSON
+    $json = file_get_contents('php://input');
+    $data = json_decode($json, true);
+
+    if (!$data) throw new Exception("No se recibieron datos válidos.");
+
     $pdo->beginTransaction();
 
-    // 1. Insertar en tabla 'ventas' (Cabecera)
-    $sqlVenta = "INSERT INTO ventas (folio, cliente, sucursal, servicio, notas) 
-                 VALUES (:folio, :cliente, :sucursal, :servicio, :notas)";
-    $stmtVenta = $pdo->prepare($sqlVenta);
-    $stmtVenta->execute([
-        ':folio'    => $_POST['folio'],
-        ':cliente'  => $_POST['cliente'],
-        ':sucursal' => $_POST['sucursal'],
-        ':servicio' => isset($_POST['servicio']) ? 1 : 0,
-        ':notas'    => $_POST['notas']
-    ]);
-    $ventaId = $pdo->lastInsertId();
+    // 2. GENERAR FOLIO (VT-00001)
+    // Buscamos el último folio de la tabla ventas
+    $stmtFolio = $pdo->query("SELECT folio FROM ventas WHERE folio LIKE 'VT-%' ORDER BY id DESC LIMIT 1");
+    $ultimoFolio = $stmtFolio->fetchColumn();
 
-    // 2. Insertar Detalles (Series)
-    // Convertimos el string de series (enviado desde JS) de vuelta a array
-    $series = json_decode($_POST['numero_series'], true);
-    $sqlDetalle = "INSERT INTO venta_detalles (venta_id, equipo, marca, modelo, numero_serie, garantia) 
-                   VALUES (:v_id, :eq, :ma, :mo, :sn, :ga)";
-    $stmtDetalle = $pdo->prepare($sqlDetalle);
+    if ($ultimoFolio) {
+        $numero = (int)substr($ultimoFolio, 3);
+        $nuevoNumero = $numero + 1;
+    } else {
+        $nuevoNumero = 1;
+    }
+    $folioGenerado = "VT-" . str_pad($nuevoNumero, 5, "0", STR_PAD_LEFT);
 
-    foreach ($series as $sn) {
-        $stmtDetalle->execute([
-            ':v_id' => $ventaId,
-            ':eq'   => $_POST['equipo'],
-            ':ma'   => $_POST['marca'],
-            ':mo'   => $_POST['modelo'],
-            ':sn'   => trim($sn),
-            ':ga'   => (int)$_POST['garantia']
+    // 3. INSERTAR VENTA
+    // Asumimos que guardas una fila por cada número de serie para trazabilidad
+    $sql = "INSERT INTO ventas (
+        folio, cliente, sucursal, equipo, marca, modelo, 
+        numero_serie, garantia, servicio, notas, fecha_registro
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+
+    $stmtInsert = $pdo->prepare($sql);
+
+    foreach ($data['series'] as $serie) {
+        $stmtInsert->execute([
+            $folioGenerado,
+            $data['cliente'],
+            $data['sucursal'],
+            $data['equipo'],
+            $data['marca'],
+            $data['modelo'],
+            $serie,
+            $data['garantia'],
+            $data['servicio'] ? 1 : 0,
+            $data['notas']
         ]);
     }
 
-    // 3. Manejo de Archivos y Carpetas por Cliente
-    if (!empty($_FILES['archivos']['name'][0])) {
-        $clienteCarpeta = limpiarNombreCarpeta($_POST['cliente']);
-        $targetDir = "../uploads/ventas/" . $clienteCarpeta . "/";
-
-        if (!file_exists($targetDir)) {
-            mkdir($targetDir, 0777, true);
-        }
-
-        foreach ($_FILES['archivos']['tmp_name'] as $key => $tmpName) {
-            $fileName = time() . "_" . basename($_FILES['archivos']['name'][$key]);
-            $targetFilePath = $targetDir . $fileName;
-
-            if (move_uploaded_file($tmpName, $targetFilePath)) {
-                $sqlFile = "INSERT INTO venta_archivos (venta_id, ruta_archivo, nombre_original, tipo_archivo) 
-                            VALUES (?, ?, ?, ?)";
-                $pdo->prepare($sqlFile)->execute([
-                    $ventaId, 
-                    "uploads/ventas/$clienteCarpeta/$fileName", 
-                    $_FILES['archivos']['name'][$key],
-                    $_FILES['archivos']['type'][$key]
-                ]);
-            }
-        }
-    }
-
     $pdo->commit();
-    echo json_encode(['exito' => true, 'mensaje' => 'Venta y archivos registrados correctamente']);
+    echo json_encode(['exito' => true, 'folio' => $folioGenerado]);
 
 } catch (Exception $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();
