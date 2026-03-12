@@ -42,26 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Ejecutar al inicio por si hay un valor por defecto
     actualizarCamposSerie();
 
-    // --- 2. CARGAR CLIENTES (Para el select) ---
-    const cargarClientes = async () => {
-        try {
-            // Ajusta la ruta a tu script real de clientes
-            const resp = await fetch('../php/obtener-clientes.php'); 
-            const data = await resp.json();
-            
-            if (data.exito) {
-                data.clientes.forEach(c => {
-                    const opt = document.createElement('option');
-                    opt.value = c.nombre; // O el ID, según prefieras en tu BD
-                    opt.textContent = c.nombre;
-                    clienteSelect.appendChild(opt);
-                });
-            }
-        } catch (error) {
-            console.error("Error cargando clientes:", error);
-        }
-    };
-
+   
     // --- 3. CARGAR VENTAS (Para la tabla) ---
     const cargarVentas = async () => {
         try {
