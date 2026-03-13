@@ -43,9 +43,22 @@ try {
         }
     }
 
-    // 4. Insertar Detalles (Series) - AHORA CON FRECUENCIA_SERVICIO
-    $sqlD = "INSERT INTO venta_detalles (venta_id, equipo, marca, modelo, numero_serie, garantia, servicio, frecuencia_servicio, notas) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    // 4. Insertar Detalles (Series) - CON CÁLCULO DE FECHAS AUTOMÁTICAS
+    
+    // Convertir a enteros para hacer los cálculos
+    $mesesCalibracion = (int)($_POST['calibracion'] ?? 0);
+    $mesesServicio = (int)($_POST['frecuencia_servicio'] ?? 0);
+    $tieneServicio = !empty($_POST['servicio']) ? 1 : 0;
+
+    // Calcular las fechas exactas sumando los meses a la fecha de hoy
+    $fechaProximaCalibracion = $mesesCalibracion > 0 ? date('Y-m-d', strtotime("+$mesesCalibracion months")) : null;
+    $fechaProximoServicio = ($tieneServicio && $mesesServicio > 0) ? date('Y-m-d', strtotime("+$mesesServicio months")) : null;
+
+    $sqlD = "INSERT INTO venta_detalles 
+             (venta_id, equipo, marca, modelo, numero_serie, garantia, calibracion, servicio, frecuencia_servicio, notas, proxima_calibracion, proximo_servicio) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmtD = $pdo->prepare($sqlD);
+    
     foreach ($series as $s) {
         $stmtD->execute([
             $venta_id, 
@@ -54,9 +67,12 @@ try {
             $_POST['modelo'], 
             $s, 
             $_POST['garantia'] ?: 0, 
-            $_POST['servicio'], 
-            $_POST['frecuencia_servicio'] ?: 0, 
-            $_POST['notas']
+            $mesesCalibracion, // Agregado para guardar el número de meses
+            $tieneServicio, 
+            $mesesServicio, 
+            $_POST['notas'],
+            $fechaProximaCalibracion, // Fecha calculada
+            $fechaProximoServicio     // Fecha calculada
         ]);
     }
 
