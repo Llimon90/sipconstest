@@ -46,10 +46,18 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarGestion();
 });
 
-// Función para ver el detalle completo (Series y Archivos)
-window.verDetalle = async (ventaId) => {
-    // Aquí abrirías un modal y harías un fetch a un nuevo endpoint 
-    // que traiga: SELECT * FROM venta_detalles WHERE venta_id = ? 
-    // y SELECT * FROM venta_archivos WHERE venta_id = ?
-    console.log("Consultando detalle de venta:", ventaId);
+// --- FUNCIONES GLOBALES DE ACCIÓN ---
+
+// 1. Función para ver el detalle completo (Redirige a la página de edición)
+window.verDetalle = (ventaId) => {
+    console.log("Redirigiendo a edición de venta:", ventaId);
+    // Cambia la URL y pasa el ID como parámetro GET
+    window.location.href = `detalles-venta.html?id=${ventaId}`;
+};
+
+// 2. Función placeholder para imprimir ticket (Para evitar errores de consola)
+window.imprimirTicket = (ventaId) => {
+    console.log("Generando ticket para venta:", ventaId);
+    alert(`La función para generar el PDF/Ticket de la venta ${ventaId} está en desarrollo.`);
+    // Aquí a futuro puedes hacer un window.open('backend/generar_ticket.php?id=' + ventaId, '_blank');
 };
