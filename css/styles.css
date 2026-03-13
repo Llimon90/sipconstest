@@ -2070,3 +2070,45 @@ main.contraido {
     border-radius: 5px;
     margin-bottom: 15px;
 }
+
+
+/* Contenedor relativo para la tarjeta de archivo */
+.card-archivo-wrapper {
+    position: relative;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease;
+}
+
+.card-archivo-wrapper:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* Icono de cierre superpuesto */
+.close-icon-overlap {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: #ef4444; /* color rojo de peligro */
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+    z-index: 10;
+}
+
+.close-icon-overlap:hover {
+    opacity: 1;
+}

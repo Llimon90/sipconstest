@@ -14,22 +14,35 @@ require_once 'conexion.php';
 $es_json = (isset($_SERVER["CONTENT_TYPE"]) && strpos($_SERVER["CONTENT_TYPE"], "application/json") !== false);
 
 if ($es_json) {
-    // Si la petición viene del módulo de Ventas (Fetch con JSON)
+    // Si la petición viene de Ventas (Fetch con JSON)
     $data = json_decode(file_get_contents('php://input'), true);
 } else {
-    // Si la petición viene del módulo antiguo de Incidencias (Form POST)
+    // Si la petición viene de Incidencias (Form POST)
     $data = $_POST;
 }
 
 // ==============================================
-// 3. Enrutamiento del Módulo
+// 3. Enrutamiento del Módulo e Identificación
 // ==============================================
 $modulo = null;
 $idTabla = null;
 $rutaFisica = null;
 
-// A. Lógica para el módulo de INCIDENCIAS (Compatibilidad hacia atrás)
-if (!empty($data['id_incidencia'])) {
+// Lógica universal: Detectar de qué módulo viene
+if (!empty($data['modulo']) && $data['modulo'] === 'ventas') {
+    // MÓDULO DE VENTAS
+    $modulo = 'ventas';
+    $idTabla = filter_var($data['id'], FILTER_VALIDATE_INT);
+    $rutaArchivo = filter_var($data['ruta'], FILTER_SANITIZE_STRING);
+    
+    if (!$idTabla || !$rutaArchivo) {
+        http_response_code(400);
+        die(json_encode(['success' => false, 'error' => 'Datos incompletos de venta.']));
+    }
+} 
+// Lógica para incidencias (compatibilidad con estructura existente)
+else if (!empty($data['id_incidencia']) && !empty($data['url_archivo'])) {
+    // MÓDULO DE INCIDENCIAS
     $modulo = 'incidencias';
     $idReferencia = filter_var($data['id_incidencia'], FILTER_VALIDATE_INT);
     $rutaArchivo = filter_var($data['url_archivo'], FILTER_SANITIZE_STRING);
@@ -39,20 +52,10 @@ if (!empty($data['id_incidencia'])) {
         http_response_code(400);
         die(json_encode(['success' => false, 'error' => 'Datos incompletos de incidencia.']));
     }
-} 
-// B. Lógica para el módulo de VENTAS
-else if (!empty($data['id']) && !empty($data['ruta'])) {
-    $modulo = 'ventas';
-    $idTabla = filter_var($data['id'], FILTER_VALIDATE_INT);
-    $rutaArchivo = filter_var($data['ruta'], FILTER_SANITIZE_STRING);
-    
-    if (!$idTabla || !$rutaArchivo) {
-        http_response_code(400);
-        die(json_encode(['success' => false, 'error' => 'Datos incompletos de venta.']));
-    }
 } else {
+    // No se pudo identificar el módulo
     http_response_code(400);
-    die(json_encode(['success' => false, 'error' => 'Parámetros no reconocidos por el servidor.', 'recibido' => $data]));
+    die(json_encode(['success' => false, 'error' => 'Parámetros no reconocidos por el servidor universal.']));
 }
 
 // ==============================================
@@ -69,15 +72,16 @@ try {
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$idReferencia, '%' . $nombreArchivo]);
         
+        // Lógica de incidencias: buscar en apptest/uploads
         $rutaCompleta = $_SERVER['DOCUMENT_ROOT'] . '/apptest/uploads/' . $nombreArchivo;
     } 
     else if ($modulo === 'ventas') {
-        // En ventas eliminamos directamente por el ID único de la tabla venta_archivos
+        // Lógica de ventas: eliminar directamente por ID único
         $sql = "DELETE FROM venta_archivos WHERE id = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$idTabla]);
         
-        // La ruta en ventas ya viene construida desde la base de datos (ej: ../uploads/ventas/Cliente/archivo.pdf)
+        // En ventas la ruta ya viene construida (ej: ../uploads/ventas/Cliente/archivo.pdf)
         $rutaCompleta = $rutaArchivo;
     }
 
@@ -88,8 +92,7 @@ try {
         http_response_code(404);
         die(json_encode([
             'success' => false,
-            'error' => 'Registro no encontrado en la base de datos',
-            'modulo' => $modulo
+            'error' => 'Registro no encontrado en la base de datos'
         ]));
     }
 
@@ -97,13 +100,13 @@ try {
     // 6. Eliminar archivo físico
     // ==============================================
     if (!file_exists($rutaCompleta)) {
-        // Si no existe físicamente, cancelamos el borrado de la DB para mantener tu lógica de seguridad estricta
+        // Para mantener tu lógica estricta, si no hay archivo físico, cancelamos el borrado de la DB
         $pdo->rollBack();
         http_response_code(404);
         die(json_encode([
             'success' => false,
-            'error' => 'Archivo no encontrado en el servidor físico',
-            'searched_path' => $rutaCompleta
+            'searched_path' => $rutaCompleta,
+            'error' => 'Archivo no encontrado en el servidor físico'
         ]));
     }
 
@@ -112,11 +115,8 @@ try {
         http_response_code(500);
         die(json_encode([
             'success' => false,
-            'error' => 'Error al eliminar archivo físico (Permisos denegados)',
-            'file_permissions' => [
-                'readable' => is_readable($rutaCompleta),
-                'writable' => is_writable($rutaCompleta)
-            ]
+            'searched_path' => $rutaCompleta,
+            'error' => 'Error al eliminar archivo físico (Permisos denegados)'
         ]));
     }
 
@@ -127,18 +127,13 @@ try {
 
     echo json_encode([
         'success' => true,
-        'exito' => true, // Doble bandera para compatibilidad con JS de ventas e incidencias
-        'message' => 'Archivo eliminado completamente del módulo ' . $modulo,
-        'details' => [
-            'db_deleted' => true,
-            'file_deleted' => true,
-            'modulo' => $modulo
-        ]
+        'exito' => true, // Doble bandera para compatibilidad
+        'message' => 'Archivo eliminado completamente del módulo ' . $modulo
     ]);
     
 } catch (PDOException $e) {
     $pdo->rollBack();
-    error_log("Error BD al eliminar archivo: " . $e->getMessage());
+    error_log("Error BD universal: " . $e->getMessage());
     http_response_code(500);
     die(json_encode([
         'success' => false,
@@ -147,11 +142,11 @@ try {
     ]));
 } catch (Exception $e) {
     $pdo->rollBack();
-    error_log("Error general: " . $e->getMessage());
+    error_log("Error universal general: " . $e->getMessage());
     http_response_code(500);
     die(json_encode([
         'success' => false,
-        'error' => 'Error interno al procesar',
+        'error' => 'Error interno',
         'message' => $e->getMessage()
     ]));
 }
