@@ -1,0 +1,49 @@
+<div class="dashboard-stats">
+    <div class="stat-card">
+        <i class="fas fa-shopping-cart"></i>
+        <div class="info">
+            <span class="label">Ventas Totales</span>
+            <span id="stat-total-ventas" class="value">0</span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-laptop-medical"></i>
+        <div class="info">
+            <span class="label">Equipos Registrados</span>
+            <span id="stat-total-equipos" class="value">0</span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-tools"></i>
+        <div class="info">
+            <span class="label">Con Servicio</span>
+            <span id="stat-con-servicio" class="value">0</span>
+        </div>
+    </div>
+</div>
+
+<div class="gestion-container">
+    <div class="table-header">
+        <h2><i class="fas fa-list-alt"></i> Seguimiento de Ventas</h2>
+        <div class="search-box">
+            <input type="text" id="filtro-busqueda" placeholder="Buscar por folio, cliente o serie...">
+        </div>
+    </div>
+    
+    <table class="tabla-sipcons">
+        <thead>
+            <tr>
+                <th>Folio</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Sucursal</th>
+                <th>Equipos</th>
+                <th>Marcas</th>
+                <th>Docs</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="tabla-gestion-body">
+            </tbody>
+    </table>
+</div>
