@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro de ventas</title>
+  <title>SIPCONS - Registro de Ventas</title>
   <link rel="stylesheet" href="../css/styles.css?v=4">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="../scripts/ventas.js?v=5" defer></script>
+  <script src="../scripts/ventas.js?v=5" defer></script>
 </head>
 
 <body>
@@ -31,7 +31,8 @@
       <li><a href="reportes.html" title="Buscar Incidencias"><i class="fas fa-search"></i><span class="sidebar-link-text">Buscar Incidencias</span></a></li>
       <li><a href="clientes.html" title="Clientes"><i class="fas fa-users"></i><span class="sidebar-link-text">Clientes</span></a></li>
       <li><a href="usuarios.html" title="Usuarios"><i class="fas fa-user-friends"></i><span class="sidebar-link-text">Usuarios</span></a></li>
-      <li><a href="ventas.html" title="Ventas" class="active"><i class="fas fa-chart-line"></i><span class="sidebar-link-text">Ventas</span></a></li>
+      <li><a href="ventas.html" title="Registro de Ventas" class="active"><i class="fas fa-cash-register"></i><span class="sidebar-link-text">Registro Ventas</span></a></li>
+      <li><a href="admin-ventas.html" title="Administrar Ventas"><i class="fas fa-chart-line"></i><span class="sidebar-link-text">Admin Ventas</span></a></li>
       <li><a href="soporte.html" title="Soporte Técnico"><i class="fas fa-headset"></i><span class="sidebar-link-text">Soporte Técnico</span></a></li>
       <li><a href="ajustes.html" title="Ajustes"><i class="fas fa-cog"></i><span class="sidebar-link-text">Ajustes</span></a></li>
     </ul>
@@ -46,13 +47,19 @@
   
   <main id="mainContent">
     <section class="encabezado">
-      <h2><i class="fas fa-cash-register"></i> Registro de Ventas</h2>
       
-      <form id="form-venta">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h2 style="margin: 0;"><i class="fas fa-cash-register"></i> Registro de Ventas</h2>
+          <a href="admin-ventas.html" style="background-color: #34495e; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.3s;">
+              <i class="fas fa-cogs"></i> Administrar Ventas
+          </a>
+      </div>
+      
+      <form id="form-venta" style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
         <div class="form-row">
           <div>
             <label for="cliente"><i class="fas fa-building"></i> Cliente:</label>
-            <select id="cliente" name="cliente" >
+            <select id="cliente" name="cliente" required>
               <option value="" selected disabled>Seleccione un cliente</option>
             </select>
           </div>
@@ -65,40 +72,40 @@
         <div class="form-row">
           <div>
             <label for="equipo"><i class="fas fa-desktop"></i> Equipo:</label>
-            <input type="text" id="equipo" name="equipo" placeholder="Tipo de equipo">
+            <input type="text" id="equipo" name="equipo" placeholder="Tipo de equipo" required>
           </div>
           <div>
             <label for="marca"><i class="fas fa-tag"></i> Marca:</label>
-            <input type="text" id="marca" name="marca" placeholder="Marca del equipo">
+            <input type="text" id="marca" name="marca" placeholder="Marca del equipo" required>
           </div>
         </div>
 
         <div class="form-row">
-          <div>
+          <div class="full-width">
             <label for="modelo"><i class="fas fa-cube"></i> Modelo:</label>
-            <input type="text" id="modelo" name="modelo" placeholder="Modelo específico">
+            <input type="text" id="modelo" name="modelo" placeholder="Modelo específico" required>
           </div>
         </div>
 
         <div class="form-row" style="align-items: flex-start;">
           <div>
             <label for="qty"><i class="fas fa-boxes"></i> Cantidad:</label>
-            <input type="number" id="qty" name="qty" min="1" value="1" required>
+            <input type="number" id="qty" name="qty" min="1" value="1" required style="font-weight: bold;">
           </div>
           <div>
             <label for="garantia"><i class="fas fa-shield-alt"></i> Garantía (meses):</label>
             <input type="number" id="garantia" name="garantia" min="0" placeholder="0">
           </div>
           <div>
-            <label for="calibracion"><i class="fas fa-tools"></i> Calibración Recomendada(meses):</label>
+            <label for="calibracion"><i class="fas fa-tools"></i> Calibración Recomendada (meses):</label>
             <input type="number" id="calibracion" name="calibracion" min="0" placeholder="0">
           </div>
           
           <div class="checkbox-container">
-            <label for="servicio" class="checkbox-label" style="margin-top: 10px;">
+            <label for="servicio" class="checkbox-label" style="margin-top: 10px; cursor: pointer;">
               <input type="checkbox" id="servicio" name="servicio">
               <span class="checkmark"></span>
-              <i class="fas fa-concierge-bell"></i> Cláusula de servicio
+              <strong><i class="fas fa-concierge-bell"></i> Cláusula de servicio</strong>
             </label>
             
             <div id="contenedor-frecuencia" style="display: none; margin-top: 10px; background: #f1f5f9; padding: 10px; border-radius: 5px; border-left: 3px solid #3498db; width: 100%; box-sizing: border-box;">
@@ -119,23 +126,22 @@
           </div>
         </div>
 
-        <div class="filtro-item" style="margin-bottom: 20px;">
-            <label for="facturas"><i class="fas fa-file-invoice"></i> Adjuntar Facturas/Archivos (Opcional):</label>
-            <input type="file" id="facturas" name="facturas[]" accept=".pdf, .jpg, .png, .docx" multiple class="form-control">
-            <small>Puedes seleccionar varios archivos a la vez.</small>
+        <div class="filtro-item" style="margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+            <label for="facturas"><i class="fas fa-file-upload"></i> Adjuntar Facturas/Archivos (Opcional):</label>
+            <input type="file" id="facturas" name="facturas[]" accept=".pdf, .jpg, .png, .docx" multiple class="form-control" style="margin-top: 10px;">
+            <small style="color: #7f8c8d; display: block; margin-top: 5px;">Puedes seleccionar varios archivos a la vez.</small>
         </div>
         
         <div class="form-row">
-          <button type="button" id="btn-registrar-venta" class="btn-primary">
-            <i class="fas fa-save"></i> Registrar Venta
+          <button type="button" id="btn-registrar-venta" class="btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem;">
+            <i class="fas fa-save"></i> Procesar y Registrar Venta
           </button>
         </div>
       </form>
 
       <div id="mensaje" class="mensaje"></div>
     </section>
-
-
+  </main>
 
   <script>
     async function cargarClientesEnSelect() {
