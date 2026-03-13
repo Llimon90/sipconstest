@@ -1,49 +1,109 @@
-<div class="dashboard-stats">
-    <div class="stat-card">
-        <i class="fas fa-shopping-cart"></i>
-        <div class="info">
-            <span class="label">Ventas Totales</span>
-            <span id="stat-total-ventas" class="value">0</span>
-        </div>
-    </div>
-    <div class="stat-card">
-        <i class="fas fa-laptop-medical"></i>
-        <div class="info">
-            <span class="label">Equipos Registrados</span>
-            <span id="stat-total-equipos" class="value">0</span>
-        </div>
-    </div>
-    <div class="stat-card">
-        <i class="fas fa-tools"></i>
-        <div class="info">
-            <span class="label">Con Servicio</span>
-            <span id="stat-con-servicio" class="value">0</span>
-        </div>
-    </div>
-</div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIPCONS - Gestión de Ventas</title>
+  <link rel="stylesheet" href="../css/styles.css?v=3">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="../scripts/gestion-ventas.js?v=1" defer></script>
+</head>
 
-<div class="gestion-container">
-    <div class="table-header">
-        <h2><i class="fas fa-list-alt"></i> Seguimiento de Ventas</h2>
-        <div class="search-box">
-            <input type="text" id="filtro-busqueda" placeholder="Buscar por folio, cliente o serie...">
-        </div>
+<body>
+  <div class="retorna">
+    <a href="../index.html"><i class="fas fa-arrow-left"></i> Inicio</a>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2 class="sidebar-title"><i class="fas fa-tools"></i> Panel</h2>
+      <button id="toggleSidebar" class="toggle-sidebar">
+        <i class="fas fa-chevron-left"></i>
+      </button>
     </div>
     
-    <table class="tabla-sipcons">
-        <thead>
+    <ul>
+      <li><a href="../index.html"><i class="fas fa-home"></i> <span class="sidebar-link-text">Inicio</span></a></li>
+      <li><a href="incidencias.html"><i class="fas fa-tasks"></i> <span class="sidebar-link-text">Incidencias</span></a></li>
+      <li><a href="reportes.html"><i class="fas fa-search"></i> <span class="sidebar-link-text">Buscar Incidencias</span></a></li>
+      <li><a href="clientes.html"><i class="fas fa-users"></i> <span class="sidebar-link-text">Clientes</span></a></li>
+      <li><a href="usuarios.html"><i class="fas fa-user-friends"></i> <span class="sidebar-link-text">Usuarios</span></a></li>
+      <li><a href="ventas.html" class="active"><i class="fas fa-chart-line"></i> <span class="sidebar-link-text">Ventas</span></a></li>
+      <li><a href="soporte.html"><i class="fas fa-headset"></i> <span class="sidebar-link-text">Soporte Técnico</span></a></li>
+      <li><a href="ajustes.html"><i class="fas fa-cog"></i> <span class="sidebar-link-text">Ajustes</span></a></li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <i class="fas fa-user-circle"></i>
+        <span class="user-name">Administrador</span>
+      </div>
+    </div>
+  </aside>
+  
+  <main id="mainContent">
+    <section class="encabezado">
+      <h2><i class="fas fa-briefcase"></i> Gestión y Seguimiento de Ventas</h2>
+      
+      <div class="dashboard-stats" style="display: flex; gap: 20px; margin-bottom: 25px;">
+          <div class="stat-card" style="flex:1; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+              <span style="color: #7f8c8d; font-size: 0.8rem; font-weight: bold;">VENTAS</span>
+              <div id="stat-total-ventas" style="font-size: 1.5rem; font-weight: bold; color: #2c3e50;">0</div>
+          </div>
+          <div class="stat-card" style="flex:1; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+              <span style="color: #7f8c8d; font-size: 0.8rem; font-weight: bold;">EQUIPOS</span>
+              <div id="stat-total-equipos" style="font-size: 1.5rem; font-weight: bold; color: #2c3e50;">0</div>
+          </div>
+          <div class="stat-card" style="flex:1; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+              <span style="color: #7f8c8d; font-size: 0.8rem; font-weight: bold;">CON SERVICIO</span>
+              <div id="stat-con-servicio" style="font-size: 1.5rem; font-weight: bold; color: #27ae60;">0</div>
+          </div>
+      </div>
+
+      <div class="filtros" style="margin-bottom: 20px;">
+          <input type="text" id="busqueda-gestion" class="filtro-input" placeholder="Buscar por Folio, Cliente o Marca..." style="width: 100%; max-width: 400px;">
+      </div>
+
+      <div class="tabla-container">
+        <table class="tabla-ventas">
+          <thead>
             <tr>
-                <th>Folio</th>
-                <th>Fecha</th>
-                <th>Cliente</th>
-                <th>Sucursal</th>
-                <th>Equipos</th>
-                <th>Marcas</th>
-                <th>Docs</th>
-                <th>Acciones</th>
+              <th>Folio</th>
+              <th>Fecha</th>
+              <th>Cliente</th>
+              <th>Equipos</th>
+              <th>Docs</th>
+              <th>Acciones</th>
             </tr>
-        </thead>
-        <tbody id="tabla-gestion-body">
+          </thead>
+          <tbody id="tabla-gestion-body">
             </tbody>
-    </table>
-</div>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div id="modal-detalle" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000;">
+      <div style="background:#fff; width:90%; max-width:700px; margin:5% auto; border-radius:10px; padding:20px; position:relative;">
+          <span onclick="cerrarModal()" style="position:absolute; right:20px; top:15px; cursor:pointer; font-size:1.5rem;">&times;</span>
+          <h3 id="modal-titulo">Detalles de Venta</h3>
+          <hr>
+          <div style="display:flex; gap:20px; margin-top:20px;">
+              <div style="flex:1;">
+                  <h4>Series</h4>
+                  <ul id="lista-series" style="list-style:none; padding:0;"></ul>
+              </div>
+              <div style="flex:1;">
+                  <h4>Archivos</h4>
+                  <ul id="lista-archivos" style="list-style:none; padding:0;"></ul>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <script src="../scripts/sidebar-state.js"></script>
+  <script>
+      function cerrarModal() { document.getElementById('modal-detalle').style.display = 'none'; }
+  </script>
+</body>
+</html>
