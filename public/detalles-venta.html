@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIPCONS - Administrar Venta</title>
+  <link rel="stylesheet" href="../css/styles.css?v=3">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="../scripts/detalles-venta.js" defer></script>
+</head>
+<body>
+  <div class="retorna">
+    <a href="ventas.html"><i class="fas fa-arrow-left"></i> Regresar a Ventas</a>
+  </div>
+
+  <aside class="sidebar">
+    </aside>
+
+  <main id="mainContent">
+    <section class="encabezado">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h2><i class="fas fa-edit"></i> Administrar Venta <span id="txt-folio">...</span></h2>
+          <button id="btn-eliminar-venta" class="btn-danger" style="background:#e74c3c; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">
+              <i class="fas fa-trash"></i> Eliminar Venta
+          </button>
+      </div>
+
+      <div class="gestion-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-top: 20px;">
+          
+          <div class="card-admin" style="background:#fff; padding:20px; border-radius:10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+              <h3><i class="fas fa-info-circle"></i> Datos Generales</h3>
+              <form id="form-editar-venta">
+                  <div class="form-row">
+                      <div class="full-width">
+                          <label>Cliente:</label>
+                          <input type="text" id="edit-cliente" class="filtro-input">
+                      </div>
+                  </div>
+                  <div class="form-row">
+                      <div>
+                          <label>Equipo:</label>
+                          <input type="text" id="edit-equipo" class="filtro-input">
+                      </div>
+                      <div>
+                          <label>Marca:</label>
+                          <input type="text" id="edit-marca" class="filtro-input">
+                      </div>
+                  </div>
+                  
+                  <h4><i class="fas fa-barcode"></i> Series Registradas</h4>
+                  <div id="container-series-edit">
+                      </div>
+
+                  <button type="button" id="btn-guardar-cambios" class="btn-primary" style="margin-top:20px; width: 100%;">
+                      <i class="fas fa-sync-alt"></i> Actualizar Información
+                  </button>
+              </form>
+          </div>
+
+          <div class="card-admin" style="background:#fff; padding:20px; border-radius:10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+              <h3><i class="fas fa-folder-open"></i> Archivos Adjuntos</h3>
+              
+              <div id="lista-archivos-admin" style="margin-bottom: 20px;">
+                  </div>
+
+              <hr>
+              <h4 style="margin-top:15px;">Agregar más archivos</h4>
+              <input type="file" id="nuevos-archivos" multiple style="width: 100%; margin-bottom: 10px;">
+              <button id="btn-subir-mas" class="btn-secondary" style="width: 100%;">
+                  <i class="fas fa-upload"></i> Subir y Guardar
+              </button>
+          </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
