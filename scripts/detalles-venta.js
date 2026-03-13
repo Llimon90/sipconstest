@@ -1,11 +1,8 @@
 /**
  * scripts/detalles-venta.js
- * Lógica Completa: Cantidad Dinámica, Anti-Duplicados y Archivos PDF.js - SIPCONS
+ * Lógica Completa (Cantidades Dinámicas, Frecuencia de Servicio y PDF.js) - SIPCONS
  */
 
-// ==========================================
-// 1. CONFIGURACIÓN Y UTILIDADES
-// ==========================================
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
 function getShortFileName(fileName, maxLength = 18) {
@@ -21,7 +18,7 @@ function showNotification(message, type = 'success') {
 }
 
 // ==========================================
-// 2. RENDERIZADO DE ARCHIVOS (Estilo Incidencias)
+// RENDERIZADO DE ARCHIVOS ESTÉTICO
 // ==========================================
 async function renderPdfThumbnail(archivo, canvas) {
     try {
@@ -160,7 +157,6 @@ async function cargarArchivosAdjuntosVentas(archivosArray) {
     if (archivosArray && archivosArray.length > 0) {
         for (const archivoObj of archivosArray) {
             const { container, preview, ext, url } = createFileContainer(archivoObj);
-
             if (ext === 'pdf' && preview) {
                 try {
                     await renderPdfThumbnail(url, preview);
@@ -203,7 +199,7 @@ async function borrarArchivoVenta(idArchivo, urlArchivo, containerElement) {
 }
 
 // ==========================================
-// 3. FLUJO PRINCIPAL Y CANTIDAD DINÁMICA
+// FLUJO PRINCIPAL
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -220,6 +216,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const seriesContainer = document.getElementById('container-series-edit');
     const btnGuardar = document.getElementById('btn-guardar-cambios');
     let valorPrevioQty = 0;
+
+    // Elementos de la Frecuencia de Servicio
+    const checkServicio = document.getElementById('servicio');
+    const contenedorFrecuencia = document.getElementById('contenedor-frecuencia');
+    const inputFrecuencia = document.getElementById('frecuencia_servicio');
+
+    // Evento para mostrar/ocultar frecuencia de servicio
+    checkServicio.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            contenedorFrecuencia.style.display = 'block';
+            inputFrecuencia.required = true;
+            if (!inputFrecuencia.value) inputFrecuencia.value = 6; // Por defecto 6 meses
+        } else {
+            contenedorFrecuencia.style.display = 'none';
+            inputFrecuencia.required = false;
+            inputFrecuencia.value = ''; 
+        }
+    });
 
     // Validación Anti-Duplicados
     const validarSeries = () => {
@@ -259,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     riesgo++;
                 }
             }
-            if (riesgo > 0 && !confirm(`¡Atención Limon! Borrarás ${riesgo} serie(s) ya capturadas. ¿Estás seguro?`)) {
+            if (riesgo > 0 && !confirm(`¡Atención Limon! Borrarás ${riesgo} serie(s) ya capturadas o guardadas. ¿Estás seguro?`)) {
                 qtyInput.value = valorPrevioQty;
                 return;
             }
@@ -278,9 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 seriesContainer.appendChild(div);
             }
         } else {
-            for (let i = actuales.length; i > cant; i--) {
-                seriesContainer.lastElementChild.remove();
-            }
+            for (let i = actuales.length; i > cant; i--) seriesContainer.lastElementChild.remove();
         }
 
         valorPrevioQty = qtyInput.value;
@@ -289,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     qtyInput.addEventListener('input', actualizarCamposSerie);
 
-    // Carga de Datos desde la BD
+    // Carga de Datos
     const cargarDatos = async () => {
         try {
             const resp = await fetch(`../backend/obtener_venta_full.php?id=${ventaId}`);
@@ -307,11 +319,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('modelo').value = d.modelo || '';
                     document.getElementById('garantia').value = d.garantia || 0;
                     document.getElementById('calibracion').value = d.calibracion || 0;
-                    document.getElementById('servicio').checked = (d.servicio == 1);
                     document.getElementById('notas').value = d.notas || '';
+                    
+                    // Configurar checkbox y frecuencia
+                    document.getElementById('servicio').checked = (d.servicio == 1);
+                    if (d.servicio == 1) {
+                        contenedorFrecuencia.style.display = 'block';
+                        inputFrecuencia.required = true;
+                        inputFrecuencia.value = d.frecuencia_servicio || 6;
+                    }
                 }
 
-                // Ajustamos el input de cantidad a la cantidad de series que vienen de la BD
                 qtyInput.value = data.series.length;
                 valorPrevioQty = data.series.length;
 
@@ -332,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     cargarDatos();
 
-    // Guardar los cambios (Envío de FormData)
+    // Guardar los cambios (FormData)
     btnGuardar.addEventListener('click', async () => {
         const form = document.getElementById('form-editar-venta');
         const { hayErrores, hayVacios } = validarSeries();
@@ -347,7 +365,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // El FormData captura TODOS los inputs, incluyendo el input tipo "file" automáticamente
         const formData = new FormData(form);
         formData.set('servicio', document.getElementById('servicio').checked ? 1 : 0);
 
@@ -378,7 +395,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Eliminar la venta completa
     document.getElementById('btn-eliminar-venta').addEventListener('click', async () => {
         if(confirm("¡ATENCIÓN! Esto borrará permanentemente la venta, sus series y todos los archivos. ¿Proceder?")) {
             try {

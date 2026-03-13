@@ -28,48 +28,52 @@ try {
     ]);
 
     // ==========================================
-    // 2. ACTUALIZAR, INSERTAR O ELIMINAR SERIES DINÁMICAMENTE (Tabla: venta_detalles)
+    // 2. ACTUALIZAR, INSERTAR O ELIMINAR SERIES DINÁMICAMENTE
     // ==========================================
     if (isset($_POST['series_json'])) {
         $seriesRecibidas = json_decode($_POST['series_json'], true);
         
-        // Obtenemos los IDs de las series que existen actualmente en la base de datos
+        // IDs actuales en la base de datos para esta venta
         $stmtCurrent = $pdo->prepare("SELECT id FROM venta_detalles WHERE venta_id = ?");
         $stmtCurrent->execute([$idVenta]);
         $idsActuales = $stmtCurrent->fetchAll(PDO::FETCH_COLUMN);
 
         $idsQueSeQuedan = [];
 
-        // Preparamos las sentencias SQL
-        $stmtUpdate = $pdo->prepare("UPDATE venta_detalles SET equipo=?, marca=?, modelo=?, numero_serie=?, garantia=?, calibracion=?, servicio=?, notas=? WHERE id=?");
-        $stmtInsert = $pdo->prepare("INSERT INTO venta_detalles (venta_id, equipo, marca, modelo, numero_serie, garantia, calibracion, servicio, notas) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        // Evaluar variables de servicio
+        $tieneServicio = !empty($_POST['servicio']) ? 1 : 0;
+        $frecuencia = $tieneServicio ? ($_POST['frecuencia_servicio'] ?? 0) : 0;
+
+        // Preparar sentencias SQL
+        $stmtUpdate = $pdo->prepare("UPDATE venta_detalles SET equipo=?, marca=?, modelo=?, numero_serie=?, garantia=?, calibracion=?, servicio=?, frecuencia_servicio=?, notas=? WHERE id=?");
+        $stmtInsert = $pdo->prepare("INSERT INTO venta_detalles (venta_id, equipo, marca, modelo, numero_serie, garantia, calibracion, servicio, frecuencia_servicio, notas) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         if (!empty($seriesRecibidas)) {
             foreach ($seriesRecibidas as $s) {
                 if (!empty($s['id_detalle']) && $s['id_detalle'] !== 'nuevo') {
-                    // Es un equipo que ya existía, lo actualizamos
+                    // ACTUALIZAR serie existente
                     $idsQueSeQuedan[] = $s['id_detalle'];
                     $stmtUpdate->execute([
                         $_POST['equipo'], $_POST['marca'], $_POST['modelo'],
                         $s['serie'],
                         $_POST['garantia'] ?? 0, $_POST['calibracion'] ?? 0,
-                        ($_POST['servicio'] ? 1 : 0), $_POST['notas'] ?? '',
+                        $tieneServicio, $frecuencia, $_POST['notas'] ?? '',
                         $s['id_detalle']
                     ]);
                 } else {
-                    // Es un campo nuevo que se generó dinámicamente, hacemos INSERT
+                    // INSERTAR serie nueva (si la cantidad de equipos aumentó)
                     $stmtInsert->execute([
                         $idVenta,
                         $_POST['equipo'], $_POST['marca'], $_POST['modelo'],
                         $s['serie'],
                         $_POST['garantia'] ?? 0, $_POST['calibracion'] ?? 0,
-                        ($_POST['servicio'] ? 1 : 0), $_POST['notas'] ?? ''
+                        $tieneServicio, $frecuencia, $_POST['notas'] ?? ''
                     ]);
                 }
             }
         }
 
-        // Detectar cuáles equipos se borraron en pantalla al reducir la CANTIDAD
+        // Eliminar las series que se quitaron en pantalla al reducir la cantidad
         $idsAEliminar = array_diff($idsActuales, $idsQueSeQuedan);
         if (!empty($idsAEliminar)) {
             $placeholders = implode(',', array_fill(0, count($idsAEliminar), '?'));
@@ -81,7 +85,6 @@ try {
     // ==========================================
     // 3. SUBIR ARCHIVOS NUEVOS
     // ==========================================
-    // Como usamos FormData en el JS, el input de archivos llega limpio y sin duplicados en $_FILES
     if (isset($_FILES['nuevos_facturas']) && !empty($_FILES['nuevos_facturas']['name'][0])) {
         
         $infoVenta = $pdo->query("SELECT folio, cliente FROM ventas WHERE id = $idVenta")->fetch(PDO::FETCH_ASSOC);

@@ -4,13 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIPCONS - Detalle de Venta</title>
-    <link rel="stylesheet" href="../css/styles.css?v=5">
+    <link rel="stylesheet" href="../css/styles.css?v=6">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     
     <style>
-        /* Estilos para notificaciones flotantes */
         .notificacion {
             position: fixed; top: 20px; right: 20px; padding: 15px 25px;
             border-radius: 5px; color: white; font-weight: bold; z-index: 9999;
@@ -25,8 +24,7 @@
 <body>
 
     <button class="mobile-home-btn" onclick="window.location.href='../index.html'" style="display: none;">
-        <i class="fas fa-home"></i>
-        <span>Volver al Inicio</span>
+        <i class="fas fa-home"></i> <span>Volver al Inicio</span>
     </button>
 
     <aside class="sidebar">
@@ -91,24 +89,32 @@
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 20px; margin-bottom: 20px; align-items: center;">
+                <div style="display: flex; gap: 20px; margin-bottom: 20px; align-items: flex-start;">
                     <div style="flex: 1;">
                         <label>CANTIDAD:</label>
-                        <input type="number" id="qty" name="qty" min="1" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; color: #2c3e50;">
+                        <input type="number" id="qty" name="qty" min="1" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold;">
                     </div>
                     <div style="flex: 1;">
                         <label>GARANTÍA (MESES):</label>
                         <input type="number" id="garantia" name="garantia" min="0" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                     </div>
                     <div style="flex: 1;">
-                        <label>CALIBRACIÓN (MESES):</label>
+                        <label>CALIBRACIÓN RECOMENDADA (MESES):</label>
                         <input type="number" id="calibracion" name="calibracion" min="0" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                     </div>
+                    
                     <div style="flex: 1;">
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 20px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 10px;">
                             <input type="checkbox" id="servicio" name="servicio" style="width: 20px; height: 20px;">
                             <strong>CLÁUSULA DE SERVICIO</strong>
                         </label>
+                        
+                        <div id="contenedor-frecuencia" style="display: none; margin-top: 10px; background: #f1f5f9; padding: 10px; border-radius: 5px; border-left: 3px solid #3498db;">
+                            <label style="font-size: 0.8rem; font-weight: bold; color: #2c3e50;">
+                                <i class="fas fa-calendar-alt"></i> FRECUENCIA (MESES):
+                            </label>
+                            <input type="number" id="frecuencia_servicio" name="frecuencia_servicio" min="1" placeholder="Ej. 6" style="width: 100%; padding: 5px; margin-top: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                        </div>
                     </div>
                 </div>
 
@@ -122,6 +128,15 @@
                     <label>NOTAS ADICIONALES:</label>
                     <textarea id="notas" name="notas" style="width: 100%; height: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
                 </div>
+
+                <div style="margin-bottom: 30px;">
+                    <button type="button" id="btn-guardar-cambios" style="padding: 12px 25px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; transition: 0.3s;">
+                        <i class="fas fa-save"></i> Guardar Cambios de la Venta
+                    </button>
+                </div>
+            </form>
+        </section>
+        
         <section class="archivos-incidencia" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
             <h2><i class="fas fa-folder-open"></i> Archivos de la Venta</h2>
             
@@ -135,23 +150,13 @@
                        accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx,.xls,.xlsx"
                        style="width: 100%; max-width: 500px; padding: 10px; border: 1px dashed #ccc; border-radius: 5px; background: #fafafa;">
                 <p style="font-size: 12px; color: #e74c3c; margin-top: 8px;">
-                    <i class="fas fa-info-circle"></i> Al seleccionar archivos nuevos, debes dar clic en "Guardar Cambios de la Venta" arriba para subirlos al servidor.
+                    <i class="fas fa-info-circle"></i> Selecciona los archivos y da clic en "Guardar Cambios de la Venta" arriba para subirlos.
                 </p>
             </div>
         </section>
-
-                <div style="margin-bottom: 30px;">
-                    <button type="button" id="btn-guardar-cambios" style="padding: 12px 25px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; transition: 0.3s;">
-                        <i class="fas fa-save"></i> Guardar Cambios de la Venta
-                    </button>
-                </div>
-            </form>
-        </section>
-        
-
     </main>
 
     <script src="../scripts/sidebar-state.js"></script>
-    <script src="../scripts/detalles-venta.js?v=6"></script> 
+    <script src="../scripts/detalles-venta.js?v=7"></script> 
 </body>
 </html>
