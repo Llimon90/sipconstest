@@ -1,115 +1,265 @@
 /**
  * scripts/detalles-venta.js
- * Módulo de Administración y Edición de Ventas - SIPCONS
+ * Lógica Completa (Estilo Incidencias) para Detalles de Venta - SIPCONS
  */
 
+// ==========================================
+// 1. CONFIGURACIÓN Y UTILIDADES
+// ==========================================
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+function getShortFileName(fileName, maxLength = 18) {
+    return fileName.length > maxLength ? fileName.substring(0, maxLength) + '...' : fileName;
+}
+
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `notificacion ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+}
+
+// ==========================================
+// 2. RENDERIZADO DE ARCHIVOS (Estilo Incidencias)
+// ==========================================
+async function renderPdfThumbnail(archivo, canvas) {
+    try {
+        const pdf = await pdfjsLib.getDocument(archivo).promise;
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: 1 });
+        const context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        await page.render({ canvasContext: context, viewport: viewport }).promise;
+    } catch (error) {
+        console.error('Error al renderizar miniatura de PDF:', error);
+        throw error;
+    }
+}
+
+function createFilePreview(archivo, ext) {
+    let previewElement;
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+        previewElement = document.createElement('img');
+        previewElement.src = archivo;
+        previewElement.style.maxWidth = '100px';
+        previewElement.style.maxHeight = '100px';
+        previewElement.style.objectFit = 'contain';
+        previewElement.style.cursor = 'pointer';
+    } else if (ext === 'pdf') {
+        previewElement = document.createElement('canvas');
+        previewElement.style.maxWidth = '100px';
+        previewElement.style.maxHeight = '100px';
+        previewElement.style.cursor = 'pointer';
+        previewElement.style.border = '1px solid #eee'; // Le da forma al canvas blanco
+    } else {
+        previewElement = document.createElement('i');
+        previewElement.className = 'fas fa-file-alt';
+        previewElement.style.fontSize = '60px';
+        previewElement.style.color = '#95a5a6';
+        previewElement.style.cursor = 'pointer';
+    }
+    return previewElement;
+}
+
+function createFileContainer(archivoObj) {
+    const archivoUrl = archivoObj.ruta_archivo;
+    const nombreOriginal = archivoObj.nombre_archivo;
+    const idArchivo = archivoObj.id;
+    const ext = archivoUrl.split('.').pop().toLowerCase();
+
+    // Contenedor principal idéntico al de incidencias
+    const archivoContainer = document.createElement('div');
+    archivoContainer.className = 'archivo-container';
+    archivoContainer.style.position = 'relative';
+    archivoContainer.style.margin = '10px';
+    archivoContainer.style.padding = '10px';
+    archivoContainer.style.border = '1px solid #ddd';
+    archivoContainer.style.borderRadius = '5px';
+    archivoContainer.style.display = 'inline-block';
+    archivoContainer.style.width = '130px'; 
+    archivoContainer.style.height = '160px';
+    archivoContainer.style.verticalAlign = 'top';
+    archivoContainer.style.backgroundColor = '#fafafa';
+
+    // Enlace
+    const link = document.createElement('a');
+    link.href = archivoUrl;
+    link.target = '_blank';
+    link.style.textDecoration = 'none';
+    link.style.color = '#333';
+    link.style.display = 'flex';
+    link.style.flexDirection = 'column';
+    link.style.alignItems = 'center';
+    link.style.height = '100%';
+
+    // Contenedor centrado para la miniatura
+    const divCentrado = document.createElement('div');
+    divCentrado.style.display = 'flex';
+    divCentrado.style.justifyContent = 'center';
+    divCentrado.style.alignItems = 'center';
+    divCentrado.style.height = '100px';
+    divCentrado.style.width = '100%';
+    divCentrado.style.marginBottom = '8px';
+
+    const previewElement = createFilePreview(archivoUrl, ext);
+    if (previewElement) {
+        divCentrado.appendChild(previewElement);
+    }
+    link.appendChild(divCentrado);
+
+    // Texto truncado
+    const fileNameSpan = document.createElement('span');
+    fileNameSpan.textContent = getShortFileName(nombreOriginal);
+    fileNameSpan.title = nombreOriginal;
+    fileNameSpan.style.display = 'block';
+    fileNameSpan.style.textAlign = 'center';
+    fileNameSpan.style.fontSize = '12px';
+    fileNameSpan.style.lineHeight = '1.2';
+    link.appendChild(fileNameSpan);
+
+    // Botón rojo de eliminar
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'eliminar-archivo';
+    deleteBtn.innerHTML = '<i class="fas fa-times"></i>'; // Usamos el icono X para que se vea mejor
+    deleteBtn.style.position = 'absolute';
+    deleteBtn.style.top = '-8px';
+    deleteBtn.style.right = '-8px';
+    deleteBtn.style.background = '#ff4d4f';
+    deleteBtn.style.color = 'white';
+    deleteBtn.style.border = 'none';
+    deleteBtn.style.borderRadius = '50%';
+    deleteBtn.style.width = '24px';
+    deleteBtn.style.height = '24px';
+    deleteBtn.style.cursor = 'pointer';
+    deleteBtn.style.display = 'flex';
+    deleteBtn.style.alignItems = 'center';
+    deleteBtn.style.justifyContent = 'center';
+    deleteBtn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+    
+    deleteBtn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        borrarArchivoVenta(idArchivo, archivoUrl, archivoContainer);
+    };
+
+    archivoContainer.appendChild(link);
+    archivoContainer.appendChild(deleteBtn);
+
+    return { container: archivoContainer, preview: previewElement, ext: ext, url: archivoUrl };
+}
+
+async function cargarArchivosAdjuntosVentas(archivosArray) {
+    const contenedorArchivos = document.getElementById("contenedor-archivos");
+    contenedorArchivos.innerHTML = "";
+
+    if (archivosArray && archivosArray.length > 0) {
+        for (const archivoObj of archivosArray) {
+            const { container, preview, ext, url } = createFileContainer(archivoObj);
+
+            if (ext === 'pdf' && preview) {
+                try {
+                    await renderPdfThumbnail(url, preview);
+                } catch (error) {
+                    const errorSpan = document.createElement('span');
+                    errorSpan.textContent = 'PDF (Error preview)';
+                    preview.replaceWith(errorSpan);
+                }
+            }
+            contenedorArchivos.appendChild(container);
+        }
+    } else {
+        contenedorArchivos.innerHTML = "<p style='color:#95a5a6; padding: 20px;'>No hay archivos adjuntos para esta venta.</p>";
+    }
+}
+
+// ==========================================
+// 3. LOGICA DEL SERVIDOR (FETCH)
+// ==========================================
+
+// Eliminar Archivo Individual
+async function borrarArchivoVenta(idArchivo, urlArchivo, containerElement) {
+    if (!confirm('¿Estás seguro de que deseas eliminar este archivo permanentemente?')) return;
+
+    containerElement.classList.add('eliminando');
+
+    try {
+        const resp = await fetch("../backend/eliminar_archivo.php", {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: idArchivo, ruta: urlArchivo, modulo: 'ventas' })
+        });
+
+        const data = await resp.json();
+
+        if (data.success || data.exito) {
+            containerElement.remove();
+            showNotification('Archivo eliminado correctamente', 'success');
+        } else {
+            throw new Error(data.error || data.mensaje || 'Error al eliminar');
+        }
+    } catch (error) {
+        showNotification(error.message, 'error');
+        containerElement.classList.remove('eliminando');
+    }
+}
+
+// Carga Inicial
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Obtener ID de la URL
     const urlParams = new URLSearchParams(window.location.search);
     const ventaId = urlParams.get('id');
 
     if (!ventaId) {
-        alert("Error: ID de venta no válido.");
+        alert("Error: ID no encontrado.");
         window.location.href = 'ventas.html';
         return;
     }
+    document.getElementById('venta_id').value = ventaId;
 
-    // Asignar el ID al input oculto del formulario
-    const inputVentaId = document.getElementById('venta_id');
-    if(inputVentaId) inputVentaId.value = ventaId;
-
-    // ==========================================
-    // 2. CARGAR DATOS DE LA VENTA Y ARCHIVOS
-    // ==========================================
     const cargarDatos = async () => {
         try {
             const resp = await fetch(`../backend/obtener_venta_full.php?id=${ventaId}`);
             const data = await resp.json();
 
             if (data.exito) {
-                // Llenar Cabecera
+                // Llenar Formulario
                 document.getElementById('txt-folio').textContent = data.venta.folio;
                 document.getElementById('cliente').value = data.venta.cliente;
                 document.getElementById('sucursal').value = data.venta.sucursal;
 
-                // Llenar Detalles Generales (Tomamos la primera serie como referencia)
                 if(data.series.length > 0) {
-                    const detalle = data.series[0];
-                    document.getElementById('equipo').value = detalle.equipo || '';
-                    document.getElementById('marca').value = detalle.marca || '';
-                    document.getElementById('modelo').value = detalle.modelo || '';
-                    document.getElementById('garantia').value = detalle.garantia || 0;
-                    document.getElementById('calibracion').value = detalle.calibracion || 0;
-                    document.getElementById('servicio').checked = (detalle.servicio == 1);
-                    document.getElementById('notas').value = detalle.notas || '';
+                    const d = data.series[0];
+                    document.getElementById('equipo').value = d.equipo || '';
+                    document.getElementById('marca').value = d.marca || '';
+                    document.getElementById('modelo').value = d.modelo || '';
+                    document.getElementById('garantia').value = d.garantia || 0;
+                    document.getElementById('calibracion').value = d.calibracion || 0;
+                    document.getElementById('servicio').checked = (d.servicio == 1);
+                    document.getElementById('notas').value = d.notas || '';
                 }
 
-                // Generar Inputs de Series Dinámicas
+                // Generar Inputs de Series
                 const contSeries = document.getElementById('container-series-edit');
                 contSeries.innerHTML = data.series.map((s, index) => `
-                    <div>
-                        <label style="font-size: 0.8rem; color: #7f8c8d; font-weight: 600;">Equipo ${index + 1}</label>
-                        <input type="text" class="serie-edit-input filtro-input" data-id="${s.id}" value="${s.numero_serie}" required style="width:100%; box-sizing: border-box;">
+                    <div style="background: white; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <label style="font-size: 0.8rem; color: #7f8c8d; font-weight: bold;">SERIE EQUIPO ${index + 1}</label>
+                        <input type="text" class="serie-edit-input" data-id="${s.id}" value="${s.numero_serie}" required style="width: 100%; padding: 5px; margin-top: 5px; border: 1px solid #ccc; border-radius: 3px;">
                     </div>
                 `).join('');
 
-                // ==========================================
-                // GENERAR CUADRÍCULA ESTILO INCIDENCIAS
-                // ==========================================
-                const contArchivos = document.getElementById('grid-archivos-admin');
-                contArchivos.className = 'grid-archivos-estilo-incidencia'; // Aseguramos la clase CSS
-                
-                contArchivos.innerHTML = data.archivos.map(a => {
-                    const ext = a.ruta_archivo.split('.').pop().toLowerCase();
-                    const esImagen = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
-                    const esPdf = ext === 'pdf';
-
-                    let elementoVisual = '';
-                    let accionClickPreview = `abrirVistaPrevia('${a.ruta_archivo}', 'defecto')`;
-
-                    if (esImagen) {
-                        elementoVisual = `<img src="${a.ruta_archivo}" alt="miniatura">`;
-                        accionClickPreview = `abrirVistaPrevia('${a.ruta_archivo}', 'imagen')`;
-                    } else if (esPdf) {
-                        // Truco para previsualizar la primera hoja del PDF
-                        elementoVisual = `
-                            <iframe src="${a.ruta_archivo}#toolbar=0&navpanes=0&scrollbar=0&view=Fit" style="width: 100%; height: 100%; border: none; overflow: hidden; pointer-events: none;" scrolling="no" tabindex="-1"></iframe>
-                            <div style="position: absolute; top:0; left:0; width:100%; height:100%; background: transparent; z-index: 5;"></div>
-                        `;
-                        accionClickPreview = `abrirVistaPrevia('${a.ruta_archivo}', 'pdf')`;
-                    } else {
-                        // Icono genérico para Word, Excel, etc.
-                        elementoVisual = `<i class="fas fa-file-alt" style="font-size: 40px; color: #95a5a6;"></i>`;
-                        accionClickPreview = `window.open('${a.ruta_archivo}', '_blank')`; 
-                    }
-
-                    return `
-                    <div class="tarjeta-archivo">
-                        <button type="button" class="btn-eliminar-estetico" onclick="borrarArchivo(${a.id}, '${a.ruta_archivo}')" title="Eliminar archivo">
-                            <i class="fas fa-times"></i>
-                        </button>
-                        
-                        <div class="miniatura-container" onclick="${accionClickPreview}">
-                            ${elementoVisual}
-                        </div>
-                        
-                        <div class="nombre-archivo-estetico" title="${a.nombre_archivo}">
-                            ${a.nombre_archivo}
-                        </div>
-                    </div>
-                    `;
-                }).join('') || '<div style="width: 100%; text-align: center; color: #95a5a6; padding: 20px;">No hay archivos adjuntos en esta venta.</div>';
+                // Renderizar Archivos
+                cargarArchivosAdjuntosVentas(data.archivos);
             }
         } catch (e) {
             console.error("Error al cargar la venta:", e);
+            showNotification("Error al cargar los datos", "error");
         }
     };
 
     cargarDatos();
 
-    // ==========================================
-    // 3. GUARDAR CAMBIOS (Formulario + Nuevos Archivos)
-    // ==========================================
+    // Guardar Cambios Generales
     document.getElementById('btn-guardar-cambios').addEventListener('click', async () => {
         const btn = document.getElementById('btn-guardar-cambios');
         const form = document.getElementById('form-editar-venta');
@@ -122,13 +272,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData(form);
         formData.set('servicio', document.getElementById('servicio').checked ? 1 : 0);
 
-        // Recolectar las series editadas
         const inputsSeries = document.querySelectorAll('.serie-edit-input');
         const seriesData = Array.from(inputsSeries).map(input => ({
             id_detalle: input.getAttribute('data-id'),
             serie: input.value.trim().toUpperCase()
         }));
         formData.append('series_json', JSON.stringify(seriesData));
+
+        // Adjuntar archivos nuevos
+        const archivosInput = document.getElementById("nuevos_facturas").files;
+        for (let i = 0; i < archivosInput.length; i++) {
+            formData.append("nuevos_facturas[]", archivosInput[i]);
+        }
 
         try {
             btn.disabled = true;
@@ -141,25 +296,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const res = await resp.json();
             if (res.exito) {
-                alert("✅ Información actualizada correctamente.");
-                location.reload(); 
+                showNotification("Venta actualizada correctamente", "success");
+                setTimeout(() => location.reload(), 1500); 
             } else {
-                alert("❌ Error: " + res.mensaje);
+                throw new Error(res.mensaje);
             }
         } catch (e) {
-            console.error("Error Fetch:", e);
-            alert("❌ Error de comunicación con el servidor.");
+            showNotification(e.message || "Error al conectar con el servidor", "error");
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-save"></i> Guardar Cambios';
+            btn.innerHTML = '<i class="fas fa-save"></i> Guardar Cambios de la Venta';
         }
     });
 
-    // ==========================================
-    // 4. ELIMINAR VENTA COMPLETA
-    // ==========================================
+    // Eliminar Venta Completa
     document.getElementById('btn-eliminar-venta').addEventListener('click', async () => {
-        if(confirm("¡ATENCIÓN! Esto borrará permanentemente la venta, sus series y todos los archivos físicos asociados. ¿Deseas proceder?")) {
+        if(confirm("¡ATENCIÓN! Esto borrará permanentemente la venta, sus series y todos los archivos. ¿Proceder?")) {
             try {
                 const resp = await fetch('../backend/eliminar_venta.php', {
                     method: 'POST',
@@ -167,64 +319,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: JSON.stringify({ id: ventaId })
                 });
                 const res = await resp.json();
-                
                 if(res.exito) {
-                    alert("Venta eliminada correctamente.");
+                    alert("Venta eliminada del sistema.");
                     window.location.href = 'ventas.html';
                 } else {
-                    alert("Error: " + res.mensaje);
+                    showNotification(res.mensaje, "error");
                 }
-            } catch (e) {
-                alert("Error de conexión al intentar eliminar.");
+            } catch(e) {
+                showNotification("Error de conexión al eliminar", "error");
             }
         }
     });
 });
-
-// ==========================================
-// 5. FUNCIONES GLOBALES (Borrado e Interfaz)
-// ==========================================
-
-// Borrar un archivo físico (Usando tu backend universal)
-window.borrarArchivo = async (id, ruta) => {
-    if(confirm("¿Seguro que deseas eliminar este archivo? No se puede deshacer.")) {
-        try {
-            const resp = await fetch('../backend/eliminar_archivo.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: id, ruta: ruta, modulo: 'ventas' }) 
-            });
-            const res = await resp.json();
-            
-            if(res.success || res.exito) {
-                location.reload();
-            } else {
-                alert("Error: " + (res.error || res.mensaje));
-            }
-        } catch (e) {
-            alert("Error de red al intentar borrar el archivo.");
-        }
-    }
-};
-
-// Abrir el Modal de Vista Previa
-window.abrirVistaPrevia = (ruta, tipo) => {
-    const modal = document.getElementById('modal-preview');
-    const container = document.getElementById('preview-content');
-
-    if (tipo === 'imagen') {
-        container.innerHTML = `<img src="${ruta}" style="max-width: 100%; max-height: 75vh; object-fit: contain; border-radius: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">`;
-    } else if (tipo === 'pdf') {
-        container.innerHTML = `<iframe src="${ruta}" width="100%" height="600px" style="border: none; border-radius: 5px; background: white;"></iframe>`;
-    } else {
-        container.innerHTML = `<p style="padding: 40px; color: #7f8c8d;">No hay vista previa para este archivo.</p>`;
-    }
-
-    modal.style.display = 'flex';
-};
-
-// Cerrar el Modal y limpiar iframe/imagen
-window.cerrarPreview = () => {
-    document.getElementById('modal-preview').style.display = 'none';
-    document.getElementById('preview-content').innerHTML = ''; 
-};
