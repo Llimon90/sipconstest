@@ -119,10 +119,10 @@ function createFileContainer(archivoObj) {
     fileNameSpan.style.lineHeight = '1.2';
     link.appendChild(fileNameSpan);
 
-    // Botón rojo de eliminar
+// Botón rojo de eliminar (Blindado contra CSS global para ser un círculo perfecto)
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'eliminar-archivo';
-    deleteBtn.innerHTML = '<i class="fas fa-times"></i>'; // Usamos el icono X para que se vea mejor
+    deleteBtn.innerHTML = '<i class="fas fa-times"></i>'; 
     deleteBtn.style.position = 'absolute';
     deleteBtn.style.top = '-8px';
     deleteBtn.style.right = '-8px';
@@ -130,12 +130,25 @@ function createFileContainer(archivoObj) {
     deleteBtn.style.color = 'white';
     deleteBtn.style.border = 'none';
     deleteBtn.style.borderRadius = '50%';
-    deleteBtn.style.width = '24px';
-    deleteBtn.style.height = '24px';
-    deleteBtn.style.cursor = 'pointer';
+    
+    // Medidas estrictas para evitar el óvalo
+    deleteBtn.style.width = '26px';
+    deleteBtn.style.height = '26px';
+    deleteBtn.style.minWidth = '26px';
+    deleteBtn.style.minHeight = '26px';
+    deleteBtn.style.maxWidth = '26px';
+    deleteBtn.style.maxHeight = '26px';
+    
+    // Reseteo de espaciados globales
+    deleteBtn.style.padding = '0';
+    deleteBtn.style.margin = '0';
+    deleteBtn.style.boxSizing = 'border-box';
+    
+    // Centrado perfecto del ícono
     deleteBtn.style.display = 'flex';
     deleteBtn.style.alignItems = 'center';
     deleteBtn.style.justifyContent = 'center';
+    deleteBtn.style.cursor = 'pointer';
     deleteBtn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
     
     deleteBtn.onclick = (e) => {
@@ -143,7 +156,6 @@ function createFileContainer(archivoObj) {
         e.stopPropagation();
         borrarArchivoVenta(idArchivo, archivoUrl, archivoContainer);
     };
-
     archivoContainer.appendChild(link);
     archivoContainer.appendChild(deleteBtn);
 
