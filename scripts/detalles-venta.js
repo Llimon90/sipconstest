@@ -271,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cargarDatos();
 
-    // Guardar Cambios Generales
+// Guardar Cambios Generales
     document.getElementById('btn-guardar-cambios').addEventListener('click', async () => {
         const btn = document.getElementById('btn-guardar-cambios');
         const form = document.getElementById('form-editar-venta');
@@ -281,6 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // El FormData ya atrapa el input de los archivos automáticamente
         const formData = new FormData(form);
         formData.set('servicio', document.getElementById('servicio').checked ? 1 : 0);
 
@@ -290,12 +291,6 @@ document.addEventListener('DOMContentLoaded', () => {
             serie: input.value.trim().toUpperCase()
         }));
         formData.append('series_json', JSON.stringify(seriesData));
-
-        // Adjuntar archivos nuevos
-        const archivosInput = document.getElementById("nuevos_facturas").files;
-        for (let i = 0; i < archivosInput.length; i++) {
-            formData.append("nuevos_facturas[]", archivosInput[i]);
-        }
 
         try {
             btn.disabled = true;
