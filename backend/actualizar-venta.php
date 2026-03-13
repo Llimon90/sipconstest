@@ -2,7 +2,6 @@
 header('Content-Type: application/json');
 require 'conexion.php';
 
-// Como ahora recibimos FormData (texto + archivos), usamos $_POST en lugar de php://input
 $idVenta = $_POST['venta_id'] ?? null;
 
 if (!$idVenta) {
@@ -13,7 +12,7 @@ if (!$idVenta) {
 try {
     $pdo->beginTransaction();
 
-  // ==========================================
+    // ==========================================
     // 1. ACTUALIZAR CABECERA (Tabla: ventas)
     // ==========================================
     $stmtV = $pdo->prepare("UPDATE ventas SET 
@@ -27,51 +26,65 @@ try {
         $_POST['sucursal'] ?? '',
         $idVenta
     ]);
-    // ==========================================
-    // 2. ACTUALIZAR DATOS GENERALES DEL EQUIPO (Tabla: venta_detalles)
-    // ==========================================
-    $stmtD = $pdo->prepare("UPDATE venta_detalles SET 
-        equipo = ?, 
-        marca = ?, 
-        modelo = ?, 
-        garantia = ?, 
-        calibracion = ?, 
-        servicio = ?, 
-        notas = ? 
-        WHERE venta_id = ?");
-        
-    $stmtD->execute([
-        $_POST['equipo'] ?? '',
-        $_POST['marca'] ?? '',
-        $_POST['modelo'] ?? '',
-        $_POST['garantia'] ?? 0,
-        $_POST['calibracion'] ?? 0,
-        $_POST['servicio'] ?? 0,
-        $_POST['notas'] ?? '',
-        $idVenta
-    ]);
 
     // ==========================================
-    // 3. ACTUALIZAR SERIES INDIVIDUALES
+    // 2. ACTUALIZAR, INSERTAR O ELIMINAR SERIES DINÁMICAMENTE (Tabla: venta_detalles)
     // ==========================================
-    // El JS nos manda las series como un string JSON, lo decodificamos aquí
     if (isset($_POST['series_json'])) {
-        $series = json_decode($_POST['series_json'], true);
-        if (!empty($series)) {
-            $stmtS = $pdo->prepare("UPDATE venta_detalles SET numero_serie = ? WHERE id = ? AND venta_id = ?");
-            foreach ($series as $s) {
-                $stmtS->execute([$s['serie'], $s['id_detalle'], $idVenta]);
+        $seriesRecibidas = json_decode($_POST['series_json'], true);
+        
+        // Obtenemos los IDs de las series que existen actualmente en la base de datos
+        $stmtCurrent = $pdo->prepare("SELECT id FROM venta_detalles WHERE venta_id = ?");
+        $stmtCurrent->execute([$idVenta]);
+        $idsActuales = $stmtCurrent->fetchAll(PDO::FETCH_COLUMN);
+
+        $idsQueSeQuedan = [];
+
+        // Preparamos las sentencias SQL
+        $stmtUpdate = $pdo->prepare("UPDATE venta_detalles SET equipo=?, marca=?, modelo=?, numero_serie=?, garantia=?, calibracion=?, servicio=?, notas=? WHERE id=?");
+        $stmtInsert = $pdo->prepare("INSERT INTO venta_detalles (venta_id, equipo, marca, modelo, numero_serie, garantia, calibracion, servicio, notas) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+        if (!empty($seriesRecibidas)) {
+            foreach ($seriesRecibidas as $s) {
+                if (!empty($s['id_detalle']) && $s['id_detalle'] !== 'nuevo') {
+                    // Es un equipo que ya existía, lo actualizamos
+                    $idsQueSeQuedan[] = $s['id_detalle'];
+                    $stmtUpdate->execute([
+                        $_POST['equipo'], $_POST['marca'], $_POST['modelo'],
+                        $s['serie'],
+                        $_POST['garantia'] ?? 0, $_POST['calibracion'] ?? 0,
+                        ($_POST['servicio'] ? 1 : 0), $_POST['notas'] ?? '',
+                        $s['id_detalle']
+                    ]);
+                } else {
+                    // Es un campo nuevo que se generó dinámicamente, hacemos INSERT
+                    $stmtInsert->execute([
+                        $idVenta,
+                        $_POST['equipo'], $_POST['marca'], $_POST['modelo'],
+                        $s['serie'],
+                        $_POST['garantia'] ?? 0, $_POST['calibracion'] ?? 0,
+                        ($_POST['servicio'] ? 1 : 0), $_POST['notas'] ?? ''
+                    ]);
+                }
             }
+        }
+
+        // Detectar cuáles equipos se borraron en pantalla al reducir la CANTIDAD
+        $idsAEliminar = array_diff($idsActuales, $idsQueSeQuedan);
+        if (!empty($idsAEliminar)) {
+            $placeholders = implode(',', array_fill(0, count($idsAEliminar), '?'));
+            $stmtDelete = $pdo->prepare("DELETE FROM venta_detalles WHERE id IN ($placeholders)");
+            $stmtDelete->execute($idsAEliminar);
         }
     }
 
     // ==========================================
-    // 4. SUBIR ARCHIVOS NUEVOS (Si el usuario seleccionó alguno)
+    // 3. SUBIR ARCHIVOS NUEVOS
     // ==========================================
+    // Como usamos FormData en el JS, el input de archivos llega limpio y sin duplicados en $_FILES
     if (isset($_FILES['nuevos_facturas']) && !empty($_FILES['nuevos_facturas']['name'][0])) {
-        // Sacamos el folio y cliente para armar bien el nombre y la carpeta
-        $infoVenta = $pdo->query("SELECT folio, cliente FROM ventas WHERE id = $idVenta")->fetch(PDO::FETCH_ASSOC);
         
+        $infoVenta = $pdo->query("SELECT folio, cliente FROM ventas WHERE id = $idVenta")->fetch(PDO::FETCH_ASSOC);
         $carpetaLimpia = preg_replace('/[^A-Za-z0-9_\-]/', '_', $infoVenta['cliente']);
         $uploadDir = "../uploads/ventas/{$carpetaLimpia}/";
         
@@ -86,7 +99,6 @@ try {
             if ($_FILES['nuevos_facturas']['error'][$k] === UPLOAD_ERR_OK) {
                 $ext = pathinfo($nomOriginal, PATHINFO_EXTENSION);
                 $tipo = $_FILES['nuevos_facturas']['type'][$k];
-                // Nombre único: Folio_Timestamp_Indice
                 $nuevoNombre = "{$infoVenta['folio']}_" . time() . "_{$k}.{$ext}";
                 $rutaCompleta = $uploadDir . $nuevoNombre;
 
@@ -98,7 +110,7 @@ try {
     }
 
     $pdo->commit();
-    echo json_encode(['exito' => true, 'mensaje' => 'Venta actualizada correctamente con todos sus detalles']);
+    echo json_encode(['exito' => true, 'mensaje' => 'Venta actualizada correctamente con todos sus detalles.']);
 
 } catch (PDOException $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();

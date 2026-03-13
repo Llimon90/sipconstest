@@ -1,6 +1,6 @@
 /**
  * scripts/detalles-venta.js
- * Lógica Completa (Estilo Incidencias + Prevención Duplicados) para Detalles de Venta - SIPCONS
+ * Lógica Completa: Cantidad Dinámica, Anti-Duplicados y Archivos PDF.js - SIPCONS
  */
 
 // ==========================================
@@ -115,7 +115,7 @@ function createFileContainer(archivoObj) {
     fileNameSpan.style.lineHeight = '1.2';
     link.appendChild(fileNameSpan);
 
-    // Botón rojo de eliminar (Blindado contra CSS global para ser un círculo perfecto)
+    // Botón rojo de eliminar blindado
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'eliminar-archivo';
     deleteBtn.innerHTML = '<i class="fas fa-times"></i>'; 
@@ -126,21 +126,15 @@ function createFileContainer(archivoObj) {
     deleteBtn.style.color = 'white';
     deleteBtn.style.border = 'none';
     deleteBtn.style.borderRadius = '50%';
-    
-    // Medidas estrictas para evitar el óvalo
     deleteBtn.style.width = '26px';
     deleteBtn.style.height = '26px';
     deleteBtn.style.minWidth = '26px';
     deleteBtn.style.minHeight = '26px';
     deleteBtn.style.maxWidth = '26px';
     deleteBtn.style.maxHeight = '26px';
-    
-    // Reseteo de espaciados globales
     deleteBtn.style.padding = '0';
     deleteBtn.style.margin = '0';
     deleteBtn.style.boxSizing = 'border-box';
-    
-    // Centrado perfecto del ícono
     deleteBtn.style.display = 'flex';
     deleteBtn.style.alignItems = 'center';
     deleteBtn.style.justifyContent = 'center';
@@ -183,14 +177,8 @@ async function cargarArchivosAdjuntosVentas(archivosArray) {
     }
 }
 
-// ==========================================
-// 3. LOGICA DEL SERVIDOR (FETCH)
-// ==========================================
-
-// Eliminar Archivo Individual
 async function borrarArchivoVenta(idArchivo, urlArchivo, containerElement) {
     if (!confirm('¿Estás seguro de que deseas eliminar este archivo permanentemente?')) return;
-
     containerElement.classList.add('eliminando');
 
     try {
@@ -214,7 +202,9 @@ async function borrarArchivoVenta(idArchivo, urlArchivo, containerElement) {
     }
 }
 
-// Carga Inicial
+// ==========================================
+// 3. FLUJO PRINCIPAL Y CANTIDAD DINÁMICA
+// ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const ventaId = urlParams.get('id');
@@ -226,13 +216,86 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     document.getElementById('venta_id').value = ventaId;
 
+    const qtyInput = document.getElementById('qty');
+    const seriesContainer = document.getElementById('container-series-edit');
+    const btnGuardar = document.getElementById('btn-guardar-cambios');
+    let valorPrevioQty = 0;
+
+    // Validación Anti-Duplicados
+    const validarSeries = () => {
+        const inputs = document.querySelectorAll('.serie-edit-input');
+        const valores = Array.from(inputs).map(i => i.value.trim().toUpperCase());
+        let duplicados = new Set();
+        let hayVacios = false;
+
+        valores.forEach((val, idx) => {
+            if (val !== "" && valores.indexOf(val) !== idx) duplicados.add(val);
+            if (val === "") hayVacios = true;
+        });
+
+        inputs.forEach(input => {
+            const esDuo = input.value.trim() !== "" && duplicados.has(input.value.trim().toUpperCase());
+            input.style.border = esDuo ? '2px solid #e74c3c' : '1px solid #ccc';
+            input.style.backgroundColor = esDuo ? '#fdf0ed' : '#fff';
+        });
+
+        const estadoError = duplicados.size > 0;
+        btnGuardar.disabled = estadoError;
+        return { hayErrores: estadoError, hayVacios };
+    };
+
+    // Agregar/Quitar inputs según la cantidad
+    const actualizarCamposSerie = () => {
+        let cant = parseInt(qtyInput.value) || 0;
+        if (cant < 0) { qtyInput.value = 0; cant = 0; }
+
+        const actuales = seriesContainer.querySelectorAll('.serie-item-wrapper');
+        
+        if (cant < actuales.length) {
+            let riesgo = 0;
+            for (let i = cant; i < actuales.length; i++) {
+                const input = actuales[i].querySelector('input');
+                if (input.value.trim() !== "" || (input.getAttribute('data-id') && input.getAttribute('data-id') !== 'nuevo')) {
+                    riesgo++;
+                }
+            }
+            if (riesgo > 0 && !confirm(`¡Atención Limon! Borrarás ${riesgo} serie(s) ya capturadas. ¿Estás seguro?`)) {
+                qtyInput.value = valorPrevioQty;
+                return;
+            }
+        }
+
+        if (cant > actuales.length) {
+            for (let i = actuales.length + 1; i <= cant; i++) {
+                const div = document.createElement('div');
+                div.className = 'serie-item-wrapper';
+                div.style = "background: white; padding: 10px; border: 1px solid #ddd; border-radius: 4px;";
+                div.innerHTML = `
+                    <label style="font-size: 0.8rem; color: #7f8c8d; font-weight: bold;">SERIE EQUIPO ${i}</label>
+                    <input type="text" class="serie-edit-input" data-id="nuevo" value="" required style="width: 100%; padding: 5px; margin-top: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                `;
+                div.querySelector('input').addEventListener('input', validarSeries);
+                seriesContainer.appendChild(div);
+            }
+        } else {
+            for (let i = actuales.length; i > cant; i--) {
+                seriesContainer.lastElementChild.remove();
+            }
+        }
+
+        valorPrevioQty = qtyInput.value;
+        validarSeries();
+    };
+
+    qtyInput.addEventListener('input', actualizarCamposSerie);
+
+    // Carga de Datos desde la BD
     const cargarDatos = async () => {
         try {
             const resp = await fetch(`../backend/obtener_venta_full.php?id=${ventaId}`);
             const data = await resp.json();
 
             if (data.exito) {
-                // Llenar Formulario
                 document.getElementById('txt-folio').textContent = data.venta.folio;
                 document.getElementById('cliente').value = data.venta.cliente;
                 document.getElementById('sucursal').value = data.venta.sucursal;
@@ -248,85 +311,58 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('notas').value = d.notas || '';
                 }
 
-                // Generar Inputs de Series
-                const contSeries = document.getElementById('container-series-edit');
-                contSeries.innerHTML = data.series.map((s, index) => `
-                    <div style="background: white; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                // Ajustamos el input de cantidad a la cantidad de series que vienen de la BD
+                qtyInput.value = data.series.length;
+                valorPrevioQty = data.series.length;
+
+                seriesContainer.innerHTML = data.series.map((s, index) => `
+                    <div class="serie-item-wrapper" style="background: white; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
                         <label style="font-size: 0.8rem; color: #7f8c8d; font-weight: bold;">SERIE EQUIPO ${index + 1}</label>
                         <input type="text" class="serie-edit-input" data-id="${s.id}" value="${s.numero_serie}" required style="width: 100%; padding: 5px; margin-top: 5px; border: 1px solid #ccc; border-radius: 3px;">
                     </div>
                 `).join('');
 
-                // Renderizar Archivos
+                document.querySelectorAll('.serie-edit-input').forEach(i => i.addEventListener('input', validarSeries));
+
                 cargarArchivosAdjuntosVentas(data.archivos);
             }
         } catch (e) {
-            console.error("Error al cargar la venta:", e);
             showNotification("Error al cargar los datos", "error");
         }
     };
-
     cargarDatos();
 
-    // Guardar Cambios Generales
-    document.getElementById('btn-guardar-cambios').addEventListener('click', async () => {
-        const btn = document.getElementById('btn-guardar-cambios');
+    // Guardar los cambios (Envío de FormData)
+    btnGuardar.addEventListener('click', async () => {
         const form = document.getElementById('form-editar-venta');
+        const { hayErrores, hayVacios } = validarSeries();
         
-        if (!form.checkValidity()) {
+        if (hayVacios) {
+            showNotification("Asegúrate de llenar todos los números de serie.", "error");
+            return;
+        }
+
+        if (!form.checkValidity() || hayErrores) {
             form.reportValidity();
             return;
         }
 
-        // El FormData atrapa automáticamente el input de nuevos_facturas[] (evita doble subida)
+        // El FormData captura TODOS los inputs, incluyendo el input tipo "file" automáticamente
         const formData = new FormData(form);
         formData.set('servicio', document.getElementById('servicio').checked ? 1 : 0);
 
-        // ==========================================
-        // VALIDACIÓN DE SERIES DUPLICADAS
-        // ==========================================
         const inputsSeries = document.querySelectorAll('.serie-edit-input');
-        const seriesValues = [];
-        let hayDuplicados = false;
-
-        const seriesData = Array.from(inputsSeries).map(input => {
-            const serieLimpia = input.value.trim().toUpperCase();
-            
-            // Revisar si ya existe en nuestro arreglo temporal
-            if (serieLimpia !== '') {
-                if (seriesValues.includes(serieLimpia)) {
-                    hayDuplicados = true;
-                    input.style.border = '2px solid #e74c3c'; // Pintar de rojo el duplicado
-                    input.style.backgroundColor = '#fdf0ed';
-                } else {
-                    seriesValues.push(serieLimpia);
-                    input.style.border = '1px solid #ccc'; // Restaurar estilo normal
-                    input.style.backgroundColor = '#fff';
-                }
-            }
-
-            return {
-                id_detalle: input.getAttribute('data-id'),
-                serie: serieLimpia
-            };
-        });
-
-        if (hayDuplicados) {
-            showNotification("Hay números de serie duplicados. Corrígelos antes de guardar.", "error");
-            return; // Detenemos la ejecución aquí, no se envía nada al servidor
-        }
-
+        const seriesData = Array.from(inputsSeries).map(input => ({
+            id_detalle: input.getAttribute('data-id'),
+            serie: input.value.trim().toUpperCase()
+        }));
         formData.append('series_json', JSON.stringify(seriesData));
 
         try {
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            btnGuardar.disabled = true;
+            btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
 
-            const resp = await fetch('../backend/actualizar-venta.php', {
-                method: 'POST',
-                body: formData 
-            });
-
+            const resp = await fetch('../backend/actualizar-venta.php', { method: 'POST', body: formData });
             const res = await resp.json();
             if (res.exito) {
                 showNotification("Venta actualizada correctamente", "success");
@@ -337,12 +373,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             showNotification(e.message || "Error al conectar con el servidor", "error");
         } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-save"></i> Guardar Cambios de la Venta';
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = '<i class="fas fa-save"></i> Guardar Cambios de la Venta';
         }
     });
 
-    // Eliminar Venta Completa
+    // Eliminar la venta completa
     document.getElementById('btn-eliminar-venta').addEventListener('click', async () => {
         if(confirm("¡ATENCIÓN! Esto borrará permanentemente la venta, sus series y todos los archivos. ¿Proceder?")) {
             try {
