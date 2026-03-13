@@ -60,10 +60,42 @@
           </div>
       </div>
 
-      <div class="filtros" style="margin-bottom: 20px;">
-          <input type="text" id="busqueda-gestion" class="filtro-input" placeholder="Buscar por Folio, Cliente o Marca..." style="width: 100%; max-width: 400px;">
-      </div>
+      <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+    <h4 style="margin-top: 0; margin-bottom: 15px; color: #2c3e50;"><i class="fas fa-filter"></i> Análisis y Filtros</h4>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+        
+        <div>
+            <label style="font-size: 0.8rem; font-weight: bold; color: #7f8c8d;">BÚSQUEDA GENERAL</label>
+            <input type="text" id="filtro-texto" placeholder="Folio, Cliente, Marca, Modelo..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
 
+        <div>
+            <label style="font-size: 0.8rem; font-weight: bold; color: #7f8c8d;">DESDE FECHA</label>
+            <input type="date" id="filtro-fecha-inicio" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+        <div>
+            <label style="font-size: 0.8rem; font-weight: bold; color: #7f8c8d;">HASTA FECHA</label>
+            <input type="date" id="filtro-fecha-fin" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+
+        <div>
+            <label style="font-size: 0.8rem; font-weight: bold; color: #7f8c8d;">CLÁUSULA SERVICIO</label>
+            <select id="filtro-servicio" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                <option value="todos">Todos los registros</option>
+                <option value="si">Solo CON Cláusula de Servicio</option>
+                <option value="no">SIN Cláusula de Servicio</option>
+            </select>
+        </div>
+
+    </div>
+    
+    <div style="margin-top: 15px; text-align: right;">
+        <button id="btn-limpiar-filtros" style="background: #95a5a6; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
+            <i class="fas fa-eraser"></i> Limpiar Filtros
+        </button>
+    </div>
+</div>
       <div class="tabla-container">
         <table class="tabla-ventas">
           <thead>
