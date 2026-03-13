@@ -1,6 +1,6 @@
 /**
  * scripts/detalles-venta.js
- * Lógica Completa (Estilo Incidencias) para Detalles de Venta - SIPCONS
+ * Lógica Completa (Estilo Incidencias + Prevención Duplicados) para Detalles de Venta - SIPCONS
  */
 
 // ==========================================
@@ -52,7 +52,7 @@ function createFilePreview(archivo, ext) {
         previewElement.style.maxWidth = '100px';
         previewElement.style.maxHeight = '100px';
         previewElement.style.cursor = 'pointer';
-        previewElement.style.border = '1px solid #eee'; // Le da forma al canvas blanco
+        previewElement.style.border = '1px solid #eee'; 
     } else {
         previewElement = document.createElement('i');
         previewElement.className = 'fas fa-file-alt';
@@ -69,7 +69,6 @@ function createFileContainer(archivoObj) {
     const idArchivo = archivoObj.id;
     const ext = archivoUrl.split('.').pop().toLowerCase();
 
-    // Contenedor principal idéntico al de incidencias
     const archivoContainer = document.createElement('div');
     archivoContainer.className = 'archivo-container';
     archivoContainer.style.position = 'relative';
@@ -83,7 +82,6 @@ function createFileContainer(archivoObj) {
     archivoContainer.style.verticalAlign = 'top';
     archivoContainer.style.backgroundColor = '#fafafa';
 
-    // Enlace
     const link = document.createElement('a');
     link.href = archivoUrl;
     link.target = '_blank';
@@ -94,7 +92,6 @@ function createFileContainer(archivoObj) {
     link.style.alignItems = 'center';
     link.style.height = '100%';
 
-    // Contenedor centrado para la miniatura
     const divCentrado = document.createElement('div');
     divCentrado.style.display = 'flex';
     divCentrado.style.justifyContent = 'center';
@@ -109,7 +106,6 @@ function createFileContainer(archivoObj) {
     }
     link.appendChild(divCentrado);
 
-    // Texto truncado
     const fileNameSpan = document.createElement('span');
     fileNameSpan.textContent = getShortFileName(nombreOriginal);
     fileNameSpan.title = nombreOriginal;
@@ -119,7 +115,7 @@ function createFileContainer(archivoObj) {
     fileNameSpan.style.lineHeight = '1.2';
     link.appendChild(fileNameSpan);
 
-// Botón rojo de eliminar (Blindado contra CSS global para ser un círculo perfecto)
+    // Botón rojo de eliminar (Blindado contra CSS global para ser un círculo perfecto)
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'eliminar-archivo';
     deleteBtn.innerHTML = '<i class="fas fa-times"></i>'; 
@@ -156,6 +152,7 @@ function createFileContainer(archivoObj) {
         e.stopPropagation();
         borrarArchivoVenta(idArchivo, archivoUrl, archivoContainer);
     };
+
     archivoContainer.appendChild(link);
     archivoContainer.appendChild(deleteBtn);
 
@@ -271,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cargarDatos();
 
-// Guardar Cambios Generales
+    // Guardar Cambios Generales
     document.getElementById('btn-guardar-cambios').addEventListener('click', async () => {
         const btn = document.getElementById('btn-guardar-cambios');
         const form = document.getElementById('form-editar-venta');
@@ -281,15 +278,44 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // El FormData ya atrapa el input de los archivos automáticamente
+        // El FormData atrapa automáticamente el input de nuevos_facturas[] (evita doble subida)
         const formData = new FormData(form);
         formData.set('servicio', document.getElementById('servicio').checked ? 1 : 0);
 
+        // ==========================================
+        // VALIDACIÓN DE SERIES DUPLICADAS
+        // ==========================================
         const inputsSeries = document.querySelectorAll('.serie-edit-input');
-        const seriesData = Array.from(inputsSeries).map(input => ({
-            id_detalle: input.getAttribute('data-id'),
-            serie: input.value.trim().toUpperCase()
-        }));
+        const seriesValues = [];
+        let hayDuplicados = false;
+
+        const seriesData = Array.from(inputsSeries).map(input => {
+            const serieLimpia = input.value.trim().toUpperCase();
+            
+            // Revisar si ya existe en nuestro arreglo temporal
+            if (serieLimpia !== '') {
+                if (seriesValues.includes(serieLimpia)) {
+                    hayDuplicados = true;
+                    input.style.border = '2px solid #e74c3c'; // Pintar de rojo el duplicado
+                    input.style.backgroundColor = '#fdf0ed';
+                } else {
+                    seriesValues.push(serieLimpia);
+                    input.style.border = '1px solid #ccc'; // Restaurar estilo normal
+                    input.style.backgroundColor = '#fff';
+                }
+            }
+
+            return {
+                id_detalle: input.getAttribute('data-id'),
+                serie: serieLimpia
+            };
+        });
+
+        if (hayDuplicados) {
+            showNotification("Hay números de serie duplicados. Corrígelos antes de guardar.", "error");
+            return; // Detenemos la ejecución aquí, no se envía nada al servidor
+        }
+
         formData.append('series_json', JSON.stringify(seriesData));
 
         try {
