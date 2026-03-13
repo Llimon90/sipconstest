@@ -37,20 +37,26 @@ try {
                 $rutaCompleta = $uploadDir . $nuevoNombre;
 
                 if (move_uploaded_file($_FILES['facturas']['tmp_name'][$k], $rutaCompleta)) {
-                    // AQUÍ se llena tu tabla venta_archivos
                     $stmtArch->execute([$venta_id, $nomOriginal, $rutaCompleta, $tipo]);
                 }
             }
         }
     }
 
-    // 4. Insertar Detalles (Series)
-    $sqlD = "INSERT INTO venta_detalles (venta_id, equipo, marca, modelo, numero_serie, garantia, servicio, notas) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    // 4. Insertar Detalles (Series) - AHORA CON FRECUENCIA_SERVICIO
+    $sqlD = "INSERT INTO venta_detalles (venta_id, equipo, marca, modelo, numero_serie, garantia, servicio, frecuencia_servicio, notas) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmtD = $pdo->prepare($sqlD);
     foreach ($series as $s) {
         $stmtD->execute([
-            $venta_id, $_POST['equipo'], $_POST['marca'], $_POST['modelo'], 
-            $s, $_POST['garantia'], $_POST['servicio'], $_POST['notas']
+            $venta_id, 
+            $_POST['equipo'], 
+            $_POST['marca'], 
+            $_POST['modelo'], 
+            $s, 
+            $_POST['garantia'] ?: 0, 
+            $_POST['servicio'], 
+            $_POST['frecuencia_servicio'] ?: 0, 
+            $_POST['notas']
         ]);
     }
 
@@ -61,3 +67,4 @@ try {
     if ($pdo->inTransaction()) $pdo->rollBack();
     echo json_encode(['exito' => false, 'mensaje' => $e->getMessage()]);
 }
+?>
