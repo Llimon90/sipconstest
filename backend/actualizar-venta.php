@@ -13,13 +13,13 @@ if (!$idVenta) {
 try {
     $pdo->beginTransaction();
 
-    // ==========================================
+  // ==========================================
     // 1. ACTUALIZAR CABECERA (Tabla: ventas)
     // ==========================================
     $stmtV = $pdo->prepare("UPDATE ventas SET 
         cliente = ?, 
-        sucursal = ?
-        -- Puedes agregar: fecha_actualizacion = NOW() si tienes esa columna en tu tabla
+        sucursal = ?,
+        fecha_actualizacion = NOW() 
         WHERE id = ?");
     
     $stmtV->execute([
@@ -27,7 +27,6 @@ try {
         $_POST['sucursal'] ?? '',
         $idVenta
     ]);
-
     // ==========================================
     // 2. ACTUALIZAR DATOS GENERALES DEL EQUIPO (Tabla: venta_detalles)
     // ==========================================
