@@ -132,6 +132,9 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('modelo', document.getElementById('modelo').value);
         formData.append('garantia', document.getElementById('garantia').value);
         
+        // 👇 ¡ESTA ES LA LÍNEA MÁGICA QUE FALTABA! 👇
+        formData.append('calibracion', document.getElementById('calibracion').value || 0);
+        
         // Agregar los datos del servicio
         const servicioActivado = document.getElementById('servicio').checked;
         formData.append('servicio', servicioActivado ? 1 : 0);
@@ -145,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 formData.append('facturas[]', multiFiles.files[i]);
             }
         }
-
+        
         const seriesArr = Array.from(document.querySelectorAll('.serie-input')).map(i => i.value.trim().toUpperCase());
         formData.append('series', JSON.stringify(seriesArr));
 
