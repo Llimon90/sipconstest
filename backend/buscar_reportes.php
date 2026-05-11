@@ -7,15 +7,11 @@ if ($conn->connect_error) {
     die(json_encode(["error" => "Error de conexión: " . $conn->connect_error]));
 }
 
-// Evitar caché del lado del cliente / proxies
+// Evitar caché
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
-header("Expires: 0");
 
 $cliente      = isset($_GET['cliente']) ? trim($_GET['cliente']) : '';
 $fecha_inicio = isset($_GET['fecha_inicio']) ? trim($_GET['fecha_inicio']) : '';
@@ -25,20 +21,19 @@ $sucursal     = isset($_GET['sucursal']) ? trim($_GET['sucursal']) : '';
 $tecnico      = isset($_GET['tecnico']) ? trim($_GET['tecnico']) : '';
 $tipo_equipo  = isset($_GET['tipo_equipo']) ? trim($_GET['tipo_equipo']) : '';
 $solo_activas = isset($_GET['solo_activas']) ? trim($_GET['solo_activas']) : '';
-// NUEVO PARÁMETRO
+// Capturar el nuevo filtro
 $solo_programadas = isset($_GET['solo_programadas']) ? trim($_GET['solo_programadas']) : '';
 
 $sql = "SELECT * FROM incidencias WHERE 1=1";
 $params = [];
 $types = "";
 
-// Filtro Cliente
+// --- FILTROS EXISTENTES ---
 if (!empty($cliente) && $cliente !== 'todos') {
     $sql .= " AND cliente = ?";
     $params[] = $cliente;
     $types .= "s";
 }
-// Filtro Fechas
 if (!empty($fecha_inicio)) {
     $sql .= " AND fecha >= ?";
     $params[] = $fecha_inicio;
@@ -49,37 +44,31 @@ if (!empty($fecha_fin)) {
     $params[] = $fecha_fin;
     $types .= "s";
 }
-// Filtro Estatus
 if (!empty($estatus)) {
     $sql .= " AND estatus = ?";
     $params[] = $estatus;
     $types .= "s";
 }
-// Filtro Sucursal
 if (!empty($sucursal)) {
     $sql .= " AND sucursal LIKE ?";
     $params[] = "%$sucursal%";
     $types .= "s";
 }
-// Filtro Técnico
 if (!empty($tecnico)) {
     $sql .= " AND tecnico LIKE ?";
     $params[] = "%$tecnico%";
     $types .= "s";
 }
-// Filtro Solo Activas
 if (!empty($solo_activas) && $solo_activas === '1') {
     $sql .= " AND estatus IN ('Abierto', 'Asignado', 'Pendiente', 'Completado')";
 }
 
-// --- NUEVO FILTRO: SOLO PROGRAMADAS ---
-// Aquí se suma a los demás filtros sin restricción de fecha o factura
+// --- CORRECCIÓN: FILTRO PROGRAMADAS ---
+// Según generador_tickets.php, los automáticos llevan "AUTO-CAL" o "AUTO-SERV" en la columna 'numero'
 if (!empty($solo_programadas) && $solo_programadas === '1') {
-    // NOTA: Cambia 'programada' por el nombre real de tu columna (ej: es_mantenimiento, etc)
-    $sql .= " AND programada = 1"; 
+    $sql .= " AND numero LIKE 'AUTO-%'";
 }
 
-// Filtro Tipo de Equipo
 if (!empty($tipo_equipo)) {
     if ($tipo_equipo === 'Mr. Tienda/Mr. Chef') {
         $sql .= " AND equipo = 'Mr. Tienda/Mr. Chef'";
@@ -109,6 +98,7 @@ $incidencias = [];
 while ($fila = $result->fetch_assoc()) {
     $incidencias[] = $fila;
 }
+
 if (empty($incidencias)) {
     echo json_encode(["message" => "No se encontraron datos", "debug_sql" => $sql]);
 } else {
