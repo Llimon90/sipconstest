@@ -18,6 +18,12 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("btn-prev").addEventListener("click", (e) => { e.preventDefault(); if (paginaActual > 1) { paginaActual--; mostrarIncidenciasPagina(); } });
   document.getElementById("btn-next").addEventListener("click", (e) => { e.preventDefault(); if (paginaActual < Math.ceil(incidenciasTotales.length / registrosPorPagina)) { paginaActual++; mostrarIncidenciasPagina(); } });
 
+  document.getElementById("select-registros").addEventListener("change", function(e) {
+    registrosPorPagina = parseInt(e.target.value);
+    paginaActual = 1;
+    mostrarIncidenciasPagina();
+  });
+
   document.querySelectorAll('.btn-filtro-rapido').forEach(button => {
     button.addEventListener('click', function() {
       const filtro = this.getAttribute('data-filtro');
@@ -54,26 +60,41 @@ async function cargarIncidencias() {
   const url = `../backend/buscar_reportes.php?${new URLSearchParams(params).toString()}`;
 
   try {
-    document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8" class="text-center">Buscando...</td></tr>`;
+    document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8" class="text-center">Buscando datos...</td></tr>`;
     const response = await fetch(url);
     const data = await response.json();
-    incidenciasTotales = data.message ? [] : data;
+
+    if (data.message) {
+      document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8" class="text-center">${data.message}</td></tr>`;
+      incidenciasTotales = [];
+    } else {
+      incidenciasTotales = data;
+    }
     mostrarIncidenciasPagina();
   } catch (error) {
-    document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8" class="text-center">Error de conexión</td></tr>`;
+    document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error de conexión</td></tr>`;
   }
 }
 
 function mostrarIncidenciasPagina() {
   const items = incidenciasTotales.slice((paginaActual - 1) * registrosPorPagina, paginaActual * registrosPorPagina);
   const tablaBody = document.getElementById("tabla-body");
-  tablaBody.innerHTML = items.length === 0 ? `<tr><td colspan="8" class="text-center">No se encontraron datos</td></tr>` : "";
+  tablaBody.innerHTML = "";
 
   items.forEach(inc => {
     const row = document.createElement("tr");
-    const esActiva = ['Abierto', 'Asignado', 'Pendiente', 'Completado'].includes(inc.estatus);
+    
+    // El estatus Programado indica que viene de venta_detalles y aún no tiene ticket real.
+    const esProgramado = inc.estatus === 'Programado';
+    const esActiva = ['Abierto', 'Asignado', 'Pendiente', 'Completado', 'Programado'].includes(inc.estatus);
+    
+    // Si es programada, mostramos texto sin enlace para evitar errores de página no encontrada
+    let celdaInternaHTML = esProgramado 
+      ? `<span class="text-primary fw-bold" title="Aún sin ticket generado"><i class="bi bi-clock-history"></i> ${inc.numero_incidente || "N/A"}</span>`
+      : `<a href="detalle.html?id=${inc.id}" class="text-decoration-none">${inc.numero_incidente || "N/A"}</a>`;
+
     row.innerHTML = `
-      <td><a href="detalle.html?id=${inc.id}">${inc.numero_incidente || "N/A"}</a></td>
+      <td>${celdaInternaHTML}</td>
       <td>${inc.numero || "N/A"}</td>
       <td>${inc.cliente}</td>
       <td>${inc.sucursal}</td>
@@ -94,14 +115,17 @@ function actualizarControlesPaginacion() {
 }
 
 async function cargarClientes() {
-  const response = await fetch(`../backend/obtener-clientes.php`);
-  const clientes = await response.json();
-  const select = document.getElementById('cliente');
-  clientes.forEach(c => { select.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`; });
+  try {
+    const response = await fetch(`../backend/obtener-clientes.php`);
+    const clientes = await response.json();
+    const select = document.getElementById('cliente');
+    clientes.forEach(c => { select.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`; });
+  } catch(e) { }
 }
 
 function limpiarFiltros() {
   document.getElementById("report-form").reset();
+  if (document.getElementById("solo-programadas")) document.getElementById("solo-programadas").checked = false;
   document.querySelectorAll('.btn-filtro-rapido').forEach(btn => btn.classList.remove('active'));
   paginaActual = 1;
   cargarIncidencias();
