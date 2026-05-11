@@ -7,7 +7,6 @@ if ($conn->connect_error) {
     die(json_encode(["error" => "Error de conexión: " . $conn->connect_error]));
 }
 
-// Configuración de cabeceras para API y evitar caché
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
@@ -15,7 +14,6 @@ header("Access-Control-Allow-Headers: Content-Type");
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 
-// Recolección de parámetros
 $cliente          = isset($_GET['cliente']) ? trim($_GET['cliente']) : '';
 $fecha_inicio     = isset($_GET['fecha_inicio']) ? trim($_GET['fecha_inicio']) : '';
 $fecha_fin        = isset($_GET['fecha_fin']) ? trim($_GET['fecha_fin']) : '';
@@ -29,9 +27,8 @@ $solo_programadas = isset($_GET['solo_programadas']) ? trim($_GET['solo_programa
 $params = [];
 $types = "";
 
-// 2. Determinar la fuente de datos
 if (!empty($solo_programadas) && $solo_programadas === '1') {
-    // BUSQUEDA EN PROGRAMACIONES (venta_detalles) - Agrupando equipos por Venta y Fecha
+    // Uso de CONCAT_WS y COALESCE para evitar que valores nulos rompan la consulta
     $sql = "SELECT * FROM (
         SELECT 
             MIN(d.id) as id,
@@ -44,7 +41,7 @@ if (!empty($solo_programadas) && $solo_programadas === '1') {
             'Programado' as estatus,
             MAX(d.equipo) as equipo,
             'Por asignar' as tecnico,
-            GROUP_CONCAT(CONCAT(d.marca, ' ', d.modelo, ' (Serie: ', IFNULL(d.numero_serie, 'S/N'), ')') SEPARATOR '||') as detalles_completos
+            GROUP_CONCAT(CONCAT_WS(' ', d.marca, d.modelo, CONCAT('(Serie: ', COALESCE(d.numero_serie, 'S/N'), ')')) SEPARATOR '||') as detalles_completos
         FROM venta_detalles d
         JOIN ventas v ON d.venta_id = v.id
         WHERE d.calibracion > 0 AND d.proxima_calibracion IS NOT NULL
@@ -63,14 +60,13 @@ if (!empty($solo_programadas) && $solo_programadas === '1') {
             'Programado' as estatus,
             MAX(d.equipo) as equipo,
             'Por asignar' as tecnico,
-            GROUP_CONCAT(CONCAT(d.marca, ' ', d.modelo, ' (Serie: ', IFNULL(d.numero_serie, 'S/N'), ')') SEPARATOR '||') as detalles_completos
+            GROUP_CONCAT(CONCAT_WS(' ', d.marca, d.modelo, CONCAT('(Serie: ', COALESCE(d.numero_serie, 'S/N'), ')')) SEPARATOR '||') as detalles_completos
         FROM venta_detalles d
         JOIN ventas v ON d.venta_id = v.id
         WHERE d.servicio = 1 AND d.frecuencia_servicio > 0 AND d.proximo_servicio IS NOT NULL
         GROUP BY v.id, v.cliente, v.sucursal, d.proximo_servicio
     ) AS programadas WHERE 1=1";
 } else {
-    // BUSQUEDA EN HISTORIAL (incidencias)
     $sql = "SELECT id, numero_incidente, numero, cliente, sucursal, falla, fecha, estatus, equipo, tecnico, '' as detalles_completos 
             FROM incidencias WHERE 1=1";
             
@@ -89,7 +85,6 @@ if (!empty($solo_programadas) && $solo_programadas === '1') {
     }
 }
 
-// 3. Filtros comunes (Aplican a ambas fuentes)
 if (!empty($cliente) && $cliente !== 'todos') {
     $sql .= " AND cliente = ?";
     $params[] = $cliente;
@@ -116,7 +111,6 @@ if (!empty($tipo_equipo)) {
     $types .= "s";
 }
 
-// 4. Ordenamiento
 if (!empty($solo_programadas) && $solo_programadas === '1') {
     $sql .= " ORDER BY fecha ASC";
 } else {
@@ -125,7 +119,8 @@ if (!empty($solo_programadas) && $solo_programadas === '1') {
 
 $stmt = $conn->prepare($sql);
 if (!$stmt) {
-    die(json_encode(["error" => "Error SQL: " . $conn->error]));
+    // Si la base de datos devuelve error, lo mandamos en JSON limpio para que JS lo pueda leer
+    die(json_encode(["error" => $conn->error]));
 }
 
 if (!empty($params)) {

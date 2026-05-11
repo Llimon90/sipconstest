@@ -1,4 +1,3 @@
-// script-busquedas.js
 let paginaActual = 1;
 let registrosPorPagina = 10;
 let incidenciasTotales = [];
@@ -66,15 +65,38 @@ async function cargarIncidencias() {
   };
 
   const url = `../backend/buscar_reportes.php?${new URLSearchParams(params).toString()}`;
+  const tablaBody = document.getElementById("tabla-body");
 
   try {
-    document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8" class="text-center">Consultando...</td></tr>`;
-    const response = await fetch(url);
-    const data = await response.json();
-    incidenciasTotales = data.message ? [] : data;
-    mostrarIncidenciasPagina();
+    tablaBody.innerHTML = `<tr><td colspan="8" class="text-center">Consultando datos...</td></tr>`;
+    
+    const response = await fetch(url, { cache: 'no-store' });
+    const rawText = await response.text(); // Leemos el texto crudo para interceptar errores
+
+    try {
+      const data = JSON.parse(rawText);
+      
+      // Si PHP nos mandó el error SQL, lo mostramos
+      if (data.error) {
+        tablaBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger fw-bold">Error SQL: ${data.error}</td></tr>`;
+        incidenciasTotales = [];
+        return;
+      }
+
+      if (data.message) {
+        tablaBody.innerHTML = `<tr><td colspan="8" class="text-center">${data.message}</td></tr>`;
+        incidenciasTotales = [];
+      } else {
+        incidenciasTotales = data;
+      }
+      mostrarIncidenciasPagina();
+      
+    } catch (parseError) {
+      console.error("Respuesta fallida del servidor:", rawText);
+      tablaBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger fw-bold">Error interno de PHP. Abre la consola (F12) para ver detalles.</td></tr>`;
+    }
   } catch (error) {
-    document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8" class="text-center">Error al conectar con servidor</td></tr>`;
+    tablaBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Falla de red / Error al conectar con servidor</td></tr>`;
   }
 }
 
@@ -96,8 +118,8 @@ function mostrarIncidenciasPagina() {
     const indiceGlobal = inicio + indexArray;
 
     let enlaceHTML = esProgramado 
-      ? `<a href="#" class="fw-bold text-primary" onclick="abrirModalProgramada(${indiceGlobal}); return false;"><i class="bi bi-eye-fill"></i> ${inc.numero_incidente}</a>`
-      : `<a href="detalle.html?id=${inc.id}">${inc.numero_incidente || "N/A"}</a>`;
+      ? `<a href="#" class="fw-bold text-primary text-decoration-none" onclick="abrirModalProgramada(${indiceGlobal}); return false;"><i class="bi bi-window-stack"></i> ${inc.numero_incidente}</a>`
+      : `<a href="detalle.html?id=${inc.id}" class="text-decoration-none">${inc.numero_incidente || "N/A"}</a>`;
 
     row.innerHTML = `
       <td>${enlaceHTML}</td>
@@ -165,6 +187,7 @@ async function cargarClientes() {
 
 function limpiarFiltros() {
   document.getElementById("report-form").reset();
+  if (document.getElementById("solo-programadas")) document.getElementById("solo-programadas").checked = false;
   document.querySelectorAll('.btn-filtro-rapido').forEach(btn => btn.classList.remove('active'));
   paginaActual = 1;
   cargarIncidencias();
