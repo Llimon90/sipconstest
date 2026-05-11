@@ -15,26 +15,22 @@ document.addEventListener("DOMContentLoaded", function () {
     cargarIncidencias();
   });
 
-  // Paginación
   document.getElementById("btn-prev").addEventListener("click", (e) => { e.preventDefault(); if (paginaActual > 1) { paginaActual--; mostrarIncidenciasPagina(); } });
   document.getElementById("btn-next").addEventListener("click", (e) => { e.preventDefault(); if (paginaActual < Math.ceil(incidenciasTotales.length / registrosPorPagina)) { paginaActual++; mostrarIncidenciasPagina(); } });
 
-  // Filtros rápidos
   document.querySelectorAll('.btn-filtro-rapido').forEach(button => {
     button.addEventListener('click', function() {
       const filtro = this.getAttribute('data-filtro');
       document.querySelectorAll('.btn-filtro-rapido').forEach(btn => btn.classList.remove('active'));
       this.classList.add('active');
-
       document.getElementById("report-form").reset();
-      
+
       if (filtro === 'programadas') {
         document.getElementById("solo-programadas").checked = true;
       } else if (filtro !== 'todos') {
         document.getElementById("tipo-equipo").value = filtro;
         document.getElementById("solo-activas").checked = true;
       }
-
       paginaActual = 1;
       cargarIncidencias();
     });
@@ -55,30 +51,23 @@ async function cargarIncidencias() {
     t: Date.now()
   };
 
-  let url = `../backend/buscar_reportes.php?${new URLSearchParams(params).toString()}`;
+  const url = `../backend/buscar_reportes.php?${new URLSearchParams(params).toString()}`;
 
   try {
     document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8" class="text-center">Buscando...</td></tr>`;
     const response = await fetch(url);
     const data = await response.json();
-
-    if (data.message) {
-      document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8">${data.message}</td></tr>`;
-      incidenciasTotales = [];
-    } else {
-      incidenciasTotales = data;
-    }
+    incidenciasTotales = data.message ? [] : data;
     mostrarIncidenciasPagina();
   } catch (error) {
-    document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8">Error de conexión</td></tr>`;
+    document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8" class="text-center">Error de conexión</td></tr>`;
   }
 }
 
 function mostrarIncidenciasPagina() {
-  const inicio = (paginaActual - 1) * registrosPorPagina;
-  const items = incidenciasTotales.slice(inicio, inicio + registrosPorPagina);
+  const items = incidenciasTotales.slice((paginaActual - 1) * registrosPorPagina, paginaActual * registrosPorPagina);
   const tablaBody = document.getElementById("tabla-body");
-  tablaBody.innerHTML = "";
+  tablaBody.innerHTML = items.length === 0 ? `<tr><td colspan="8" class="text-center">No se encontraron datos</td></tr>` : "";
 
   items.forEach(inc => {
     const row = document.createElement("tr");
@@ -100,18 +89,15 @@ function mostrarIncidenciasPagina() {
 
 function actualizarControlesPaginacion() {
   const total = incidenciasTotales.length;
-  document.getElementById("btn-prev").parentElement.classList.toggle("disabled", paginaActual === 1);
-  document.getElementById("btn-next").parentElement.classList.toggle("disabled", paginaActual >= Math.ceil(total / registrosPorPagina));
+  document.getElementById("btn-prev").classList.toggle("disabled", paginaActual === 1);
+  document.getElementById("btn-next").classList.toggle("disabled", paginaActual >= Math.ceil(total / registrosPorPagina));
 }
 
 async function cargarClientes() {
   const response = await fetch(`../backend/obtener-clientes.php`);
   const clientes = await response.json();
   const select = document.getElementById('cliente');
-  clientes.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c.nombre; opt.textContent = c.nombre; select.appendChild(opt);
-  });
+  clientes.forEach(c => { select.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`; });
 }
 
 function limpiarFiltros() {
