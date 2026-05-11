@@ -1,176 +1,180 @@
-// script-busquedas.js
-
+// Variables globales para paginación
 let paginaActual = 1;
 let registrosPorPagina = 10;
 let incidenciasTotales = [];
 
 document.addEventListener("DOMContentLoaded", function () {
-    // 1. Inicialización de Fechas
-    flatpickr("#fecha-inicio", { dateFormat: "Y-m-d", allowInput: true });
-    flatpickr("#fecha-fin", { dateFormat: "Y-m-d", allowInput: true });
+  // Configuración de Flatpickr
+  flatpickr("#fecha-inicio", { dateFormat: "Y-m-d", allowInput: true });
+  flatpickr("#fecha-fin", { dateFormat: "Y-m-d", allowInput: true });
 
+  cargarIncidencias();
+  cargarClientes();
+
+  document.getElementById("report-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    paginaActual = 1;
     cargarIncidencias();
-    cargarClientes();
+  });
 
-    // 2. Evento del Formulario
-    document.getElementById("report-form").addEventListener("submit", function (e) {
-        e.preventDefault();
-        paginaActual = 1;
-        cargarIncidencias();
+  // Paginación
+  document.getElementById("btn-prev").addEventListener("click", function(e) {
+    e.preventDefault();
+    if (paginaActual > 1) { paginaActual--; mostrarIncidenciasPagina(); }
+  });
+
+  document.getElementById("btn-next").addEventListener("click", function(e) {
+    e.preventDefault();
+    const totalPaginas = Math.ceil(incidenciasTotales.length / registrosPorPagina);
+    if (paginaActual < totalPaginas) { paginaActual++; mostrarIncidenciasPagina(); }
+  });
+
+  document.getElementById("select-registros").addEventListener("change", function(e) {
+    registrosPorPagina = parseInt(e.target.value);
+    paginaActual = 1;
+    mostrarIncidenciasPagina();
+  });
+
+  // Filtros rápidos
+  document.querySelectorAll('.btn-filtro-rapido').forEach(button => {
+    button.addEventListener('click', function() {
+      const filtro = this.getAttribute('data-filtro');
+      document.querySelectorAll('.btn-filtro-rapido').forEach(btn => btn.classList.remove('active'));
+      this.classList.add('active');
+      
+      document.getElementById("report-form").reset();
+      const soloActivasCheckbox = document.getElementById("solo-activas");
+
+      switch(filtro) {
+        case 'Mr. Tienda/Mr. Chef':
+          document.getElementById("tipo-equipo").value = "Mr. Tienda/Mr. Chef";
+          soloActivasCheckbox.checked = true;
+          break;
+        case 'Distribuidora el Florido':
+          document.getElementById("tipo-equipo").value = "Distribuidora el Florido";
+          soloActivasCheckbox.checked = true;
+          break;
+        case 'Calimax':
+          document.getElementById("tipo-equipo").value = "Calimax";
+          soloActivasCheckbox.checked = true;
+          break;
+        case 'Recolección':
+          document.getElementById("tipo-equipo").value = "Recolección";
+          soloActivasCheckbox.checked = true;
+          break;
+        case 'Otros':
+          document.getElementById("tipo-equipo").value = "Otros";
+          soloActivasCheckbox.checked = true;
+          break;
+        case 'todos':
+          document.getElementById("tipo-equipo").value = "";
+          soloActivasCheckbox.checked = false;
+          break;
+      }
+      paginaActual = 1;
+      cargarIncidencias();
     });
-
-    // 3. Controladores de Paginación
-    document.getElementById("btn-prev").addEventListener("click", (e) => {
-        e.preventDefault();
-        if (paginaActual > 1) { paginaActual--; mostrarIncidenciasPagina(); }
-    });
-
-    document.getElementById("btn-next").addEventListener("click", (e) => {
-        e.preventDefault();
-        const totalPaginas = Math.ceil(incidenciasTotales.length / registrosPorPagina);
-        if (paginaActual < totalPaginas) { paginaActual++; mostrarIncidenciasPagina(); }
-    });
-
-    document.getElementById("select-registros").addEventListener("change", (e) => {
-        registrosPorPagina = parseInt(e.target.value);
-        paginaActual = 1;
-        mostrarIncidenciasPagina();
-    });
-
-    // 4. Lógica de Filtros Rápidos
-    document.querySelectorAll('.btn-filtro-rapido').forEach(button => {
-        button.addEventListener('click', function() {
-            const filtro = this.getAttribute('data-filtro');
-            
-            // Estética de botones
-            document.querySelectorAll('.btn-filtro-rapido').forEach(btn => btn.classList.remove('active'));
-            this.classList.add('active');
-
-            const soloActivasCheckbox = document.getElementById("solo-activas");
-            const soloProgramadasCheckbox = document.getElementById("solo-programadas");
-            const tipoEquipoSelect = document.getElementById("tipo-equipo");
-
-            // Resetear para filtro limpio
-            if (filtro === 'todos') {
-                limpiarFiltros();
-                return;
-            }
-
-            // Aplicar lógica según el botón
-            if (filtro === 'programadas') {
-                soloProgramadasCheckbox.checked = true;
-                soloActivasCheckbox.checked = false;
-            } else {
-                tipoEquipoSelect.value = filtro;
-                soloActivasCheckbox.checked = true;
-                soloProgramadasCheckbox.checked = false;
-            }
-
-            paginaActual = 1;
-            cargarIncidencias();
-        });
-    });
+  });
 });
 
 async function cargarIncidencias() {
-    // Captura de valores (Entrelazados)
-    const params = {
-        cliente: document.getElementById("cliente").value,
-        fecha_inicio: document.getElementById("fecha-inicio").value,
-        fecha_fin: document.getElementById("fecha-fin").value,
-        estatus: document.getElementById("estatus").value,
-        sucursal: document.getElementById("sucursal").value,
-        tecnico: document.getElementById("tecnico").value,
-        tipo_equipo: document.getElementById("tipo-equipo").value,
-        solo_activas: document.getElementById("solo-activas").checked ? '1' : '',
-        solo_programadas: document.getElementById("solo-programadas").checked ? '1' : '',
-        t: Date.now()
-    };
+  const cliente = document.getElementById("cliente").value;
+  const fechaInicio = document.getElementById("fecha-inicio").value;
+  const fechaFin = document.getElementById("fecha-fin").value;
+  const estatus = document.getElementById("estatus").value;
+  const sucursal = document.getElementById("sucursal").value;
+  const tecnico = document.getElementById("tecnico").value;
+  const tipoEquipo = document.getElementById("tipo-equipo").value;
+  const soloActivas = document.getElementById("solo-activas").checked;
+  // NUEVO: Capturar checkbox de programadas
+  const soloProgramadas = document.getElementById("solo-programadas").checked;
 
-    // Validación básica de fechas
-    if (params.fecha_inicio && params.fecha_fin && params.fecha_fin < params.fecha_inicio) {
-        alert("La fecha fin no puede ser anterior a la inicio.");
-        return;
+  if (fechaInicio && fechaFin && fechaFin < fechaInicio) {
+    alert("❌ La fecha de fin no puede ser menor que la fecha de inicio.");
+    return;
+  }
+
+  // Construir URL
+  let url = `../backend/buscar_reportes.php?cliente=${encodeURIComponent(cliente)}&fecha_inicio=${encodeURIComponent(fechaInicio)}&fecha_fin=${encodeURIComponent(fechaFin)}&estatus=${encodeURIComponent(estatus)}&sucursal=${encodeURIComponent(sucursal)}&tecnico=${encodeURIComponent(tecnico)}`;
+
+  if (tipoEquipo) url += `&tipo_equipo=${encodeURIComponent(tipoEquipo)}`;
+  if (soloActivas) url += `&solo_activas=1`;
+  // NUEVO: Agregar a la URL
+  if (soloProgramadas) url += `&solo_programadas=1`;
+
+  url += `&t=${Date.now()}`;
+
+  try {
+    document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8" class="text-center">Buscando...</td></tr>`;
+    const response = await fetch(url, { cache: 'no-store' });
+    const data = await response.json();
+
+    if (data.message) {
+      document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8">${data.message}</td></tr>`;
+      incidenciasTotales = [];
+      actualizarControlesPaginacion();
+      return;
     }
-
-    // Construcción de QueryString
-    const queryString = new URLSearchParams(params).toString();
-    const url = `../backend/buscar_reportes.php?${queryString}`;
-
-    try {
-        document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8" class="text-center">Cargando...</td></tr>`;
-        
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (data.message) {
-            document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8" class="text-center">${data.message}</td></tr>`;
-            incidenciasTotales = [];
-        } else {
-            incidenciasTotales = data;
-        }
-        
-        mostrarIncidenciasPagina();
-    } catch (error) {
-        console.error("Error:", error);
-        document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error de conexión</td></tr>`;
-    }
+    incidenciasTotales = data;
+    mostrarIncidenciasPagina();
+  } catch (error) {
+    document.getElementById("tabla-body").innerHTML = `<tr><td colspan="8">Error al cargar datos.</td></tr>`;
+  }
 }
 
 function mostrarIncidenciasPagina() {
-    const inicio = (paginaActual - 1) * registrosPorPagina;
-    const fin = inicio + registrosPorPagina;
-    const items = incidenciasTotales.slice(inicio, fin);
-    const tablaBody = document.getElementById("tabla-body");
-    
-    tablaBody.innerHTML = "";
+  const inicio = (paginaActual - 1) * registrosPorPagina;
+  const items = incidenciasTotales.slice(inicio, inicio + registrosPorPagina);
+  const tablaBody = document.getElementById("tabla-body");
+  tablaBody.innerHTML = "";
 
+  if (items.length === 0) {
+    tablaBody.innerHTML = `<tr><td colspan="8" class="text-center">No se encontraron incidencias</td></tr>`;
+  } else {
     items.forEach(inc => {
-        const row = document.createElement("tr");
-        const esActiva = ['Abierto', 'Asignado', 'Pendiente', 'Completado'].includes(inc.estatus);
-        
-        row.innerHTML = `
-            <td><a href="detalle.html?id=${inc.id}" class="text-decoration-none">${inc.numero_incidente || 'N/A'}</a></td>
-            <td>${inc.numero || 'N/A'}</td>
-            <td>${inc.cliente}</td>
-            <td>${inc.sucursal}</td>
-            <td>${inc.falla}</td>
-            <td>${inc.fecha}</td>
-            <td>${inc.estatus}</td>
-            <td><span class="${esActiva ? 'badge-activo' : 'badge-inactivo'}">${esActiva ? 'Activa' : 'Inactiva'}</span></td>
-        `;
-        tablaBody.appendChild(row);
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><a href="detalle.html?id=${inc.id}" class="text-decoration-none">${inc.numero_incidente || "N/A"}</a></td>
+        <td>${inc.numero || "N/A"}</td>
+        <td>${inc.cliente}</td>
+        <td>${inc.sucursal}</td>
+        <td>${inc.falla}</td>
+        <td>${inc.fecha}</td>
+        <td>${inc.estatus}</td>
+        <td><span class="${['Abierto', 'Asignado', 'Pendiente', 'Completado'].includes(inc.estatus) ? "badge-activo" : "badge-inactivo"}">${['Abierto', 'Asignado', 'Pendiente', 'Completado'].includes(inc.estatus) ? "Activa" : "Inactiva"}</span></td>
+      `;
+      tablaBody.appendChild(row);
     });
-
-    actualizarControlesPaginacion();
+  }
+  actualizarControlesPaginacion();
 }
 
 function actualizarControlesPaginacion() {
-    const total = incidenciasTotales.length;
-    const totalPaginas = Math.ceil(total / registrosPorPagina) || 1;
-    
-    document.getElementById("contador-registros").textContent = `Total: ${total} registros`;
-    document.getElementById("btn-prev").classList.toggle("disabled", paginaActual === 1);
-    document.getElementById("btn-next").classList.toggle("disabled", paginaActual === totalPaginas);
+  const total = incidenciasTotales.length;
+  const inicio = Math.min((paginaActual - 1) * registrosPorPagina + 1, total);
+  const fin = Math.min(inicio + registrosPorPagina - 1, total);
+  document.getElementById("contador-registros").textContent = `Mostrando ${inicio}-${fin} de ${total} registros`;
+  document.getElementById("btn-prev").classList.toggle("disabled", paginaActual <= 1);
+  document.getElementById("btn-next").classList.toggle("disabled", paginaActual >= Math.ceil(total / registrosPorPagina));
 }
 
 async function cargarClientes() {
-    try {
-        const response = await fetch('../backend/obtener-clientes.php');
-        const clientes = await response.json();
-        const select = document.getElementById('cliente');
-        clientes.forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c.nombre;
-            opt.textContent = c.nombre;
-            select.appendChild(opt);
-        });
-    } catch (e) { console.error("Error clientes:", e); }
+  try {
+    const response = await fetch(`../backend/obtener-clientes.php?t=${Date.now()}`);
+    const clientes = await response.json();
+    const select = document.getElementById('cliente');
+    select.innerHTML = '<option value="">Seleccionar Cliente</option><option value="todos">Todos los clientes</option>';
+    clientes.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.nombre; opt.textContent = c.nombre; select.appendChild(opt);
+    });
+  } catch (e) { console.error(e); }
 }
 
 function limpiarFiltros() {
-    document.getElementById("report-form").reset();
-    document.querySelectorAll('.btn-filtro-rapido').forEach(btn => btn.classList.remove('active'));
-    paginaActual = 1;
-    cargarIncidencias();
+  document.getElementById("report-form").reset();
+  if(document.getElementById("solo-programadas")) document.getElementById("solo-programadas").checked = false;
+  document.querySelectorAll('.btn-filtro-rapido').forEach(btn => btn.classList.remove('active'));
+  paginaActual = 1;
+  cargarIncidencias();
 }
