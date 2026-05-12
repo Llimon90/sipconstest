@@ -204,16 +204,11 @@ function abrirModalProgramada(indice) {
 
   const modalEl = document.getElementById('modalProgramada');
   if (modalEl) {
-    // 1. Forzamos al modal a salir de cualquier contenedor y pegarse directo al body
-    document.body.appendChild(modalEl);
-    
-    // 2. Verificamos que no exista ya una instancia abierta para evitar sombras duplicadas
+    // Solo obtenemos o creamos la instancia, sin mover el elemento HTML de su lugar
     let modalInstance = bootstrap.Modal.getInstance(modalEl);
     if (!modalInstance) {
         modalInstance = new bootstrap.Modal(modalEl);
     }
-    
-    // 3. Mostramos el modal de forma limpia
     modalInstance.show();
   }
 }
