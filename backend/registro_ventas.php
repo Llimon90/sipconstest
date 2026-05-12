@@ -7,16 +7,19 @@ try {
 
     $cliente = $_POST['cliente'] ?? throw new Exception("Cliente no especificado");
     $series = json_decode($_POST['series'], true);
+    
+    // Capturar la fecha enviada desde el formulario (o usar hoy como respaldo)
+    $fecha_venta = $_POST['fecha_venta'] ?? date('Y-m-d');
 
     // 1. Generar Folio
     $stmtF = $pdo->query("SELECT folio FROM ventas ORDER BY id DESC LIMIT 1");
     $uFolio = $stmtF->fetchColumn();
     $nFolio = "VT-" . str_pad($uFolio ? (int)substr($uFolio, 3) + 1 : 1, 5, "0", STR_PAD_LEFT);
 
-    // 2. Insertar Cabecera (Venta)
-    $sqlV = "INSERT INTO ventas (folio, cliente, sucursal, fecha_registro) VALUES (?, ?, ?, NOW())";
+    // 2. Insertar Cabecera (Venta) usando la fecha seleccionada en lugar de NOW()
+    $sqlV = "INSERT INTO ventas (folio, cliente, sucursal, fecha_registro) VALUES (?, ?, ?, ?)";
     $stmtV = $pdo->prepare($sqlV);
-    $stmtV->execute([$nFolio, $cliente, $_POST['sucursal']]);
+    $stmtV->execute([$nFolio, $cliente, $_POST['sucursal'], $fecha_venta]);
     $venta_id = $pdo->lastInsertId();
 
     // 3. PROCESAR ARCHIVOS E INSERTAR EN venta_archivos
@@ -43,16 +46,16 @@ try {
         }
     }
 
-    // 4. Insertar Detalles (Series) - CON CÁLCULO DE FECHAS AUTOMÁTICAS
+    // 4. Insertar Detalles (Series) - CON CÁLCULO DE FECHAS AUTOMÁTICAS BASADO EN LA FECHA DE VENTA
     
     // Convertir a enteros para hacer los cálculos
     $mesesCalibracion = (int)($_POST['calibracion'] ?? 0);
     $mesesServicio = (int)($_POST['frecuencia_servicio'] ?? 0);
     $tieneServicio = !empty($_POST['servicio']) ? 1 : 0;
 
-    // Calcular las fechas exactas sumando los meses a la fecha de hoy
-    $fechaProximaCalibracion = $mesesCalibracion > 0 ? date('Y-m-d', strtotime("+$mesesCalibracion months")) : null;
-    $fechaProximoServicio = ($tieneServicio && $mesesServicio > 0) ? date('Y-m-d', strtotime("+$mesesServicio months")) : null;
+    // Calcular las fechas exactas sumando los meses a la FECHA DE VENTA
+    $fechaProximaCalibracion = $mesesCalibracion > 0 ? date('Y-m-d', strtotime("$fecha_venta +$mesesCalibracion months")) : null;
+    $fechaProximoServicio = ($tieneServicio && $mesesServicio > 0) ? date('Y-m-d', strtotime("$fecha_venta +$mesesServicio months")) : null;
 
     $sqlD = "INSERT INTO venta_detalles 
              (venta_id, equipo, marca, modelo, numero_serie, garantia, calibracion, servicio, frecuencia_servicio, notas, proxima_calibracion, proximo_servicio) 
@@ -67,12 +70,12 @@ try {
             $_POST['modelo'], 
             $s, 
             $_POST['garantia'] ?: 0, 
-            $mesesCalibracion, // Agregado para guardar el número de meses
+            $mesesCalibracion, 
             $tieneServicio, 
             $mesesServicio, 
             $_POST['notas'],
-            $fechaProximaCalibracion, // Fecha calculada
-            $fechaProximoServicio     // Fecha calculada
+            $fechaProximaCalibracion, 
+            $fechaProximoServicio     
         ]);
     }
 
