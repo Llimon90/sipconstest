@@ -2,109 +2,174 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SIPCONS - Registro de Ventas</title>
   <link rel="stylesheet" href="../css/styles.css?v=4">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <script src="../scripts/ventas.js?v=8" defer></script>
+  <script src="../scripts/ventas.js?v=7" defer></script>
 </head>
+
 <body>
+  <div class="retorna">
+    <a href="../index.html"><i class="fas fa-arrow-left"></i> Inicio</a>
+  </div>
+
   <aside class="sidebar">
-    <div class="sidebar-header"> <h2 class="sidebar-title">Panel</h2> </div>
+    <div class="sidebar-header">
+      <h2 class="sidebar-title">
+        <i class="fas fa-tools"></i>
+        Panel
+      </h2>
+      <button id="toggleSidebar" class="toggle-sidebar">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+    </div>
+    
     <ul>
-      <li><a href="../index.html">Inicio</a></li>
-      <li><a href="ventas.html" class="active">Registro Ventas</a></li>
+      <li><a href="../index.html" title="Inicio"><i class="fas fa-home"></i><span class="sidebar-link-text">Inicio</span></a></li>
+      <li><a href="incidencias.html" title="Incidencias"><i class="fas fa-tasks"></i><span class="sidebar-link-text">Incidencias</span></a></li>
+      <li><a href="reportes.html" title="Buscar Incidencias"><i class="fas fa-search"></i><span class="sidebar-link-text">Buscar Incidencias</span></a></li>
+      <li><a href="clientes.html" title="Clientes"><i class="fas fa-users"></i><span class="sidebar-link-text">Clientes</span></a></li>
+      <li><a href="usuarios.html" title="Usuarios"><i class="fas fa-user-friends"></i><span class="sidebar-link-text">Usuarios</span></a></li>
+      <li><a href="ventas.html" title="Registro de Ventas" class="active"><i class="fas fa-cash-register"></i><span class="sidebar-link-text">Registro Ventas</span></a></li>
+      <li><a href="admin-ventas.html" title="Administrar Ventas"><i class="fas fa-chart-line"></i><span class="sidebar-link-text">Admin Ventas</span></a></li>
+      <li><a href="soporte.html" title="Soporte Técnico"><i class="fas fa-headset"></i><span class="sidebar-link-text">Soporte Técnico</span></a></li>
+      <li><a href="ajustes.html" title="Ajustes"><i class="fas fa-cog"></i><span class="sidebar-link-text">Ajustes</span></a></li>
     </ul>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <i class="fas fa-user-circle"></i>
+        <span class="user-name">Técnico</span>
+      </div>
+    </div>
   </aside>
   
   <main id="mainContent">
     <section class="encabezado">
-      <h2><i class="fas fa-cash-register"></i> Registro de Ventas</h2>
-      <form id="form-venta">
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h2 style="margin: 0;"><i class="fas fa-cash-register"></i> Registro de Ventas</h2>
+          <a href="admin-ventas.html" style="background-color: #34495e; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.3s;">
+              <i class="fas fa-cogs"></i> Administrar Ventas
+          </a>
+      </div>
+      
+      <form id="form-venta" style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
         <div class="form-row">
           <div>
             <label for="fecha_venta"><i class="fas fa-calendar-alt"></i> Fecha de Venta:</label>
             <input type="date" id="fecha_venta" name="fecha_venta" required>
           </div>
           <div>
-            <label for="cliente">Cliente:</label>
-            <select id="cliente" name="cliente" required></select>
+            <label for="cliente"><i class="fas fa-building"></i> Cliente:</label>
+            <select id="cliente" name="cliente" required>
+              <option value="" selected disabled>Seleccione un cliente</option>
+            </select>
           </div>
           <div>
-            <label for="sucursal">Sucursal:</label>
-            <input type="text" id="sucursal" name="sucursal">
+            <label for="sucursal"><i class="fas fa-store"></i> Sucursal:</label>
+            <input type="text" id="sucursal" name="sucursal" placeholder="Nombre de la sucursal">
           </div>
         </div>
 
         <div class="form-row">
           <div>
-            <label for="equipo">Equipo:</label>
-            <input type="text" id="equipo" name="equipo" required>
+            <label for="equipo"><i class="fas fa-desktop"></i> Equipo:</label>
+            <input type="text" id="equipo" name="equipo" placeholder="Tipo de equipo" required>
           </div>
           <div>
-            <label for="marca">Marca:</label>
-            <input type="text" id="marca" name="marca" required>
+            <label for="marca"><i class="fas fa-tag"></i> Marca:</label>
+            <input type="text" id="marca" name="marca" placeholder="Marca del equipo" required>
           </div>
         </div>
 
         <div class="form-row">
           <div class="full-width">
-            <label for="modelo">Modelo:</label>
-            <input type="text" id="modelo" name="modelo" required>
+            <label for="modelo"><i class="fas fa-cube"></i> Modelo:</label>
+            <input type="text" id="modelo" name="modelo" placeholder="Modelo específico" required>
           </div>
         </div>
 
-        <div class="form-row">
+        <div class="form-row" style="align-items: flex-start;">
           <div>
-            <label for="qty">Cantidad:</label>
-            <input type="number" id="qty" name="qty" min="1" value="1" required>
+            <label for="qty"><i class="fas fa-boxes"></i> Cantidad:</label>
+            <input type="number" id="qty" name="qty" min="1" value="1" required style="font-weight: bold;">
           </div>
           <div>
-            <label for="garantia">Garantía (meses):</label>
-            <input type="number" id="garantia" name="garantia" value="0">
+            <label for="garantia"><i class="fas fa-shield-alt"></i> Garantía (meses):</label>
+            <input type="number" id="garantia" name="garantia" min="0" placeholder="0">
           </div>
           <div>
-            <label for="calibracion">Calibración (meses):</label>
-            <input type="number" id="calibracion" name="calibracion" value="0">
+            <label for="calibracion"><i class="fas fa-tools"></i> Calibración Recomendada (meses):</label>
+            <input type="number" id="calibracion" name="calibracion" min="0" placeholder="0">
           </div>
+          
           <div class="checkbox-container">
-            <label for="servicio">
-              <input type="checkbox" id="servicio" name="servicio"> Cláusula servicio
+            <label for="servicio" class="checkbox-label" style="margin-top: 10px; cursor: pointer;">
+              <input type="checkbox" id="servicio" name="servicio">
+              <span class="checkmark"></span>
+              <strong><i class="fas fa-concierge-bell"></i> Cláusula de servicio</strong>
             </label>
-            <div id="contenedor-frecuencia" style="display:none;">
-              <input type="number" id="frecuencia_servicio" name="frecuencia_servicio" placeholder="Meses">
+            
+            <div id="contenedor-frecuencia" style="display: none; margin-top: 10px; background: #f1f5f9; padding: 10px; border-radius: 5px; border-left: 3px solid #3498db; width: 100%; box-sizing: border-box;">
+                <label style="font-size: 0.8rem; font-weight: bold; color: #2c3e50; display: block; margin-bottom: 5px;">
+                    <i class="fas fa-calendar-alt"></i> FRECUENCIA (MESES):
+                </label>
+                <input type="number" id="frecuencia_servicio" name="frecuencia_servicio" min="1" placeholder="Ej. 6" style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 3px; box-sizing: border-box;">
             </div>
           </div>
         </div>
 
-        <div id="series-container"></div>
+        <div id="series-container" class="series-container"></div>
 
         <div class="form-row">
-          <textarea id="notas" name="notas" placeholder="Notas..."></textarea>
+          <div class="full-width">
+            <label for="notas"><i class="fas fa-sticky-note"></i> Notas:</label>
+            <textarea id="notas" name="notas" placeholder="Observaciones adicionales..."></textarea>
+          </div>
         </div>
 
-        <div class="filtro-item">
-          <label>Facturas:</label>
-          <input type="file" id="facturas" name="facturas[]" multiple>
+        <div class="filtro-item" style="margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+            <label for="facturas"><i class="fas fa-file-upload"></i> Adjuntar Facturas/Archivos (Opcional):</label>
+            <input type="file" id="facturas" name="facturas[]" accept=".pdf, .jpg, .png, .docx" multiple class="form-control" style="margin-top: 10px;">
+            <small style="color: #7f8c8d; display: block; margin-top: 5px;">Puedes seleccionar varios archivos a la vez.</small>
         </div>
         
-        <button type="button" id="btn-registrar-venta" class="btn-primary" style="width:100%;">Registrar Venta</button>
+        <div class="form-row">
+          <button type="button" id="btn-registrar-venta" class="btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem;">
+            <i class="fas fa-save"></i> Procesar y Registrar Venta
+          </button>
+        </div>
       </form>
+
+      <div id="mensaje" class="mensaje"></div>
     </section>
   </main>
 
   <script>
     async function cargarClientesEnSelect() {
-        const response = await fetch(`../backend/obtener-clientes.php?t=${Date.now()}`);
-        const clientes = await response.json();
-        const select = document.getElementById('cliente');
-        select.innerHTML = '<option value="" selected disabled>Seleccione un cliente</option>'; 
-        clientes.forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c.nombre; opt.textContent = c.nombre;
-            select.appendChild(opt);
-        });
+        try {
+            const response = await fetch(`../backend/obtener-clientes.php?t=${Date.now()}`, { cache: "no-store" });
+            const clientes = await response.json();
+
+            const selectClientes = document.getElementById('cliente');
+            selectClientes.innerHTML = '<option value="" selected disabled>Seleccione un cliente</option>'; 
+
+            clientes.forEach(cliente => {
+                const option = document.createElement('option');
+                option.value = cliente.nombre;
+                option.textContent = cliente.nombre;
+                selectClientes.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error al cargar clientes:', error);
+            alert('Error al cargar clientes en el select');
+        }
     }
     document.addEventListener('DOMContentLoaded', cargarClientesEnSelect);
   </script>
+
+  <script src="../scripts/sidebar-state.js?v=1"></script>
 </body>
 </html>
