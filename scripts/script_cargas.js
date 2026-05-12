@@ -455,15 +455,9 @@ function abrirModalProgramada(indice) {
 
   const modalEl = document.getElementById('modalProgramada');
   if (modalEl) {
-    // CORRECCIÓN CLAVE: Sacamos el modal de cualquier capa contenedora para evitar superposición
-    if (modalEl.parentNode !== document.body) {
-        document.body.appendChild(modalEl);
-    }
-    
-    // Obtenemos la instancia usando el método seguro de Bootstrap 5
+    // SOLUCIÓN DEFINITIVA: 
+    // Usamos la API de Bootstrap 5 estrictamente para abrirlo, sin mover el elemento de su lugar.
     const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
-    
-    // Mostramos el modal de forma limpia
     modalInstance.show();
   }
 }
