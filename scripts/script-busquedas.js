@@ -1,3 +1,4 @@
+// script-busquedas.js
 let paginaActual = 1;
 let registrosPorPagina = 10;
 let incidenciasTotales = [];
@@ -97,7 +98,6 @@ async function cargarIncidencias() {
     
     let data;
     try {
-      // Bloque aislado: Solo intenta convertir a JSON
       data = JSON.parse(rawText);
     } catch (parseError) {
       console.error("El servidor devolvió un texto inválido:", rawText);
@@ -105,7 +105,6 @@ async function cargarIncidencias() {
       return;
     }
 
-    // Evaluamos el resultado limpio
     if (data.error) {
       tablaBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger fw-bold">Error SQL: ${data.error}</td></tr>`;
       incidenciasTotales = [];
@@ -119,7 +118,6 @@ async function cargarIncidencias() {
       incidenciasTotales = data;
     }
     
-    // Si todo salió bien, dibujamos la tabla
     mostrarIncidenciasPagina();
     
   } catch (error) {
@@ -206,7 +204,17 @@ function abrirModalProgramada(indice) {
 
   const modalEl = document.getElementById('modalProgramada');
   if (modalEl) {
-    new bootstrap.Modal(modalEl).show();
+    // 1. Forzamos al modal a salir de cualquier contenedor y pegarse directo al body
+    document.body.appendChild(modalEl);
+    
+    // 2. Verificamos que no exista ya una instancia abierta para evitar sombras duplicadas
+    let modalInstance = bootstrap.Modal.getInstance(modalEl);
+    if (!modalInstance) {
+        modalInstance = new bootstrap.Modal(modalEl);
+    }
+    
+    // 3. Mostramos el modal de forma limpia
+    modalInstance.show();
   }
 }
 
