@@ -165,7 +165,7 @@ function mostrarIncidenciasPagina() {
 }
 
 // =====================================================================
-// LÓGICA DE MODAL NATIVO (CON CALCULADORA DE GARANTÍA)
+// LÓGICA DE MODAL NATIVO (CON CALCULADORA DE GARANTÍA Y FILTRO DE PERIODO)
 // =====================================================================
 window.abrirModalProgramada = function(indice) {
   const d = incidenciasTotales[indice];
@@ -185,7 +185,7 @@ window.abrirModalProgramada = function(indice) {
       const garantiaMeses = parseInt(partes[5]) || 0;
       const fechaVenta = partes[6] || '';
 
-      // --- CÁLCULO DE GARANTÍA ---
+      // --- CÁLCULO DE GARANTÍA CON FECHA EXACTA ---
       let badgeGarantia = `<span style="background:#bdc3c7; color:white; padding:4px 8px; border-radius:4px; font-size:0.75rem; white-space:nowrap;"><i class="fas fa-shield-alt"></i> Sin Garantía</span>`;
       
       if (garantiaMeses > 0 && fechaVenta) {
@@ -193,25 +193,26 @@ window.abrirModalProgramada = function(indice) {
           const fFinGarantia = new Date(fVenta.getTime());
           fFinGarantia.setMonth(fFinGarantia.getMonth() + garantiaMeses);
           const hoy = new Date();
+          const fechaVencimientoTexto = fFinGarantia.toISOString().split('T')[0];
 
           if (fFinGarantia > hoy) {
               const diffTime = fFinGarantia - hoy;
               const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
               let tiempoRestante = diffDays > 30 ? Math.floor(diffDays / 30) + " meses" : diffDays + " días";
               
-              badgeGarantia = `<span style="background:#27ae60; color:white; padding:4px 8px; border-radius:4px; font-size:0.75rem; white-space:nowrap;" title="Fin de garantía: ${fFinGarantia.toISOString().split('T')[0]}"><i class="fas fa-check-circle"></i> Garantía: ${tiempoRestante} rest.</span>`;
+              badgeGarantia = `<span style="background:#27ae60; color:white; padding:4px 8px; border-radius:4px; font-size:0.75rem; white-space:nowrap;" title="Quedan ${tiempoRestante}"><i class="fas fa-check-circle"></i> Garantía hasta: ${fechaVencimientoTexto}</span>`;
           } else {
-              badgeGarantia = `<span style="background:#e74c3c; color:white; padding:4px 8px; border-radius:4px; font-size:0.75rem; white-space:nowrap;"><i class="fas fa-times-circle"></i> Garantía Vencida</span>`;
+              badgeGarantia = `<span style="background:#e74c3c; color:white; padding:4px 8px; border-radius:4px; font-size:0.75rem; white-space:nowrap;"><i class="fas fa-times-circle"></i> Venció: ${fechaVencimientoTexto}</span>`;
           }
       }
 
-      // --- TEXTOS DE PERIODICIDAD ---
-      let periodosArr = [];
-      if (calibracion > 0) periodosArr.push(`Calibrar c/${calibracion}m`);
-      if (servicio > 0) periodosArr.push(`Servicio c/${servicio}m`);
-      let textoPeriodos = periodosArr.length > 0 
-          ? `<div style="font-size: 0.8rem; color:#7f8c8d; margin-top:4px;"><i class="fas fa-sync-alt"></i> Periodicidad: ${periodosArr.join(' | ')}</div>` 
-          : '';
+      // --- TEXTOS DE PERIODICIDAD SEPARADOS POR TIPO DE TICKET ---
+      let textoPeriodo = "";
+      if (d.numero_incidente === 'PROG-CAL' && calibracion > 0) {
+          textoPeriodo = `<div style="font-size: 0.8rem; color:#7f8c8d; margin-top:4px;"><i class="fas fa-sync-alt"></i> Frecuencia: Calibración cada ${calibracion} meses</div>`;
+      } else if (d.numero_incidente === 'PROG-SERV' && servicio > 0) {
+          textoPeriodo = `<div style="font-size: 0.8rem; color:#7f8c8d; margin-top:4px;"><i class="fas fa-sync-alt"></i> Frecuencia: Mantenimiento cada ${servicio} meses</div>`;
+      }
 
       // --- CONSTRUCCIÓN DEL ROW DEL EQUIPO ---
       equiposHTML += `
@@ -220,7 +221,7 @@ window.abrirModalProgramada = function(indice) {
                 <div>
                     <div style="font-weight:bold; color:#2c3e50;"><i class="bi bi-cpu text-primary me-2"></i> ${marca} ${modelo}</div>
                     <div style="font-size:0.85rem; color:#7f8c8d; margin-left: 23px;">Serie: ${serie}</div>
-                    <div style="margin-left: 23px;">${textoPeriodos}</div>
+                    <div style="margin-left: 23px;">${textoPeriodo}</div>
                 </div>
                 <div style="margin-left: 15px; margin-top:2px;">
                     ${badgeGarantia}
