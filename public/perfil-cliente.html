@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil del Cliente - SIPCONS</title>
+    <link rel="stylesheet" href="../css/styles.css?v=10.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .perfil-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; align-items: start; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px; }
+        @media (max-width: 900px) { .perfil-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+  <div class="retorna" style="padding:15px;">
+    <a href="clientes.html" style="text-decoration:none; color:#2980b9; font-weight:bold;"><i class="fas fa-arrow-left"></i> Volver a Clientes</a>
+  </div>
+
+  <main style="padding: 20px; max-width: 1400px; margin: 0 auto;">
+    <div style="margin-bottom: 20px;">
+        <h2 style="margin:0; font-size:1.8rem; color:#2c3e50;"><i class="fas fa-building"></i> <span id="titulo-nombre-cliente">Cargando...</span></h2>
+    </div>
+
+    <div class="perfil-grid">
+        <!-- COLUMNA IZQUIERDA: Editar Datos del Cliente -->
+        <div class="card">
+            <div class="card-header">
+                <h3 style="margin:0; font-size:1.2rem; color:#34495e;"><i class="fas fa-address-card"></i> Datos Generales</h3>
+            </div>
+            <form id="form-editar-cliente">
+                <input type="hidden" id="edit-id" name="id">
+                
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.85rem; color:#7f8c8d; font-weight:bold;">Razón Social</label>
+                    <input type="text" id="edit-nombre" name="nombre" style="width:100%; padding:8px;" required>
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.85rem; color:#7f8c8d; font-weight:bold;">RFC</label>
+                    <input type="text" id="edit-rfc" name="rfc" style="width:100%; padding:8px;">
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.85rem; color:#7f8c8d; font-weight:bold;">Dirección</label>
+                    <input type="text" id="edit-direccion" name="direccion" style="width:100%; padding:8px;">
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.85rem; color:#7f8c8d; font-weight:bold;">Teléfono</label>
+                    <input type="text" id="edit-telefono" name="telefono" style="width:100%; padding:8px;">
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.85rem; color:#7f8c8d; font-weight:bold;">Contactos</label>
+                    <input type="text" id="edit-contactos" name="contactos" style="width:100%; padding:8px;">
+                </div>
+                <div style="margin-bottom:15px;">
+                    <label style="font-size:0.85rem; color:#7f8c8d; font-weight:bold;">Email</label>
+                    <input type="email" id="edit-email" name="email" style="width:100%; padding:8px;">
+                </div>
+                <button type="submit" style="width:100%; background:#2980b9; color:white; padding:10px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">
+                    <i class="fas fa-save"></i> Guardar Cambios
+                </button>
+            </form>
+        </div>
+
+        <!-- COLUMNA DERECHA: Padrón de Equipos -->
+        <div class="card">
+            <div class="card-header">
+                <h3 style="margin:0; font-size:1.2rem; color:#34495e;"><i class="fas fa-boxes"></i> Padrón de Equipos</h3>
+                <!-- ESTE ES EL BOTÓN MÁGICO PARA EQUIPOS EXTERNOS -->
+                <button onclick="abrirModalEquipo()" style="background:#27ae60; color:white; padding:8px 15px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">
+                    <i class="fas fa-plus"></i> Registrar Equipo Externo
+                </button>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table class="tabla-ventas" style="width: 100%; text-align:left;">
+                    <thead style="background:#f8f9fa;">
+                        <tr>
+                            <th>Equipo</th>
+                            <th>Serie</th>
+                            <th>Sucursal</th>
+                            <th>Origen</th>
+                            <th>Periodicidad</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-padron-cliente">
+                        <tr><td colspan="5" style="text-align:center;">Cargando equipos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+  </main>
+
+  <!-- MODAL NATIVO: REGISTRO DE EQUIPO EXTERNO -->
+  <div id="modalEquipoExterno" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#fff; width:90%; max-width:700px; border-radius:10px; padding:20px; position:relative; max-height:90vh; overflow-y:auto;">
+        <span onclick="cerrarModalEquipo()" style="position:absolute; right:20px; top:15px; cursor:pointer; font-size:1.5rem; font-weight:bold; color:#7f8c8d;">&times;</span>
+        <h3 style="margin-top:0; color:#2c3e50;"><i class="fas fa-tools"></i> Registrar Equipo a Servicio/Calibración</h3>
+        <hr>
+        
+        <form id="form-equipo-externo">
+            <!-- El cliente se asinga solo porque ya estamos en su perfil -->
+            <input type="hidden" id="ext-cliente" name="cliente">
+            
+            <div style="display:flex; gap:15px; margin-bottom:15px;">
+                <div style="flex:1;">
+                    <label>Sucursal del Equipo:</label>
+                    <input type="text" name="sucursal" placeholder="Ej. Lázaro Este" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                </div>
+                <div style="flex:1;">
+                    <label>Fecha de Alta:</label>
+                    <input type="date" name="fecha_registro" id="ext-fecha" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;" required>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:15px; margin-bottom:15px;">
+                <div style="flex:1;">
+                    <label>Tipo de Equipo:*</label>
+                    <input type="text" name="equipo" placeholder="Ej. Báscula" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;" required>
+                </div>
+                <div style="flex:1;">
+                    <label>Marca:</label>
+                    <input type="text" name="marca" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                </div>
+            </div>
+
+            <div style="display:flex; gap:15px; margin-bottom:15px;">
+                <div style="flex:1;">
+                    <label>Modelo:</label>
+                    <input type="text" name="modelo" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                </div>
+                <div style="flex:1;">
+                    <label>Número de Serie:*</label>
+                    <input type="text" name="numero_serie" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;" required>
+                </div>
+            </div>
+
+            <div style="background:#f1f5f9; padding:15px; border-radius:8px; border-left:4px solid #3498db; margin-bottom:20px;">
+                <h4 style="margin-top:0; font-size:0.95rem; color:#2980b9;">Configuración de Mantenimiento</h4>
+                <div style="display:flex; gap:15px;">
+                    <div style="flex:1;">
+                        <label style="font-size:0.85rem;">Calibración (Meses):</label>
+                        <input type="number" name="calibracion" min="0" placeholder="0 = No aplica" style="width:100%; padding:8px;">
+                    </div>
+                    <div style="flex:1;">
+                        <label style="font-size:0.85rem; display:block; margin-bottom:5px;">
+                            <input type="checkbox" name="servicio" value="1"> Cláusula Servicio
+                        </label>
+                        <input type="number" name="frecuencia_servicio" min="0" placeholder="Frecuencia (meses)" style="width:100%; padding:8px;">
+                    </div>
+                    <div style="flex:1;">
+                        <label style="font-size:0.85rem;">Garantía (Meses):</label>
+                        <input type="number" name="garantia" min="0" placeholder="0 = Sin garantía" style="width:100%; padding:8px;">
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align:right;">
+                <button type="button" onclick="cerrarModalEquipo()" style="background:#95a5a6; color:white; padding:10px 15px; border:none; border-radius:4px; margin-right:10px; cursor:pointer;">Cancelar</button>
+                <button type="submit" style="background:#27ae60; color:white; padding:10px 20px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;"><i class="fas fa-save"></i> Guardar Equipo</button>
+            </div>
+        </form>
+    </div>
+  </div>
+
+  <script src="../scripts/perfil-cliente.js?v=1"></script>
+</body>
+</html>
