@@ -8,8 +8,22 @@ try {
     $equipo = $_POST['equipo'] ?? throw new Exception("Equipo no especificado");
     $marca = $_POST['marca'] ?? '';
     $modelo = $_POST['modelo'] ?? '';
-    $numero_serie = $_POST['numero_serie'] ?? 'S/N';
+    $numero_serie = trim($_POST['numero_serie'] ?? 'S/N');
     
+    // =========================================================================
+    // CANDADO DE DUPLICADOS: Evita series repetidas (Ignora "S/N" o "N/A")
+    // =========================================================================
+    $serieUpper = strtoupper($numero_serie);
+    if ($serieUpper !== '' && $serieUpper !== 'S/N' && $serieUpper !== 'N/A') {
+        $stmtCheck = $pdo->prepare("SELECT cliente, sucursal FROM padron_equipos WHERE numero_serie = ? LIMIT 1");
+        $stmtCheck->execute([$numero_serie]);
+        if ($equipoExistente = $stmtCheck->fetch(PDO::FETCH_ASSOC)) {
+            $lugar = $equipoExistente['sucursal'] ? " ({$equipoExistente['sucursal']})" : "";
+            throw new Exception("La serie '$numero_serie' ya pertenece a un equipo de {$equipoExistente['cliente']}$lugar.");
+        }
+    }
+    // =========================================================================
+
     $fecha_registro = !empty($_POST['fecha_registro']) ? $_POST['fecha_registro'] : date('Y-m-d');
     
     $mesesCalibracion = (int)($_POST['calibracion'] ?? 0);
@@ -17,7 +31,6 @@ try {
     $mesesServicio = (int)($_POST['frecuencia_servicio'] ?? 0);
     $mesesGarantia = (int)($_POST['garantia'] ?? 0);
 
-    // Calculamos los vencimientos a partir de la fecha de registro
     $fechaProximaCalibracion = $mesesCalibracion > 0 ? date('Y-m-d', strtotime("$fecha_registro +$mesesCalibracion months")) : null;
     $fechaProximoServicio = ($tieneServicio && $mesesServicio > 0) ? date('Y-m-d', strtotime("$fecha_registro +$mesesServicio months")) : null;
 
