@@ -25,8 +25,8 @@ try {
     $params = [];
     $types = "";
 
-    // AHORA LEEMOS DE padron_equipos EN LUGAR DE venta_detalles
     if (!empty($solo_programadas) && $solo_programadas === '1') {
+        // CORRECCIÓN: COALESCE(p.garantia, 0) añadido en el GROUP_CONCAT
         $sql = "SELECT * FROM (
             SELECT 
                 MIN(p.id) as id,
@@ -39,7 +39,7 @@ try {
                 'Programado' as estatus,
                 MAX(p.equipo) as equipo,
                 'Por asignar' as tecnico,
-                GROUP_CONCAT(CONCAT_WS('~', p.marca, p.modelo, COALESCE(p.numero_serie, 'S/N'), COALESCE(p.calibracion, 0), COALESCE(p.frecuencia_servicio, 0), 0, COALESCE(DATE(p.fecha_registro), '')) SEPARATOR '||') as detalles_completos
+                GROUP_CONCAT(CONCAT_WS('~', p.marca, p.modelo, COALESCE(p.numero_serie, 'S/N'), COALESCE(p.calibracion, 0), COALESCE(p.frecuencia_servicio, 0), COALESCE(p.garantia, 0), COALESCE(DATE(p.fecha_registro), '')) SEPARATOR '||') as detalles_completos
             FROM padron_equipos p
             WHERE p.calibracion > 0 AND p.proxima_calibracion IS NOT NULL
             GROUP BY p.venta_id, p.origen, p.cliente, p.sucursal, p.proxima_calibracion
@@ -57,7 +57,7 @@ try {
                 'Programado' as estatus,
                 MAX(p.equipo) as equipo,
                 'Por asignar' as tecnico,
-                GROUP_CONCAT(CONCAT_WS('~', p.marca, p.modelo, COALESCE(p.numero_serie, 'S/N'), COALESCE(p.calibracion, 0), COALESCE(p.frecuencia_servicio, 0), 0, COALESCE(DATE(p.fecha_registro), '')) SEPARATOR '||') as detalles_completos
+                GROUP_CONCAT(CONCAT_WS('~', p.marca, p.modelo, COALESCE(p.numero_serie, 'S/N'), COALESCE(p.calibracion, 0), COALESCE(p.frecuencia_servicio, 0), COALESCE(p.garantia, 0), COALESCE(DATE(p.fecha_registro), '')) SEPARATOR '||') as detalles_completos
             FROM padron_equipos p
             WHERE p.servicio = 1 AND p.frecuencia_servicio > 0 AND p.proximo_servicio IS NOT NULL
             GROUP BY p.venta_id, p.origen, p.cliente, p.sucursal, p.proximo_servicio
