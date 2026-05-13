@@ -4,26 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil del Cliente - SIPCONS</title>
-    <link rel="stylesheet" href="../css/styles.css?v=11.0">
+    <link rel="stylesheet" href="../css/styles.css?v=12.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .perfil-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; align-items: start; margin-top: 20px;}
-        @media (max-width: 900px) { .perfil-grid { grid-template-columns: 1fr; } }
+        /* Eliminamos el grid de 2 columnas y usamos Flexbox en columna con separación */
+        .perfil-stack { display: flex; flex-direction: column; gap: 30px; margin-top: 20px; }
+        
         /* Estilos heredados para los botones de las "cards" integrados con tu diseño */
         .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px; }
         .btn-regresar { background: #34495e; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-weight: bold; display: inline-block; margin-bottom: 15px; }
         .btn-regresar:hover { background: #2c3e50; }
+        
+        /* Grid para que el formulario se vea compacto a lo ancho */
+        .form-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-  <!-- Botón Inicio Móvil (Igual que clientes.html) -->
+  <!-- Botón Inicio Móvil -->
   <button class="mobile-home-btn" onclick="window.location.href='../index.html'">
     <i class="fas fa-home"></i>
     <span>Volver al Inicio</span>
   </button>
 
-  <!-- Panel lateral idéntico al de clientes.html -->
+  <!-- Panel lateral -->
   <aside class="sidebar">
     <div class="sidebar-header">
       <h2 class="sidebar-title"><i class="fas fa-tools"></i> Panel</h2>
@@ -54,49 +58,53 @@
       <a href="clientes.html" class="btn-regresar"><i class="fas fa-arrow-left"></i> Volver a Clientes</a>
       <h2 style="color:#2c3e50;"><i class="fas fa-building"></i> Perfil: <span id="titulo-nombre-cliente">Cargando...</span></h2>
       
-      <div class="perfil-grid">
+      <div class="perfil-stack">
           
-        <!-- COLUMNA IZQUIERDA: Editar Datos (Usando tu clase "lista-incidencias" para heredar estilos de fondo) -->
+        <!-- SECCIÓN SUPERIOR: Editar Datos -->
         <div class="lista-incidencias" style="padding: 20px;">
             <div class="card-header">
                 <h3 style="margin:0; font-size:1.2rem; color:#34495e;"><i class="fas fa-address-card"></i> Datos Generales</h3>
+                <button type="submit" form="form-editar-cliente" style="background:#2980b9; color:white; padding:8px 20px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">
+                    <i class="fas fa-save"></i> Guardar Cambios
+                </button>
             </div>
             
             <form id="form-editar-cliente">
                 <input type="hidden" id="edit-id" name="id">
                 
-                <div class="form-row" style="margin-bottom:15px; display:block;">
-                    <label>Razón Social</label>
-                    <input type="text" id="edit-nombre" name="nombre" style="width:100%;" required>
+                <div class="form-grid-3">
+                    <div>
+                        <label>Razón Social</label>
+                        <input type="text" id="edit-nombre" name="nombre" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;" required>
+                    </div>
+                    <div>
+                        <label>RFC</label>
+                        <input type="text" id="edit-rfc" name="rfc" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                    </div>
+                    <div>
+                        <label>Teléfono</label>
+                        <input type="text" id="edit-telefono" name="telefono" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                    </div>
                 </div>
-                <div class="form-row" style="margin-bottom:15px; display:block;">
-                    <label>RFC</label>
-                    <input type="text" id="edit-rfc" name="rfc" style="width:100%;">
+
+                <div class="form-grid-3">
+                    <div>
+                        <label>Dirección</label>
+                        <input type="text" id="edit-direccion" name="direccion" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                    </div>
+                    <div>
+                        <label>Contactos</label>
+                        <input type="text" id="edit-contactos" name="contactos" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                    </div>
+                    <div>
+                        <label>Email</label>
+                        <input type="email" id="edit-email" name="email" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                    </div>
                 </div>
-                <div class="form-row" style="margin-bottom:15px; display:block;">
-                    <label>Dirección</label>
-                    <input type="text" id="edit-direccion" name="direccion" style="width:100%;">
-                </div>
-                <div class="form-row" style="margin-bottom:15px; display:block;">
-                    <label>Teléfono</label>
-                    <input type="text" id="edit-telefono" name="telefono" style="width:100%;">
-                </div>
-                <div class="form-row" style="margin-bottom:15px; display:block;">
-                    <label>Contactos</label>
-                    <input type="text" id="edit-contactos" name="contactos" style="width:100%;">
-                </div>
-                <div class="form-row" style="margin-bottom:20px; display:block;">
-                    <label>Email</label>
-                    <input type="email" id="edit-email" name="email" style="width:100%;">
-                </div>
-                
-                <button type="submit" style="width:100%; background:#2980b9; color:white; padding:10px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">
-                    <i class="fas fa-save"></i> Guardar Cambios
-                </button>
             </form>
         </div>
 
-        <!-- COLUMNA DERECHA: Padrón de Equipos -->
+        <!-- SECCIÓN INFERIOR: Padrón de Equipos -->
         <div class="lista-incidencias" style="padding: 20px;">
             <div class="card-header">
                 <h3 style="margin:0; font-size:1.2rem; color:#34495e;"><i class="fas fa-boxes"></i> Padrón de Equipos</h3>
@@ -127,6 +135,7 @@
                 </table>
             </div>
         </div>
+        
       </div>
     </section>
   </main>
