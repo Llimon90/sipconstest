@@ -1,6 +1,7 @@
 // scripts/perfil-cliente.js
+let equiposPadron = []; // Array global para almacenar los equipos y poder filtrarlos
+
 document.addEventListener("DOMContentLoaded", async () => {
-    // 1. Obtener ID de la URL
     const params = new URLSearchParams(window.location.search);
     const clientId = params.get('id');
 
@@ -10,10 +11,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
-    // Poner fecha de hoy en el modal por defecto
     document.getElementById('ext-fecha').valueAsDate = new Date();
 
-    // 2. Cargar Datos del Cliente
+    // 1. Cargar Datos del Cliente
     try {
         const resp = await fetch(`../backend/detalle-cliente.php?id=${clientId}`);
         const cliente = await resp.json();
@@ -24,9 +24,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        // Llenar formulario de datos
+        // Llenar datos
         document.getElementById('titulo-nombre-cliente').textContent = cliente.nombre;
-        document.getElementById('ext-cliente').value = cliente.nombre; // Para el modal de equipos
+        document.getElementById('ext-cliente').value = cliente.nombre;
         
         document.getElementById('edit-id').value = cliente.id;
         document.getElementById('edit-nombre').value = cliente.nombre;
@@ -36,14 +36,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById('edit-contactos').value = cliente.contactos || '';
         document.getElementById('edit-email').value = cliente.email || '';
 
-        // 3. Cargar los equipos (El Padrón)
+        // 2. Cargar los equipos
         cargarEquipos(cliente.nombre);
 
     } catch (error) {
         console.error("Error cargando perfil:", error);
     }
 
-    // 4. Guardar Cambios del Cliente
+    // 3. Guardar Cambios del Cliente
     document.getElementById('form-editar-cliente').addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
@@ -62,18 +62,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // 5. Guardar Nuevo Equipo Externo
+    // 4. Guardar Nuevo Equipo Externo
     document.getElementById('form-equipo-externo').addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
 
         try {
-            // Este archivo es el que creamos en el paso anterior
             const response = await fetch('../backend/registro_externo.php', { method: 'POST', body: formData });
             const result = await response.json();
 
             if (result.exito) {
-                alert('Equipo externo registrado con éxito y programado para mantenimiento.');
+                alert('Equipo registrado con éxito en el padrón.');
                 cerrarModalEquipo();
                 e.target.reset();
                 document.getElementById('ext-fecha').valueAsDate = new Date();
@@ -81,6 +80,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 
                 // Recargar tabla de equipos
                 cargarEquipos(document.getElementById('edit-nombre').value);
+                document.getElementById('buscador-padron').value = ''; // Limpiar el buscador
             } else {
                 alert(`Error: ${result.mensaje}`);
             }
@@ -89,50 +89,78 @@ document.addEventListener("DOMContentLoaded", async () => {
             alert("Hubo un error de conexión.");
         }
     });
+
+    // 5. Lógica del Buscador del Padrón
+    const buscador = document.getElementById('buscador-padron');
+    if(buscador) {
+        buscador.addEventListener('input', (e) => {
+            const texto = e.target.value.toLowerCase();
+            const equiposFiltrados = equiposPadron.filter(eq => {
+                return (
+                    (eq.equipo && eq.equipo.toLowerCase().includes(texto)) ||
+                    (eq.marca && eq.marca.toLowerCase().includes(texto)) ||
+                    (eq.modelo && eq.modelo.toLowerCase().includes(texto)) ||
+                    (eq.numero_serie && eq.numero_serie.toLowerCase().includes(texto)) ||
+                    (eq.sucursal && eq.sucursal.toLowerCase().includes(texto))
+                );
+            });
+            renderizarTablaEquipos(equiposFiltrados);
+        });
+    }
 });
 
+// Función que va a la base de datos
 async function cargarEquipos(nombreCliente) {
     const tbody = document.getElementById('tabla-padron-cliente');
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Consultando inventario...</td></tr>';
 
     try {
         const resp = await fetch(`../backend/obtener_equipos_cliente.php?cliente=${encodeURIComponent(nombreCliente)}`);
-        const equipos = await resp.json();
+        const data = await resp.json();
 
-        if (!equipos || equipos.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#7f8c8d;">Este cliente no tiene equipos registrados en el padrón.</td></tr>';
-            return;
-        }
+        if (data.error) throw new Error(data.error);
 
-        tbody.innerHTML = '';
-        equipos.forEach(eq => {
-            // Construir texto de periodicidad
-            let periodos = [];
-            if (eq.calibracion > 0) periodos.push(`Cal: ${eq.calibracion}m`);
-            if (eq.servicio > 0 && eq.frecuencia_servicio > 0) periodos.push(`Serv: ${eq.frecuencia_servicio}m`);
-            let txtPeriodo = periodos.length > 0 ? periodos.join(' | ') : 'Sin programa';
+        equiposPadron = data; // Guardamos en la variable global
+        renderizarTablaEquipos(equiposPadron); // Dibujamos la tabla
 
-            // Etiqueta de Origen
-            let badgeOrigen = eq.origen === 'Venta Lumina' 
-                ? `<span style="background:#e8f4f8; color:#2980b9; padding:3px 6px; border-radius:4px; font-size:0.8rem;">Venta #${eq.venta_id}</span>`
-                : `<span style="background:#fef5e7; color:#d35400; padding:3px 6px; border-radius:4px; font-size:0.8rem;">Externo</span>`;
-
-            tbody.innerHTML += `
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td><strong>${eq.marca || ''} ${eq.modelo || ''}</strong><br><small style="color:#7f8c8d;">${eq.equipo}</small></td>
-                    <td>${eq.numero_serie || 'S/N'}</td>
-                    <td>${eq.sucursal || '-'}</td>
-                    <td>${badgeOrigen}</td>
-                    <td style="font-size:0.85rem; font-weight:bold;">${txtPeriodo}</td>
-                </tr>
-            `;
-        });
     } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#e74c3c;">Error al cargar equipos.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#e74c3c;">Error al cargar el padrón de equipos.</td></tr>';
     }
 }
 
-// Control del Modal Nativo
+// Función que dibuja el HTML de la tabla
+function renderizarTablaEquipos(equipos) {
+    const tbody = document.getElementById('tabla-padron-cliente');
+    tbody.innerHTML = '';
+
+    if (!equipos || equipos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#7f8c8d; padding:20px;">No se encontraron equipos para este cliente.</td></tr>';
+        return;
+    }
+
+    equipos.forEach(eq => {
+        let periodos = [];
+        if (eq.calibracion > 0) periodos.push(`Cal: ${eq.calibracion}m`);
+        if (eq.servicio > 0 && eq.frecuencia_servicio > 0) periodos.push(`Serv: ${eq.frecuencia_servicio}m`);
+        let txtPeriodo = periodos.length > 0 ? periodos.join(' | ') : 'Sin programa';
+
+        let badgeOrigen = eq.origen === 'Venta Lumina' 
+            ? `<span style="background:#e8f4f8; color:#2980b9; padding:3px 6px; border-radius:4px; font-size:0.8rem; font-weight:bold;">Venta #${eq.venta_id}</span>`
+            : `<span style="background:#fef5e7; color:#d35400; padding:3px 6px; border-radius:4px; font-size:0.8rem; font-weight:bold;">Externo</span>`;
+
+        tbody.innerHTML += `
+            <tr style="border-bottom: 1px solid #eee;">
+                <td><strong>${eq.marca || ''} ${eq.modelo || ''}</strong><br><small style="color:#7f8c8d;">${eq.equipo}</small></td>
+                <td>${eq.numero_serie || 'S/N'}</td>
+                <td>${eq.sucursal || '-'}</td>
+                <td>${badgeOrigen}</td>
+                <td style="font-size:0.85rem; font-weight:bold; color:#2c3e50;">${txtPeriodo}</td>
+            </tr>
+        `;
+    });
+}
+
+// Control del Modal
 window.abrirModalEquipo = function() {
     document.getElementById('modalEquipoExterno').style.display = 'flex';
 };
