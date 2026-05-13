@@ -63,7 +63,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         e.preventDefault();
         const formData = new FormData(e.target);
         
-        // Si hay un ID oculto, significa que estamos editando; si está vacío, es uno nuevo.
         const idEquipo = document.getElementById('ext-id').value;
         const endpoint = idEquipo ? '../backend/actualiza_equipo_padron.php' : '../backend/registro_externo.php';
 
@@ -106,7 +105,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function cargarEquipos(nombreCliente) {
     const tbody = document.getElementById('tabla-padron-cliente');
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Consultando inventario...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Consultando inventario...</td></tr>';
 
     try {
         const resp = await fetch(`../backend/obtener_equipos_cliente.php?cliente=${encodeURIComponent(nombreCliente)}`);
@@ -118,7 +117,7 @@ async function cargarEquipos(nombreCliente) {
         renderizarTablaEquipos(equiposPadron);
 
     } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#e74c3c;">Error al cargar el padrón de equipos.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#e74c3c;">Error al cargar el padrón de equipos.</td></tr>';
     }
 }
 
@@ -127,27 +126,51 @@ function renderizarTablaEquipos(equipos) {
     tbody.innerHTML = '';
 
     if (!equipos || equipos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#7f8c8d; padding:20px;">No se encontraron equipos para este cliente.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#7f8c8d; padding:20px;">No se encontraron equipos para este cliente.</td></tr>';
         return;
     }
 
     equipos.forEach(eq => {
+        // 1. Textos de Periodicidad
         let periodos = [];
         if (eq.calibracion > 0) periodos.push(`Cal: ${eq.calibracion}m`);
         if (eq.servicio > 0 && eq.frecuencia_servicio > 0) periodos.push(`Serv: ${eq.frecuencia_servicio}m`);
         let txtPeriodo = periodos.length > 0 ? periodos.join(' | ') : 'Sin programa';
 
+        // 2. Badge de Origen
         let badgeOrigen = eq.origen === 'Venta Lumina' 
             ? `<span style="background:#e8f4f8; color:#2980b9; padding:3px 6px; border-radius:4px; font-size:0.8rem; font-weight:bold;">Venta #${eq.venta_id}</span>`
             : `<span style="background:#fef5e7; color:#d35400; padding:3px 6px; border-radius:4px; font-size:0.8rem; font-weight:bold;">Externo</span>`;
 
+        // 3. CALCULADORA DE GARANTÍA
+        let badgeGarantia = `<span style="background:#bdc3c7; color:white; padding:4px 8px; border-radius:4px; font-size:0.75rem; white-space:nowrap;"><i class="fas fa-shield-alt"></i> Sin Garantía</span>`;
+        
+        if (eq.garantia > 0 && eq.fecha_registro) {
+            const fRegistro = new Date(eq.fecha_registro + 'T12:00:00'); 
+            const fFinGarantia = new Date(fRegistro.getTime());
+            fFinGarantia.setMonth(fFinGarantia.getMonth() + parseInt(eq.garantia));
+            
+            const hoy = new Date();
+            const fechaVencimientoTexto = fFinGarantia.toISOString().split('T')[0];
+
+            if (fFinGarantia > hoy) {
+                const diffTime = fFinGarantia - hoy;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                let tiempoRestante = diffDays > 30 ? Math.floor(diffDays / 30) + " meses" : diffDays + " días";
+                
+                badgeGarantia = `<span style="background:#27ae60; color:white; padding:4px 8px; border-radius:4px; font-size:0.75rem; white-space:nowrap;" title="Quedan ${tiempoRestante}"><i class="fas fa-check-circle"></i> Activa hasta: ${fechaVencimientoTexto}</span>`;
+            } else {
+                badgeGarantia = `<span style="background:#e74c3c; color:white; padding:4px 8px; border-radius:4px; font-size:0.75rem; white-space:nowrap;"><i class="fas fa-times-circle"></i> Venció: ${fechaVencimientoTexto}</span>`;
+            }
+        }
+
+        // 4. Dibujar la Fila
         const tr = document.createElement('tr');
         tr.style.cursor = 'pointer';
         tr.style.borderBottom = '1px solid #eee';
         tr.addEventListener('mouseenter', () => tr.style.backgroundColor = '#f1f5f9');
         tr.addEventListener('mouseleave', () => tr.style.backgroundColor = 'transparent');
         
-        // Magia: Abrir modal de EDICIÓN al hacer clic en la fila
         tr.onclick = () => abrirModalEdicionEquipo(eq);
 
         tr.innerHTML = `
@@ -156,6 +179,7 @@ function renderizarTablaEquipos(equipos) {
             <td>${eq.sucursal || '-'}</td>
             <td>${badgeOrigen}</td>
             <td style="font-size:0.85rem; font-weight:bold; color:#2c3e50;">${txtPeriodo}</td>
+            <td>${badgeGarantia}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -163,13 +187,13 @@ function renderizarTablaEquipos(equipos) {
 
 // CONTROL DE MODALES
 window.abrirModalEquipo = function() {
-    document.getElementById('form-equipo-externo').reset(); // Limpiamos
-    document.getElementById('ext-id').value = ''; // Modo NUEVO
+    document.getElementById('form-equipo-externo').reset();
+    document.getElementById('ext-id').value = ''; 
     document.getElementById('ext-fecha').valueAsDate = new Date();
     document.getElementById('ext-cliente').value = document.getElementById('edit-nombre').value;
     
     document.getElementById('titulo-modal-equipo').innerHTML = '<i class="fas fa-plus-circle"></i> Registrar Nuevo Equipo';
-    document.getElementById('btn-eliminar-equipo').style.display = 'none'; // Ocultamos eliminar
+    document.getElementById('btn-eliminar-equipo').style.display = 'none'; 
     
     document.getElementById('modalEquipoExterno').style.display = 'flex';
 };
@@ -177,8 +201,7 @@ window.abrirModalEquipo = function() {
 window.abrirModalEdicionEquipo = function(eq) {
     document.getElementById('form-equipo-externo').reset();
     
-    // Llenamos con los datos del equipo seleccionado
-    document.getElementById('ext-id').value = eq.id; // Modo EDICIÓN
+    document.getElementById('ext-id').value = eq.id;
     document.getElementById('ext-sucursal').value = eq.sucursal || '';
     if(eq.fecha_registro) document.getElementById('ext-fecha').value = eq.fecha_registro;
     document.getElementById('ext-equipo').value = eq.equipo || '';
@@ -192,7 +215,7 @@ window.abrirModalEdicionEquipo = function(eq) {
     document.getElementById('ext-garantia').value = eq.garantia || '';
 
     document.getElementById('titulo-modal-equipo').innerHTML = `<i class="fas fa-edit"></i> Editar Equipo: ${eq.equipo}`;
-    document.getElementById('btn-eliminar-equipo').style.display = 'inline-block'; // Mostramos eliminar
+    document.getElementById('btn-eliminar-equipo').style.display = 'inline-block';
     
     document.getElementById('modalEquipoExterno').style.display = 'flex';
 };
