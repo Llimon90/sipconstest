@@ -1,5 +1,5 @@
 // scripts/perfil-cliente.js
-let equiposPadron = []; // Array global para almacenar los equipos y poder filtrarlos
+let equiposPadron = []; 
 
 document.addEventListener("DOMContentLoaded", async () => {
     const params = new URLSearchParams(window.location.search);
@@ -10,8 +10,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         window.location.href = 'clientes.html';
         return;
     }
-
-    document.getElementById('ext-fecha').valueAsDate = new Date();
 
     // 1. Cargar Datos del Cliente
     try {
@@ -24,7 +22,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        // Llenar datos
         document.getElementById('titulo-nombre-cliente').textContent = cliente.nombre;
         document.getElementById('ext-cliente').value = cliente.nombre;
         
@@ -36,24 +33,23 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById('edit-contactos').value = cliente.contactos || '';
         document.getElementById('edit-email').value = cliente.email || '';
 
-        // 2. Cargar los equipos
         cargarEquipos(cliente.nombre);
 
     } catch (error) {
         console.error("Error cargando perfil:", error);
     }
 
-    // 3. Guardar Cambios del Cliente
+    // 2. Guardar Cambios del Cliente
     document.getElementById('form-editar-cliente').addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
-        
         try {
             const response = await fetch('../backend/actualiza-cliente.php', { method: 'POST', body: formData });
             const result = await response.json();
             if (result.success) {
                 alert('Datos del cliente actualizados correctamente.');
                 document.getElementById('titulo-nombre-cliente').textContent = document.getElementById('edit-nombre').value;
+                document.getElementById('ext-cliente').value = document.getElementById('edit-nombre').value;
             } else {
                 alert(`Error: ${result.error}`);
             }
@@ -62,25 +58,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // 4. Guardar Nuevo Equipo Externo
+    // 3. Guardar / Actualizar Equipo (Ruta Inteligente)
     document.getElementById('form-equipo-externo').addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
+        
+        // Si hay un ID oculto, significa que estamos editando; si está vacío, es uno nuevo.
+        const idEquipo = document.getElementById('ext-id').value;
+        const endpoint = idEquipo ? '../backend/actualiza_equipo_padron.php' : '../backend/registro_externo.php';
 
         try {
-            const response = await fetch('../backend/registro_externo.php', { method: 'POST', body: formData });
+            const response = await fetch(endpoint, { method: 'POST', body: formData });
             const result = await response.json();
 
             if (result.exito) {
-                alert('Equipo registrado con éxito en el padrón.');
+                alert(idEquipo ? 'Equipo actualizado con éxito.' : 'Equipo registrado con éxito.');
                 cerrarModalEquipo();
-                e.target.reset();
-                document.getElementById('ext-fecha').valueAsDate = new Date();
-                document.getElementById('ext-cliente').value = document.getElementById('edit-nombre').value;
-                
-                // Recargar tabla de equipos
                 cargarEquipos(document.getElementById('edit-nombre').value);
-                document.getElementById('buscador-padron').value = ''; // Limpiar el buscador
+                document.getElementById('buscador-padron').value = '';
             } else {
                 alert(`Error: ${result.mensaje}`);
             }
@@ -90,7 +85,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // 5. Lógica del Buscador del Padrón
+    // 4. Buscador en tiempo real
     const buscador = document.getElementById('buscador-padron');
     if(buscador) {
         buscador.addEventListener('input', (e) => {
@@ -109,7 +104,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 
-// Función que va a la base de datos
 async function cargarEquipos(nombreCliente) {
     const tbody = document.getElementById('tabla-padron-cliente');
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Consultando inventario...</td></tr>';
@@ -120,15 +114,14 @@ async function cargarEquipos(nombreCliente) {
 
         if (data.error) throw new Error(data.error);
 
-        equiposPadron = data; // Guardamos en la variable global
-        renderizarTablaEquipos(equiposPadron); // Dibujamos la tabla
+        equiposPadron = data; 
+        renderizarTablaEquipos(equiposPadron);
 
     } catch (e) {
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#e74c3c;">Error al cargar el padrón de equipos.</td></tr>';
     }
 }
 
-// Función que dibuja el HTML de la tabla
 function renderizarTablaEquipos(equipos) {
     const tbody = document.getElementById('tabla-padron-cliente');
     tbody.innerHTML = '';
@@ -148,23 +141,85 @@ function renderizarTablaEquipos(equipos) {
             ? `<span style="background:#e8f4f8; color:#2980b9; padding:3px 6px; border-radius:4px; font-size:0.8rem; font-weight:bold;">Venta #${eq.venta_id}</span>`
             : `<span style="background:#fef5e7; color:#d35400; padding:3px 6px; border-radius:4px; font-size:0.8rem; font-weight:bold;">Externo</span>`;
 
-        tbody.innerHTML += `
-            <tr style="border-bottom: 1px solid #eee;">
-                <td><strong>${eq.marca || ''} ${eq.modelo || ''}</strong><br><small style="color:#7f8c8d;">${eq.equipo}</small></td>
-                <td>${eq.numero_serie || 'S/N'}</td>
-                <td>${eq.sucursal || '-'}</td>
-                <td>${badgeOrigen}</td>
-                <td style="font-size:0.85rem; font-weight:bold; color:#2c3e50;">${txtPeriodo}</td>
-            </tr>
+        const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        tr.style.borderBottom = '1px solid #eee';
+        tr.addEventListener('mouseenter', () => tr.style.backgroundColor = '#f1f5f9');
+        tr.addEventListener('mouseleave', () => tr.style.backgroundColor = 'transparent');
+        
+        // Magia: Abrir modal de EDICIÓN al hacer clic en la fila
+        tr.onclick = () => abrirModalEdicionEquipo(eq);
+
+        tr.innerHTML = `
+            <td><strong>${eq.marca || ''} ${eq.modelo || ''}</strong><br><small style="color:#7f8c8d;">${eq.equipo}</small></td>
+            <td>${eq.numero_serie || 'S/N'}</td>
+            <td>${eq.sucursal || '-'}</td>
+            <td>${badgeOrigen}</td>
+            <td style="font-size:0.85rem; font-weight:bold; color:#2c3e50;">${txtPeriodo}</td>
         `;
+        tbody.appendChild(tr);
     });
 }
 
-// Control del Modal
+// CONTROL DE MODALES
 window.abrirModalEquipo = function() {
+    document.getElementById('form-equipo-externo').reset(); // Limpiamos
+    document.getElementById('ext-id').value = ''; // Modo NUEVO
+    document.getElementById('ext-fecha').valueAsDate = new Date();
+    document.getElementById('ext-cliente').value = document.getElementById('edit-nombre').value;
+    
+    document.getElementById('titulo-modal-equipo').innerHTML = '<i class="fas fa-plus-circle"></i> Registrar Nuevo Equipo';
+    document.getElementById('btn-eliminar-equipo').style.display = 'none'; // Ocultamos eliminar
+    
+    document.getElementById('modalEquipoExterno').style.display = 'flex';
+};
+
+window.abrirModalEdicionEquipo = function(eq) {
+    document.getElementById('form-equipo-externo').reset();
+    
+    // Llenamos con los datos del equipo seleccionado
+    document.getElementById('ext-id').value = eq.id; // Modo EDICIÓN
+    document.getElementById('ext-sucursal').value = eq.sucursal || '';
+    if(eq.fecha_registro) document.getElementById('ext-fecha').value = eq.fecha_registro;
+    document.getElementById('ext-equipo').value = eq.equipo || '';
+    document.getElementById('ext-marca').value = eq.marca || '';
+    document.getElementById('ext-modelo').value = eq.modelo || '';
+    document.getElementById('ext-serie').value = eq.numero_serie || '';
+    
+    document.getElementById('ext-calibracion').value = eq.calibracion || '';
+    document.getElementById('ext-servicio').checked = eq.servicio == 1;
+    document.getElementById('ext-frecuencia').value = eq.frecuencia_servicio || '';
+    document.getElementById('ext-garantia').value = eq.garantia || '';
+
+    document.getElementById('titulo-modal-equipo').innerHTML = `<i class="fas fa-edit"></i> Editar Equipo: ${eq.equipo}`;
+    document.getElementById('btn-eliminar-equipo').style.display = 'inline-block'; // Mostramos eliminar
+    
     document.getElementById('modalEquipoExterno').style.display = 'flex';
 };
 
 window.cerrarModalEquipo = function() {
     document.getElementById('modalEquipoExterno').style.display = 'none';
+};
+
+window.eliminarEquipoPadron = async function() {
+    const idEquipo = document.getElementById('ext-id').value;
+    if (!idEquipo) return;
+
+    if(confirm("¿Estás 100% seguro de que deseas eliminar este equipo del padrón? Perderá su programación automática.")) {
+        try {
+            const resp = await fetch(`../backend/elimina_equipo_padron.php?id=${idEquipo}`, { method: 'DELETE' });
+            const result = await resp.json();
+            
+            if (result.exito) {
+                alert("Equipo eliminado del padrón.");
+                cerrarModalEquipo();
+                cargarEquipos(document.getElementById('edit-nombre').value);
+            } else {
+                alert(`Error: ${result.mensaje}`);
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error al intentar eliminar el equipo.");
+        }
+    }
 };
