@@ -145,8 +145,9 @@ function mostrarIncidenciasPagina() {
     const esActiva = ['Abierto', 'Asignado', 'Pendiente', 'Completado', 'Programado'].includes(inc.estatus);
     const indiceGlobal = inicio + indexArray;
 
+    // CORRECCIÓN: Volvemos a usar la etiqueta <a> pero con javascript:void(0) para evitar que herede los estilos del botón y no salte la página.
     let enlaceHTML = esProgramado 
-      ? `<button type="button" class="btn btn-link p-0 fw-bold text-primary text-decoration-none" style="vertical-align: baseline;" onclick="abrirModalProgramada(${indiceGlobal})"><i class="bi bi-window-stack"></i> ${inc.numero_incidente}</button>`
+      ? `<a href="javascript:void(0);" class="fw-bold text-primary text-decoration-none" onclick="abrirModalProgramada(${indiceGlobal})"><i class="bi bi-window-stack"></i> ${inc.numero_incidente}</a>`
       : `<a href="detalle.html?id=${inc.id}" class="text-decoration-none">${inc.numero_incidente || "N/A"}</a>`;
 
     row.innerHTML = `
