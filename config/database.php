@@ -68,7 +68,4 @@ class Database {
     }
 }
 
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
+// Headers de API definidos en auth/middleware.php

@@ -3,6 +3,7 @@
  * SETUP INICIAL — Crear usuario administrador
  * IMPORTANTE: Elimina este archivo después de usarlo.
  */
+header('Content-Type: text/html; charset=UTF-8');
 
 require_once __DIR__ . '/config/database.php';
 
@@ -50,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $tipo    = 'exito';
                 $listo   = true;
             } else {
-                $mensaje = 'Error al crear el usuario: ' . $stmt->error;
+                $mensaje = "Error al crear el usuario: {$stmt->error}";
                 $tipo    = 'error';
             }
         }
