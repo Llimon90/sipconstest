@@ -40,7 +40,7 @@ $_SESSION['rol']     = $user['rol'];
 
 echo json_encode([
     'success'  => true,
-    'redirect' => '/index.html',
+    'redirect' => '../index.html',
     'user'     => [
         'nombre'  => $user['nombre'],
         'usuario' => $user['usuario'],

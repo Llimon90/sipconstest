@@ -274,12 +274,12 @@
 
     try {
       const formData = new FormData(this);
-      const res  = await fetch('/auth/login.php', { method: 'POST', body: formData });
+      const res  = await fetch('login.php', { method: 'POST', body: formData });
       const data = await res.json();
 
       if (data.success) {
         btnText.textContent = 'Acceso concedido';
-        window.location.href = data.redirect || '/index.html';
+        window.location.href = data.redirect || '../index.html';
       } else {
         errorTxt.textContent = data.message || 'Usuario o contraseña incorrectos';
         errorMsg.classList.add('visible');
