@@ -26,10 +26,11 @@ $conn = new mysqli($host, $user, $password, $database);
 if ($conn->connect_error) {
     die(json_encode(["error" => "Error de conexión: " . $conn->connect_error]));
 }
+$conn->set_charset('utf8mb4');
 
 // Conexión PDO (compatibilidad con archivos existentes)
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$database;charset=utf8", $user, $password);
+    $pdo = new PDO("mysql:host=$host;dbname=$database;charset=utf8mb4", $user, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 } catch (PDOException $e) {
