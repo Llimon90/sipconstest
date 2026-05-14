@@ -1,4 +1,5 @@
-<?php
+﻿<?php
+require_once __DIR__ . '/../auth/middleware.php';
 // Configuración de la base de datos
 require_once 'conexion.php';
 

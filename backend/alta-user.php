@@ -1,4 +1,5 @@
-<?php
+﻿<?php
+require_once __DIR__ . '/../auth/middleware.php';
 header('Content-Type: application/json');
 // Configurar cabeceras para permitir acceso desde el frontend
 header("Access-Control-Allow-Origin: *");

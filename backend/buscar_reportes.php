@@ -1,4 +1,5 @@
-<?php
+﻿<?php
+require_once __DIR__ . '/../auth/middleware.php';
 // buscar_reportes.php
 
 ob_start(); 
@@ -31,7 +32,7 @@ try {
             SELECT 
                 MIN(p.id) as id,
                 'PROG-CAL' as numero_incidente,
-                IF(p.origen = 'Venta Lumina', CONCAT('Venta #', p.venta_id), 'Equipo Externo') as numero,
+                IF(p.origen = 'Venta SIPCONS', CONCAT('Venta #', p.venta_id), 'Equipo Externo') as numero,
                 p.cliente as cliente,
                 p.sucursal as sucursal,
                 CONCAT(COUNT(p.id), ' equipo(s) a Calibrar.') as falla,
@@ -49,7 +50,7 @@ try {
             SELECT 
                 MIN(p.id) as id,
                 'PROG-SERV' as numero_incidente,
-                IF(p.origen = 'Venta Lumina', CONCAT('Venta #', p.venta_id), 'Equipo Externo') as numero,
+                IF(p.origen = 'Venta SIPCONS', CONCAT('Venta #', p.venta_id), 'Equipo Externo') as numero,
                 p.cliente as cliente,
                 p.sucursal as sucursal,
                 CONCAT(COUNT(p.id), ' equipo(s) a Servicio.') as falla,

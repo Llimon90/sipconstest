@@ -1,6 +1,7 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
+  <script>document.documentElement.style.visibility="hidden";</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SIPCONS - Registro de Ventas</title>
@@ -171,5 +172,6 @@
   </script>
 
   <script src="../scripts/sidebar-state.js?v=1"></script>
+  <script>(function(){fetch("/auth/session_check.php").then(function(r){if(r.status===401){window.location.replace("/auth/login.html");}else{document.documentElement.style.visibility="";}}).catch(function(){document.documentElement.style.visibility="";});})();</script>
 </body>
 </html>

@@ -1,4 +1,5 @@
-<?php
+﻿<?php
+require_once __DIR__ . '/../auth/middleware.php';
 // Asegurar que el contenido devuelto sea JSON
 header('Content-Type: application/json');
 error_reporting(0);

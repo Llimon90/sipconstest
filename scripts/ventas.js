@@ -1,5 +1,5 @@
 /**
- * scripts/ventas.js - Lumina-ERP
+ * scripts/ventas.js - SIPCONS-ERP
  * Módulo de Ventas: Gestión de Series, Integridad, Multi-archivos y Frecuencia de Servicio.
  */
 

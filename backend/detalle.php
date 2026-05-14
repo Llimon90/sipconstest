@@ -1,4 +1,5 @@
-<?php
+﻿<?php
+require_once __DIR__ . '/../auth/middleware.php';
 require_once 'conexion.php';
 
 if ($conn->connect_error) {

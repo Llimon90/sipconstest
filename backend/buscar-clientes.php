@@ -1,4 +1,5 @@
-<?php
+﻿<?php
+require_once __DIR__ . '/../auth/middleware.php';
 // backend/buscar-clientes.php
 header("Access-Control-Allow-Origin: *");
 header('Content-Type: application/json');
