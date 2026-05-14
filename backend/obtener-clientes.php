@@ -1,10 +1,14 @@
 ﻿<?php
 require_once __DIR__ . '/../auth/middleware.php';
+
 // Asegurar que el contenido devuelto sea JSON
 header('Content-Type: application/json');
-error_reporting(0);
-ini_set('display_errors', 0);
 
+// MIENTRAS DESARROLLAS PON ESTO EN 1 (E_ALL). Cuando subas a producción lo regresas a 0.
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// ... (El resto de tu código se queda igual) ...
 // Configurar conexión con la base de datos
 
 // Verificar conexión
