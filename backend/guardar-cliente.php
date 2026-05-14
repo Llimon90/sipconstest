@@ -1,7 +1,6 @@
 ﻿<?php
 require_once __DIR__ . '/../auth/middleware.php';
 // Conexión a la base de datos
-require_once 'conexion.php';
 
 if ($conn->connect_error) {
     die(json_encode(['success' => false, 'message' => 'Error de conexión: ' . $conn->connect_error]));

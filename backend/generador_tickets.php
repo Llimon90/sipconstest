@@ -1,7 +1,6 @@
 ﻿<?php
 require_once __DIR__ . '/../auth/middleware.php';
 // backend/generador_tickets.php
-require_once 'conexion.php';
 
 try {
     $pdo->beginTransaction();

@@ -1,6 +1,5 @@
 ﻿<?php
 require_once __DIR__ . '/../auth/middleware.php';
-require_once 'conexion.php';
 
 header('Content-Type: application/json');
 

@@ -8,7 +8,6 @@ header('Content-Type: application/json');
 error_reporting(0);
 ini_set('display_errors', 0);
 
-require_once 'conexion.php';
 
 // Si tu conexion.php solo declara las variables $host, $user... instanciamos la conexión aquí.
 // Si ya trae $conn instanciado, usamos el existente.

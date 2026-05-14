@@ -6,7 +6,6 @@ error_reporting(0);
 ini_set('display_errors', 0);
 
 // Configurar conexión con la base de datos
-require_once 'conexion.php';
 
 // Verificar conexión
 if ($conn->connect_error) {

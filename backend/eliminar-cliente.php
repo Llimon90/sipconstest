@@ -2,7 +2,6 @@
 require_once __DIR__ . '/../auth/middleware.php';
 header('Content-Type: application/json');
 
-require_once 'conexion.php';
 
 if ($conn->connect_error) {
     echo json_encode(['error' => 'Error de conexión: ' . $conn->connect_error]);

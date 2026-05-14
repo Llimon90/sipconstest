@@ -7,7 +7,6 @@ error_reporting(E_ALL);
 // ==============================================
 // 1. Conexión a la base de datos
 // ==============================================
-require_once 'conexion.php';
 
 // ==============================================
 // 2. Detección Inteligente de Payload (JSON vs POST)

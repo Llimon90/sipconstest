@@ -7,7 +7,6 @@ header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
 // Configuración de la base de datos
-require_once 'conexion.php';
 
 try {
     // Verificar la conexión

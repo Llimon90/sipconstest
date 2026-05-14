@@ -2,7 +2,6 @@
 require_once __DIR__ . '/../auth/middleware.php';
 header('Content-Type: application/json');
 
-require_once 'conexion.php';
 
 $conn = new mysqli($host, $user, $password, $database);
 

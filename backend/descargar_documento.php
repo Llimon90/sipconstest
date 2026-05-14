@@ -4,7 +4,6 @@ require_once __DIR__ . '/../auth/middleware.php';
 header('Access-Control-Allow-Origin: *');
 
 // Incluir conexión para verificar permisos
-require_once 'conexion.php';
 
 try {
     // Obtener parámetros

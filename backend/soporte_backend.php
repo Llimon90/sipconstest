@@ -16,7 +16,6 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 // Incluir conexión
-require_once 'conexion.php';
 
 try {
     $db = new Database();
