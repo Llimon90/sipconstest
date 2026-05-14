@@ -1,0 +1,13 @@
+# Credenciales — nunca subir a git
+.env
+
+# Uploads de usuarios
+uploads/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/settings.json
+*.swp

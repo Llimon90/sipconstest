@@ -2,3 +2,5 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home1/sipcons1/public_html/apptest
     - /bin/cp -R * $DEPLOYPATH
+    - /bin/cp .htaccess $DEPLOYPATH/.htaccess
+    - /bin/cp .gitignore $DEPLOYPATH/.gitignore
