@@ -1,25 +1,37 @@
 ﻿<?php
-require_once __DIR__ . '/../auth/middleware.php';
-
-// Asegurar que el contenido devuelto sea JSON
-header('Content-Type: application/json');
-
-// MIENTRAS DESARROLLAS PON ESTO EN 1 (E_ALL). Cuando subas a producción lo regresas a 0.
+// 1. FORZAR LA VISIBILIDAD DE ERRORES (Solo para depuración)
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+header('Content-Type: application/json');
 
-// ... (El resto de tu código se queda igual) ...
-// Configurar conexión con la base de datos
+// 2. ATRAPAR ERRORES FATALES Y DEVOLVERLOS COMO JSON
+register_shutdown_function(function() {
+    $error = error_get_last();
+    // Si hay un error fatal, lo imprimimos para que la respuesta no quede en blanco
+    if ($error !== NULL && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        echo json_encode([
+            "error_php_oculto" => true, 
+            "mensaje" => $error['message'], 
+            "archivo" => $error['file'], 
+            "linea" => $error['line']
+        ]);
+    }
+});
 
-// Verificar conexión
+// 3. CARGAR MIDDLEWARE Y CONEXIÓN
+require_once __DIR__ . '/../auth/middleware.php';
+
+// 4. VERIFICAR QUE LA CONEXIÓN EXISTE REALMENTE
+if (!isset($conn)) {
+    die(json_encode(["error" => "La variable \$conn no existe. Revisa tu config/database.php"]));
+}
 if ($conn->connect_error) {
-    die(json_encode(["error" => "Error de conexión: " . $conn->connect_error]));
+    die(json_encode(["error" => "Error de conexión BD: " . $conn->connect_error]));
 }
 
-// Obtener el parámetro de búsqueda si existe
+// 5. EJECUTAR CONSULTA SQL
 $busqueda = isset($_GET['busqueda']) ? $conn->real_escape_string($_GET['busqueda']) : '';
 
-// Preparar la consulta SQL
 if ($busqueda) {
     $sql = "SELECT * FROM clientes WHERE 
             nombre LIKE '%$busqueda%' OR 
@@ -33,26 +45,17 @@ if ($busqueda) {
     $sql = "SELECT * FROM clientes ORDER BY nombre";
 }
 
-// Ejecutar la consulta
 $result = $conn->query($sql);
 
-// Verificar si la consulta fue exitosa
 if (!$result) {
-    echo json_encode(['success' => false, 'message' => 'Error en la consulta: ' . $conn->error]);
-    $conn->close();
-    exit;
+    die(json_encode(['error' => 'Error SQL: ' . $conn->error]));
 }
 
-// Obtener los resultados
 $clientes = [];
 while ($row = $result->fetch_assoc()) {
     $clientes[] = $row;
 }
 
-// Devolver los resultados en formato JSON
 echo json_encode($clientes);
-
-// Cerrar la conexión
 $conn->close();
-exit;
 ?>
