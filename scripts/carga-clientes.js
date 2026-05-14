@@ -1,20 +1,22 @@
 // Función para obtener y mostrar clientes
 async function cargarClientes(busqueda = '') {
   try {
-    // 1. Apuntamos a obtener-clientes.php
-    // 2. Usamos ?busqueda= en lugar de ?q=
-    // 3. Agregamos credentials: 'include' para que requireAuth() te reconozca
+    console.log(`Solicitando clientes con búsqueda: "${busqueda}"...`);
+    
+    // 1. Apuntamos al archivo correcto (obtener-clientes.php)
+    // 2. Usamos ?busqueda=
+    // 3. Agregamos credentials para que pase el middleware de seguridad
     const response = await fetch(`../backend/obtener-clientes.php?busqueda=${encodeURIComponent(busqueda)}`, {
         method: 'GET',
         credentials: 'include' 
     });
     
-    // Si la respuesta no es OK (ej. 401 Unauthorized), lanzamos error
     if (!response.ok) {
         throw new Error(`Error HTTP: ${response.status}`);
     }
 
     const clientes = await response.json();
+    console.log("Datos recibidos del servidor:", clientes);
 
     const listaClientes = document.getElementById('lista-clientes');
     if (!listaClientes) return;
@@ -58,3 +60,21 @@ async function cargarClientes(busqueda = '') {
     }
   }
 }
+
+// Cargar clientes automáticamente al inicializar la página
+document.addEventListener('DOMContentLoaded', () => {
+  console.log("El DOM cargó. Ejecutando cargarClientes()...");
+  cargarClientes();
+
+  const campoBusqueda = document.getElementById('campo-busqueda');
+  if (campoBusqueda) {
+      let timeout = null;
+      campoBusqueda.addEventListener('input', () => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          const query = campoBusqueda.value.trim();
+          cargarClientes(query);
+        }, 300);
+      });
+  }
+});
