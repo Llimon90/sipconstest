@@ -8,7 +8,7 @@ ini_set('display_errors', 1);
 // CARGAR MIDDLEWARE Y CONEXIÓN
 require_once __DIR__ . '/../auth/middleware.php';
 
-// FORZAR QUE EL NAVEGADOR ENTIENDA QUE ES JSON
+// FORZAR QUE EL NAVEGADOR ENTIENDA QUE ES JSON 
 header('Content-Type: application/json');
 
 if (!isset($conn)) {
