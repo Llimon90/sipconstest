@@ -226,6 +226,6 @@
 
   <script src="../scripts/sidebar-state.js"></script>
   <script src="../scripts/script_cargas.js?v=19"></script>
-  <script>(function(){fetch("/auth/session_check.php").then(function(r){if(r.status===401){window.location.replace("/auth/login.html");}else{document.documentElement.style.visibility="";}}).catch(function(){document.documentElement.style.visibility="";});})();</script>
+  <script>(function(){fetch("../auth/session_check.php").then(function(r){if(r.status===401){window.location.replace("../auth/login.html");}else{document.documentElement.style.visibility="";}}).catch(function(){document.documentElement.style.visibility="";});})();</script>
 </body>
 </html>

@@ -34,15 +34,18 @@ function requireAuth(): void {
     }
 
     if (!isLoggedIn()) {
+        $appUrl   = rtrim($_ENV['APP_URL'] ?? '', '/');
+        $loginUrl = $appUrl . '/auth/login.html';
+
         if (
             isset($_SERVER['HTTP_ACCEPT']) &&
             strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false
         ) {
             http_response_code(401);
             header('Content-Type: application/json');
-            die(json_encode(['error' => 'No autorizado', 'login_url' => '/auth/login.html']));
+            die(json_encode(['error' => 'No autorizado', 'login_url' => $loginUrl]));
         }
-        header('Location: /auth/login.html');
+        header("Location: $loginUrl");
         exit;
     }
 }
