@@ -37,6 +37,7 @@ try {
 }
 
 // Clase Database (compatibilidad con archivos existentes)
+if (!class_exists('Database')):
 class Database {
     private PDO $conn;
 
@@ -67,5 +68,6 @@ class Database {
         return $this->conn;
     }
 }
+endif;
 
 // Headers de API definidos en auth/middleware.php
