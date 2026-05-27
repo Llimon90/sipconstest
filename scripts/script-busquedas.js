@@ -107,7 +107,7 @@ async function cargarIncidencias() {
 
     if (data.error) {
       tablaBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger fw-bold">Error SQL: ${data.error}</td></tr>`;
-      incidenciasTotales = [];
+      data = [];
       return;
     }
 
@@ -145,10 +145,17 @@ function mostrarIncidenciasPagina() {
     const esActiva = ['Abierto', 'Asignado', 'Pendiente', 'Completado', 'Programado'].includes(inc.estatus);
     const indiceGlobal = inicio + indexArray;
 
-    // CORRECCIÓN: Volvemos a usar la etiqueta <a> pero con javascript:void(0) para evitar que herede los estilos del botón y no salte la página.
-    let enlaceHTML = esProgramado 
-      ? `<a href="javascript:void(0);" class="fw-bold text-primary text-decoration-none" onclick="abrirModalProgramada(${indiceGlobal})"><i class="bi bi-window-stack"></i> ${inc.numero_incidente}</a>`
-      : `<a href="detalle.html?id=${inc.id}" class="text-decoration-none">${inc.numero_incidente || "N/A"}</a>`;
+    // Traducir códigos de reporte interno para el usuario en la tabla
+    let nombreReporteVisual = inc.numero_incidente;
+    if (inc.numero_incidente === 'PROG-CAL') {
+        nombreReporteVisual = 'CONTACTAR CLIENTE';
+    } else if (inc.numero_incidente === 'PROG-SERV') {
+        nombreReporteVisual = 'PROG-SERV ';
+    }
+
+    let enlaceHTML = esProgramado
+      ? `<a href="javascript:void(0);" class="fw-bold text-primary text-decoration-none" onclick="abrirModalProgramada(${indiceGlobal})"><i class="bi bi-window-stack"></i> ${nombreReporteVisual}</a>`
+      : `<a href="detalle.html?id=${inc.id}" class="text-decoration-none">${nombreReporteVisual || "N/A"}</a>`;
 
     row.innerHTML = `
       <td>${enlaceHTML}</td>
@@ -175,8 +182,7 @@ window.abrirModalProgramada = function(indice) {
   const lista = d.detalles_completos ? d.detalles_completos.split('||') : [];
   let equiposHTML = '<ul class="list-group list-group-flush border rounded" style="padding:0; margin:0;">';
   
-  lista.forEach(e => { 
-      // El PHP nos mandó: Marca~Modelo~Serie~Calibracion~Servicio~Garantia~FechaVenta
+  lista.forEach(e => {
       const partes = e.split('~');
       const marca = partes[0] || '';
       const modelo = partes[1] || '';
@@ -207,12 +213,12 @@ window.abrirModalProgramada = function(indice) {
           }
       }
 
-      // --- TEXTOS DE PERIODICIDAD SEPARADOS POR TIPO DE TICKET ---
+      // --- TEXTOS DE PERIODICIDAD MEJORADOS Y EXPLICATIVOS ---
       let textoPeriodo = "";
       if (d.numero_incidente === 'PROG-CAL' && calibracion > 0) {
-          textoPeriodo = `<div style="font-size: 0.8rem; color:#7f8c8d; margin-top:4px;"><i class="fas fa-sync-alt"></i> Frecuencia: Calibración cada ${calibracion} meses</div>`;
+          textoPeriodo = `<div style="font-size: 0.8rem; color:#7f8c8d; margin-top:4px;"><i class="fas fa-phone-alt text-danger"></i> <strong>Acción Técnica:</strong> Contactar al cliente para ofrecer Servicio programada cada ${calibracion} meses</div>`;
       } else if (d.numero_incidente === 'PROG-SERV' && servicio > 0) {
-          textoPeriodo = `<div style="font-size: 0.8rem; color:#7f8c8d; margin-top:4px;"><i class="fas fa-sync-alt"></i> Frecuencia: Mantenimiento cada ${servicio} meses</div>`;
+          textoPeriodo = `<div style="font-size: 0.8rem; color:#7f8c8d; margin-top:4px;"><i class="fas fa-sync-alt text-primary"></i> <strong>Frecuencia de Servicio:</strong> Mantenimiento Preventivo o Calibración requerida cada ${servicio} meses</div>`;
       }
 
       // --- CONSTRUCCIÓN DEL ROW DEL EQUIPO ---
@@ -236,10 +242,22 @@ window.abrirModalProgramada = function(indice) {
   const modalLabel = document.getElementById("modalProgramadaLabel");
   const modalBody = document.getElementById("modalProgramadaBody");
 
-  if(modalLabel) {
-      modalLabel.innerHTML = `<i class="bi bi-calendar-check text-primary"></i> Programación: ${d.numero_incidente} - ${d.numero}`;
+  // Ajustar textos informativos del encabezado del Modal
+  let tituloModalVisual = d.numero_incidente;
+  let explicacionTipoVisita = "";
+
+  if (d.numero_incidente === 'PROG-CAL') {
+      tituloModalVisual = 'CONTACTAR CLIENTE (RECOMENDAR SERVICIO)';
+      explicacionTipoVisita = 'CONTACTAR PARA OFRECER MANTENIMIENTO O CALIBRACIÓN';
+  } else if (d.numero_incidente === 'PROG-SERV') {
+      tituloModalVisual = 'PROG-SERV (MANTENIMIENTO / CALIBRACIÓN)';
+      explicacionTipoVisita = 'SERVICIO (MANTENIMIENTO O CALIBRACIÓN)';
   }
-  
+
+  if(modalLabel) {
+      modalLabel.innerHTML = `<i class="bi bi-calendar-check text-primary"></i> Programación: ${tituloModalVisual} - ${d.numero}`;
+  }
+
   if(modalBody) {
     modalBody.innerHTML = `
       <div class="row g-3 mb-3">
@@ -252,8 +270,8 @@ window.abrirModalProgramada = function(indice) {
         <div class="col-md-6">
           <label class="text-muted small d-block" style="text-transform:uppercase; font-weight:bold;">Fecha Agendada</label>
           <p class="mb-0"><span class="badge bg-warning text-dark px-3 py-2" style="font-size:1rem; border:1px solid #e1b100;">${d.fecha}</span></p>
-          <label class="text-muted small d-block mt-3" style="text-transform:uppercase; font-weight:bold;">Tipo de Visita</label>
-          <p class="mb-0 fw-bold" style="color:#2980b9;">${d.numero_incidente === 'PROG-CAL' ? 'CALIBRACIÓN' : 'MANTENIMIENTO PREVENTIVO'}</p>
+          <label class="text-muted small d-block mt-3" style="text-transform:uppercase; font-weight:bold;">Tipo de Gestión / Visita</label>
+          <p class="mb-0 fw-bold" style="color:#2980b9;">${explicacionTipoVisita}</p>
         </div>
       </div>
       <div class="bg-light p-3 rounded border">

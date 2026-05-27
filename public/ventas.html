@@ -64,9 +64,8 @@
           </div>
           <div>
             <label for="cliente"><i class="fas fa-building"></i> Cliente:</label>
-            <select id="cliente" name="cliente" required>
-              <option value="" selected disabled>Seleccione un cliente</option>
-            </select>
+            <input type="text" id="cliente" name="cliente" list="lista-clientes" placeholder="Escribe para buscar cliente..." autocomplete="off" required>
+            <datalist id="lista-clientes"></datalist>
           </div>
           <div>
             <label for="sucursal"><i class="fas fa-store"></i> Sucursal:</label>
@@ -102,18 +101,21 @@
             <input type="number" id="garantia" name="garantia" min="0" placeholder="0">
           </div>
           <div>
-            <label for="calibracion"><i class="fas fa-tools"></i> Calibración Recomendada (meses):</label>
+            <label for="calibracion"><i class="fas fa-tools"></i> Calibración o Servicio Recomendado (meses):</label>
             <input type="number" id="calibracion" name="calibracion" min="0" placeholder="0">
           </div>
           
-          <div class="checkbox-container">
-            <label for="servicio" class="checkbox-label" style="margin-top: 10px; cursor: pointer;">
-              <input type="checkbox" id="servicio" name="servicio">
-              <span class="checkmark"></span>
-              <strong><i class="fas fa-concierge-bell"></i> Cláusula de servicio</strong>
-            </label>
-            
-            <div id="contenedor-frecuencia" style="display: none; margin-top: 10px; background: #f1f5f9; padding: 10px; border-radius: 5px; border-left: 3px solid #3498db; width: 100%; box-sizing: border-box;">
+          <div style="display: flex; flex-direction: column;">
+            <label style="visibility: hidden; margin-bottom: 5px;">Opciones</label>
+
+            <div style="display: flex; align-items: center; padding: 8px 0;">
+              <input type="checkbox" id="servicio" name="servicio" style="width: 20px !important; height: 20px !important; margin: 0 10px 0 0 !important; cursor: pointer !important; display: inline-block !important; opacity: 1 !important; visibility: visible !important;">
+              <label for="servicio" style="margin: 0; cursor: pointer; font-weight: bold; color: #2c3e50; font-size: 1rem;">
+                <i class="fas fa-concierge-bell"></i> Cláusula de servicio
+              </label>
+            </div>
+
+            <div id="contenedor-frecuencia" style="display: none; margin-top: 5px; background: #f1f5f9; padding: 10px; border-radius: 5px; border-left: 3px solid #3498db; width: 100%; box-sizing: border-box;">
                 <label style="font-size: 0.8rem; font-weight: bold; color: #2c3e50; display: block; margin-bottom: 5px;">
                     <i class="fas fa-calendar-alt"></i> FRECUENCIA (MESES):
                 </label>
@@ -149,26 +151,75 @@
   </main>
 
   <script>
-    async function cargarClientesEnSelect() {
+    // Arreglo global de clientes válidos
+    let clientesValidos = [];
+
+    // Función para cargar clientes en el datalist
+    async function cargarClientesEnDatalist() {
         try {
             const response = await fetch(`../backend/obtener-clientes.php?t=${Date.now()}`, { cache: "no-store" });
             const clientes = await response.json();
 
-            const selectClientes = document.getElementById('cliente');
-            selectClientes.innerHTML = '<option value="" selected disabled>Seleccione un cliente</option>'; 
+            const datalist = document.getElementById('lista-clientes');
+            if (datalist) {
+                datalist.innerHTML = '';
+                clientesValidos = [];
 
-            clientes.forEach(cliente => {
-                const option = document.createElement('option');
-                option.value = cliente.nombre;
-                option.textContent = cliente.nombre;
-                selectClientes.appendChild(option);
-            });
+                clientes.forEach(cliente => {
+                    const option = document.createElement('option');
+                    option.value = cliente.nombre;
+                    datalist.appendChild(option);
+
+                    // Almacenar en mayúsculas para validación
+                    clientesValidos.push(cliente.nombre.trim().toUpperCase());
+                });
+            }
         } catch (error) {
             console.error('Error al cargar clientes:', error);
-            alert('Error al cargar clientes en el select');
+            alert('Error al cargar clientes en el listado');
         }
     }
-    document.addEventListener('DOMContentLoaded', cargarClientesEnSelect);
+
+    document.addEventListener('DOMContentLoaded', cargarClientesEnDatalist);
+
+    // Validación estricta en tiempo real para el input de clientes
+    document.addEventListener('DOMContentLoaded', () => {
+        const inputCliente = document.getElementById('cliente');
+
+        if (inputCliente) {
+            inputCliente.addEventListener('input', function() {
+                const valorDigitado = this.value.trim().toUpperCase();
+
+                if (valorDigitado && !clientesValidos.includes(valorDigitado)) {
+                    this.setCustomValidity("El cliente escrito no existe. Selecciona un cliente válido de la lista.");
+                } else {
+                    this.setCustomValidity("");
+                }
+            });
+        }
+    });
+
+    // Control nativo de la visibilidad de la frecuencia de servicio
+    document.addEventListener('DOMContentLoaded', () => {
+        const checkServicio = document.getElementById('servicio');
+        const contenedorFrecuencia = document.getElementById('contenedor-frecuencia');
+        const inputFrecuencia = document.getElementById('frecuencia_servicio');
+
+        if (checkServicio && contenedorFrecuencia) {
+            checkServicio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    contenedorFrecuencia.style.display = 'block';
+                    if (inputFrecuencia) inputFrecuencia.required = true;
+                } else {
+                    contenedorFrecuencia.style.display = 'none';
+                    if (inputFrecuencia) {
+                        inputFrecuencia.required = false;
+                        inputFrecuencia.value = '';
+                    }
+                }
+            });
+        }
+    });
   </script>
 
   <script src="../scripts/sidebar-state.js?v=1"></script>

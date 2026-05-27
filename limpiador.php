@@ -1,5 +1,5 @@
 <?php
-// Directorio de tu backend (ajusta si es necesario)
+
 $directorio = __DIR__; 
 
 $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directorio));

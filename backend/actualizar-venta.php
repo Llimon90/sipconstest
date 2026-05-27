@@ -16,15 +16,22 @@ try {
     // ==========================================
     // 1. ACTUALIZAR CABECERA (Tabla: ventas)
     // ==========================================
-    $stmtV = $pdo->prepare("UPDATE ventas SET 
-        cliente = ?, 
+
+    // Capturamos el valor del input "fecha_venta" del HTML
+    $fechaVenta = !empty($_POST['fecha_venta']) ? $_POST['fecha_venta'] : null;
+
+    // Consulta SQL completamente limpia de comentarios internos para evitar errores de sintaxis
+    $stmtV = $pdo->prepare("UPDATE ventas SET
+        cliente = ?,
         sucursal = ?,
-        fecha_actualizacion = NOW() 
+        fecha_registro = ?,
+        fecha_actualizacion = NOW()
         WHERE id = ?");
-    
+
     $stmtV->execute([
         $_POST['cliente'] ?? '',
         $_POST['sucursal'] ?? '',
+        $fechaVenta,
         $idVenta
     ]);
 

@@ -301,7 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     qtyInput.addEventListener('input', actualizarCamposSerie);
 
-    // Carga de Datos
     const cargarDatos = async () => {
         try {
             const resp = await fetch(`../backend/obtener_venta_full.php?id=${ventaId}`);
@@ -312,6 +311,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('cliente').value = data.venta.cliente;
                 document.getElementById('sucursal').value = data.venta.sucursal;
 
+               // ==========================================================
+                // CONTROL DE FECHA ASIGNADO A FECHA_REGISTRO
+                // ==========================================================
+                console.log("Contenido de data.venta recibido del servidor:", data.venta);
+
+                // Mapeamos directamente el campo fecha_registro de tu BD
+                if (data.venta.fecha_registro) {
+                    // Corta las horas (HH:MM:SS) para dejar el formato YYYY-MM-DD
+                    const fechaFormateada = data.venta.fecha_registro.split(' ')[0];
+                    document.getElementById('fecha_venta').value = fechaFormateada;
+                    console.log("Fecha de registro cargada en el input:", fechaFormateada);
+                } else {
+                    console.warn("La venta no tiene una fecha_registro asignada.");
+                }
+                // ==========================================================
+
                 if(data.series.length > 0) {
                     const d = data.series[0];
                     document.getElementById('equipo').value = d.equipo || '';
@@ -321,7 +336,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('calibracion').value = d.calibracion || 0;
                     document.getElementById('notas').value = d.notas || '';
                     
-                    // Configurar checkbox y frecuencia
                     document.getElementById('servicio').checked = (d.servicio == 1);
                     if (d.servicio == 1) {
                         contenedorFrecuencia.style.display = 'block';
@@ -350,7 +364,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     cargarDatos();
 
-    // Guardar los cambios (FormData)
     btnGuardar.addEventListener('click', async () => {
         const form = document.getElementById('form-editar-venta');
         const { hayErrores, hayVacios } = validarSeries();
@@ -391,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showNotification(e.message || "Error al conectar con el servidor", "error");
         } finally {
             btnGuardar.disabled = false;
-            btnGuardar.innerHTML = '<i class="fas fa-save"></i> Guardar Cambios de la Venta';
+            btnGuardar.innerHTML = '<i class="fas fa-save"></i> Guardar Cambios';
         }
     });
 
